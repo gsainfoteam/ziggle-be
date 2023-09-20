@@ -1,6 +1,6 @@
 ## Description
 
-# Database Structure
+### Database Structure
 
 ## Installation
 
