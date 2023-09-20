@@ -1,4 +1,4 @@
-Project Whirlwind {
+Project Ziggle {
     database_type: 'mariadb'
 }
 

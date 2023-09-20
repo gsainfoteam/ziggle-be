@@ -2,6 +2,8 @@
 
 ### Database Structure
 
+https://dbdocs.io/siwonpada/Ziggle
+
 ## Installation
 
 ```bash
