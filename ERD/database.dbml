@@ -4,20 +4,32 @@ Project Ziggle {
 
 Table User {
     uuid varchar [pk]
+    name varchar
+    consent boolean
 }
 
 Table Notice {
     id integer [pk, increment]
     title varchar
     views integer
-    author_id varchar [ref: > User.uuid]
-    tags integer [ref: <> Tag.id]
     body text [note: 'we will use markdown language, 한글']
-    reminders varchar [ref: <> User.uuid]
-    poster_id varchar 
     deadline date
-    created_at timestamp
+    createdAt timestamp
+    deletedAt timestamp
     imageUrls varchar
+    authorId varchar [ref: > User.uuid]
+    reminders varchar [ref: <> User.uuid]
+    tags integer [ref: <> Tag.id]
+}
+
+Table FcmToken {
+    token varchar [pk]
+    createdAt timestamp
+    lastCheckAt timestamp
+    successCount integer
+    failCount integer
+    errors varchar
+    user varchar [ref: <> User.uuid]
 }
 
 Table Tag {
