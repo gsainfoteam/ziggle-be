@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    uses: gsainfoteam/infoteam-infra/.github/workflows/default-docker-build.yml@master
+    uses: gsainfoteam/infoteam-actions/.github/workflows/default-docker-build.yml@master
     with:
       repo_name: ziggle-backend
     secrets:
