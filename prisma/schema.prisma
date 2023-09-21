@@ -10,20 +10,66 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum FileType {
+  IMAGE
+  DOCUMENT
+}
+
 model User {
   uuid     String   @id @default(uuid())
   name     String
+  createdAt DateTime @default(now()) @map("created_at")
   consent  Boolean
+
+  fcmTokens FcmToken[]
+}
+
+model File {
+  uuid String @id @default(uuid())
+  name String
+  createdAt DateTime @default(now()) @map("created_at")
+  url String
+  type FileType
+  noticeId Int @map("notice_id")
+  notice Notice @relation(fields: [noticeId], references: [id])
+}
+
+model Content {
+  id Int @id @default(autoincrement())
+  title String
+  body String
+  noticeId Int @map("notice_id")
+  notice Notice @relation(fields: [noticeId], references: [id])
+}
+
+model Tag {
+  id Int @id @default(autoincrement())
+  name String
+
+  notices Notice[]
 }
 
 model Notice {
   id         Int      @id @default(autoincrement())
   title      String
   views      Int
-  body       String
   deadline   DateTime
-  createdAt  DateTime @default(now())
-  deletedAt  DateTime?
-  imagesUrls String
+  createdAt  DateTime @default(now()) @map("created_at")
+  deletedAt  DateTime? @map("deleted_at")
 
+  files File[]
+  contents Content[]
+  tags Tag[]
+}
+
+model FcmToken {
+  token String @id
+  createdAt DateTime @default(now()) @map("created_at")
+  lastCheckAt DateTime @updatedAt @map("last_check_at")
+  successCount Int @default(0) @map("success_count")
+  failCount Int @default(0) @map("fail_count")
+  errors String
+
+  userUuid String @map("user_uuid")
+  user User @relation(fields: [userUuid], references: [uuid])
 }

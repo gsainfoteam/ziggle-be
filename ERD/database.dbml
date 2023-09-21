@@ -2,6 +2,11 @@ Project Ziggle {
     database_type: 'mysql'
 }
 
+Enum FileType {
+    IMAGE
+    DOCUMENT
+}
+
 Table User {
     uuid varchar [pk]
     name varchar
@@ -14,6 +19,8 @@ Table File {
     name varchar
     created_at timestamp
     url varchar
+    type FileType
+    notice_id integer [ref: > Notice.id]
 }
 
 Table Content {
@@ -30,8 +37,6 @@ Table Notice {
     created_at timestamp
     deleted_at timestamp
     author_id varchar [ref: > User.uuid]
-    images varchar [ref: <> File.uuid]
-    attachments varchar [ref: <> File.uuid]
     reminders varchar [ref: <> User.uuid]
     tags integer [ref: <> Tag.id]
 }
@@ -43,7 +48,7 @@ Table FcmToken {
     successCount integer
     failCount integer
     errors varchar
-    user varchar [ref: <> User.uuid]
+    user varchar [ref: > User.uuid]
 }
 
 Table Tag {
