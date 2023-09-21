@@ -8,15 +8,28 @@ Table User {
     consent boolean
 }
 
-Table Notice {
+Table File {
+    uuid varchar [pk]
+    name varchar
+    createdAt timestamp
+    url varchar
+}
+
+Table Content {
     id integer [pk, increment]
     title varchar
+    body text [note: 'we will use markdown language, korean or english']
+}
+
+Table Notice {
+    id integer [pk, increment]
     views integer
-    body text [note: 'we will use markdown language, 한글']
     deadline date
     createdAt timestamp
     deletedAt timestamp
-    imageUrls varchar
+    content integer [ref: > Content.id]
+    images varchar [ref: <> File.uuid]
+    attachments varchar [ref: <> File.uuid]
     authorId varchar [ref: > User.uuid]
     reminders varchar [ref: <> User.uuid]
     tags integer [ref: <> Tag.id]
@@ -35,34 +48,4 @@ Table FcmToken {
 Table Tag {
     id integer [pk, increment]
     name varchar
-}
-
-Table Recruitment {
-    id integer [pk, increment]
-    title varchar
-    maker_id varchar [ref: > User.uuid]
-    questions integer
-    deadline date
-    created_at timestamp
-}
-
-Table Question {
-    id integer [pk, increment]
-    name varchar
-    recruitment_id integer [ref: > Recruitment.id]
-}
-
-Table Answer {
-    id integer [pk, increment]
-    question_id integer [ref: > Question.id]
-    user_id varchar [ref: > User.uuid]
-    body text
-}
-
-Table Application {
-    id integer [pk, increment]
-    user_id varchar [ref: > User.uuid]
-    recruitment_id integer [ref: > Recruitment.id]
-    Answer integer [ref: <> Answer.id]
-    created_at timestamp
 }
