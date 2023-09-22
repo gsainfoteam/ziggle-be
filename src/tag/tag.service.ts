@@ -1,21 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Tag } from 'src/global/entity/tag.entity';
-import { Repository, Like, DeleteResult } from 'typeorm';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTagDto } from './dto/createTag.dto';
+import { Tag } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class TagService {
-  constructor(
-    @InjectRepository(Tag) private readonly tagRepository: Repository<Tag>,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async findAllTags(): Promise<Tag[]> {
-    return this.tagRepository.find();
+    return this.prismaService.tag.findMany();
   }
 
   async getTag(name: string): Promise<Tag> {
-    const tag = await this.tagRepository.findOneBy({ name });
+    const tag = await this.prismaService.tag.findUnique({ where: { name } });
     if (!tag) {
       throw new NotFoundException(`Notice with ID "${name}" not found`);
     }
@@ -23,18 +26,27 @@ export class TagService {
   }
 
   async searchTag(name: string): Promise<Tag[]> {
-    const tag = await this.tagRepository.find({
-      where: { name: Like(`${name}%`) },
+    return this.prismaService.tag.findMany({
+      where: {
+        name: {
+          contains: name,
+        },
+      },
     });
-    return tag;
   }
 
   async createTag({ name }: CreateTagDto): Promise<Tag> {
-    const newTag = this.tagRepository.create({ name });
-    return this.tagRepository.save(newTag);
+    return this.prismaService.tag.create({ data: { name } }).catch((err) => {
+      if (err instanceof PrismaClientKnownRequestError) {
+        if (err.code === 'P2002') {
+          throw new ConflictException();
+        }
+      }
+      throw new InternalServerErrorException();
+    });
   }
 
-  async deleteTag(id: number): Promise<DeleteResult> {
-    return this.tagRepository.delete({ id });
+  async deleteTag(id: number): Promise<void> {
+    this.prismaService.tag.delete({ where: { id } });
   }
 }

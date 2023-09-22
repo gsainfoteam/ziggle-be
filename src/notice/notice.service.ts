@@ -4,25 +4,22 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateNoticeDto } from './dto/createNotice.dto';
-import { NoticeRepository } from './notice.repository';
 import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
-import { UserRepository } from 'src/user/user.repository';
-import { TagRepository } from 'src/tag/tag.repository';
 import { ImageService } from 'src/image/image.service';
 import { FcmService } from 'src/global/service/fcm.service';
 import { Cron } from '@nestjs/schedule';
-import { User } from 'src/global/entity/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { htmlToText } from 'html-to-text';
 import dayjs from 'dayjs';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class NoticeService {
   s3Url: string;
   constructor(
-    private readonly noticeRepository: NoticeRepository,
-    private readonly userRepository: UserRepository,
-    private readonly tagRepository: TagRepository,
+    private readonly prismaService: PrismaService,
     private readonly imageService: ImageService,
     private readonly fcmService: FcmService,
     configService: ConfigService,
@@ -53,10 +50,24 @@ export class NoticeService {
   }
 
   async getNotice(id: number, user?: User) {
-    const notice = await this.noticeRepository.getNoticeAndUpdateViews(id);
-    if (!notice) {
-      throw new NotFoundException(`Notice with ID "${id}" not found`);
-    }
+    const notice = await this.prismaService.notice
+      .update({
+        where: { id },
+        include: {
+          contents: true,
+          reminders: true,
+          author: true,
+        },
+        data: { views: { increment: 1 } },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new NotFoundException(`Notice with ID "${id}" not found`);
+          }
+        }
+        throw new InternalServerErrorException();
+      });
     const { reminders, ...noticeInfo } = notice;
     return {
       ...noticeInfo,
