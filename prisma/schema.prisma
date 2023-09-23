@@ -56,7 +56,7 @@ model Tag {
 model Notice {
   id        Int       @id @default(autoincrement())
   title     String
-  views     Int
+  views     Int       @default(0)
   deadline  DateTime
   createdAt DateTime  @default(now()) @map("created_at")
   deletedAt DateTime? @map("deleted_at")
