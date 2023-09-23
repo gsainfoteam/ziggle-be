@@ -17,9 +17,9 @@ import { IdPGuard, IdPOptionalGuard } from './guard/idp.guard';
 import { UserInfo } from './type/userInfo.type';
 import { LoginDto } from './dto/login.dto';
 import { GetUser } from './decorator/get-user.decorator';
-import { User } from 'src/global/entity/user.entity';
 import { GetIdPUser } from './decorator/get-idp-user.decorator';
 import { Request, Response } from 'express';
+import { User } from '@prisma/client';
 
 @Controller('user')
 @UsePipes(ValidationPipe)

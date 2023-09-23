@@ -11,8 +11,8 @@ import { idpJwtResponse, idpUserInfoResponse } from './type/idp.type';
 import { AxiosError } from 'axios';
 import { UserInfo } from './type/userInfo.type';
 import { LoginDto } from './dto/login.dto';
-import { User } from 'src/global/entity/user.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UserService {

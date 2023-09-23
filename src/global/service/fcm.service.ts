@@ -1,18 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
 import { apps } from 'firebase-admin';
 import { initializeApp, cert } from 'firebase-admin/app';
 import { Notification, getMessaging } from 'firebase-admin/messaging';
-import { FcmToken } from '../entity/fcmToken.entity';
-import { In, Repository } from 'typeorm';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FcmService {
   constructor(
     configService: ConfigService,
-    @InjectRepository(FcmToken)
-    private readonly fcmTokenRepository: Repository<FcmToken>,
+    private readonly prismaService: PrismaService,
   ) {
     if (apps.length !== 0) return;
     initializeApp({
@@ -58,31 +55,23 @@ export class FcmService {
       response,
       token: tokens[index],
     }));
-    await this.fcmTokenRepository
-      .createQueryBuilder()
-      .update()
-      .whereInIds(
-        responses
-          .filter(({ response }) => response.success)
-          .map((r) => r.token),
-      )
-      .set({ successCount: () => 'successCount + 1' })
-      .execute();
-    const failedResponses = responses.filter(
-      ({ response }) => !response.success,
-    );
-    const failedTokens = await this.fcmTokenRepository.findBy({
-      token: In(failedResponses.map((r) => r.token)),
+    const sucessed = responses.filter(({ response }) => response.success);
+    const failed = responses.filter(({ response }) => !response.success);
+    await this.prismaService.fcmToken.updateMany({
+      where: {
+        token: { in: sucessed.map(({ token }) => token) },
+      },
+      data: {
+        successCount: { increment: 1 },
+      },
     });
-    failedTokens.forEach((t) => (t.failCount += 1));
-    failedResponses.forEach(({ response }, index) => {
-      failedTokens[index].errors = [
-        ...new Set([
-          ...(failedTokens[index].errors ?? []),
-          response.error.code,
-        ]),
-      ];
+    await this.prismaService.fcmToken.updateMany({
+      where: {
+        token: { in: failed.map(({ token }) => token) },
+      },
+      data: {
+        failCount: { increment: 1 },
+      },
     });
-    await this.fcmTokenRepository.save(failedTokens);
   }
 }
