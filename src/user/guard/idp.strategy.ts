@@ -3,15 +3,15 @@ import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-http-bearer';
 import { UserService } from '../user.service';
-import { UserRepository } from '../user.repository';
-import { User } from 'src/global/entity/user.entity';
 import { UserInfo } from '../type/userInfo.type';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class IdPStrategy extends PassportStrategy(Strategy, 'gistory-idp') {
   constructor(
     private readonly userService: UserService,
-    private readonly userRepository: UserRepository,
+    private readonly prismaService: PrismaService,
   ) {
     super();
   }
@@ -27,13 +27,18 @@ export class IdPStrategy extends PassportStrategy(Strategy, 'gistory-idp') {
     }
 
     //validate userUUID with user table
-    const user = await this.userRepository.findByUserUUID(userInfo.user_uuid);
+    const user = await this.prismaService.user.findUnique({
+      where: { uuid: userInfo.user_uuid },
+    });
     if (!user) {
       throw new UnauthorizedException('Invalid user');
     }
-
-    user.name = userInfo.user_name;
-    await user.save();
+    if (user.name !== userInfo.user_name) {
+      await this.prismaService.user.update({
+        where: { uuid: userInfo.user_uuid },
+        data: { name: userInfo.user_name },
+      });
+    }
 
     return { ziggle: user, idp: userInfo };
   }

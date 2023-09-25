@@ -4,7 +4,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UserRepository } from './user.repository';
 import { JwtToken } from './type/jwt.type';
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
@@ -12,14 +11,15 @@ import { idpJwtResponse, idpUserInfoResponse } from './type/idp.type';
 import { AxiosError } from 'axios';
 import { UserInfo } from './type/userInfo.type';
 import { LoginDto } from './dto/login.dto';
-import { User } from 'src/global/entity/user.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UserService {
   private idp_url: string;
 
   constructor(
-    private readonly userRepository: UserRepository,
+    private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
   ) {
@@ -136,9 +136,17 @@ export class UserService {
     const userData = await this.getUserInfoFromIdP(tokens.access_token);
 
     // if user not exist (user not use ziggle, but user has idp account), create user (auto sign up)
-    const user = await this.userRepository.findByUserUUID(userData.user_uuid);
+    const user = await this.prismaService.user.findUnique({
+      where: { uuid: userData.user_uuid },
+    });
     if (!user) {
-      await this.userRepository.createUser(userData);
+      await this.prismaService.user.create({
+        data: {
+          uuid: userData.user_uuid,
+          name: userData.user_name,
+          consent: false,
+        },
+      });
     }
 
     return { ...tokens, consent_required: !user?.consent };
@@ -148,9 +156,17 @@ export class UserService {
     const tokens = await this.refreshTokenFromIdP(refreshToken);
     const userData = await this.getUserInfoFromIdP(tokens.access_token);
 
-    const user = await this.userRepository.findByUserUUID(userData.user_uuid);
+    const user = await this.prismaService.user.findUnique({
+      where: { uuid: userData.user_uuid },
+    });
     if (!user) {
-      await this.userRepository.createUser(userData);
+      await this.prismaService.user.create({
+        data: {
+          uuid: userData.user_uuid,
+          name: userData.user_name,
+          consent: false,
+        },
+      });
     }
 
     return { ...tokens, consent_required: !user?.consent };
@@ -163,11 +179,25 @@ export class UserService {
   }
 
   async setFcmToken(userUuid: string, fcmToken: string) {
-    await this.userRepository.setFcmToken(userUuid, fcmToken);
+    await this.prismaService.user.update({
+      where: { uuid: userUuid },
+      data: {
+        fcmTokens: {
+          create: {
+            token: fcmToken,
+          },
+        },
+      },
+    });
     return { message: 'success', fcm_token: fcmToken };
   }
 
   async setConsent(user: User) {
-    await this.userRepository.setConsent(user);
+    await this.prismaService.user.update({
+      where: { uuid: user.uuid },
+      data: {
+        consent: true,
+      },
+    });
   }
 }

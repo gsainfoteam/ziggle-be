@@ -15,7 +15,7 @@ import { NoticeService } from './notice.service';
 import { IdPGuard, IdPOptionalGuard } from 'src/user/guard/idp.guard';
 import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
 import { GetUser } from 'src/user/decorator/get-user.decorator';
-import { User } from 'src/global/entity/user.entity';
+import { User } from '@prisma/client';
 
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))

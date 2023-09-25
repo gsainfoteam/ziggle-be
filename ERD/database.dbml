@@ -1,56 +1,57 @@
 Project Ziggle {
-    database_type: 'mariadb'
+    database_type: 'mysql'
+}
+
+Enum FileType {
+    IMAGE
+    DOCUMENT
 }
 
 Table User {
     uuid varchar [pk]
+    name varchar
+    created_at timestamp
+    consent boolean
+}
+
+Table File {
+    uuid varchar [pk]
+    name varchar
+    created_at timestamp
+    url varchar
+    type FileType
+    notice_id integer [ref: > Notice.id]
+}
+
+Table Content {
+    id integer [pk, increment]
+    title varchar
+    body text [note: 'we will use markdown language, korean or english']
+    notice_id integer [ref: > Notice.id]
 }
 
 Table Notice {
     id integer [pk, increment]
-    title varchar
     views integer
-    author_id varchar [ref: > User.uuid]
-    tags integer [ref: <> Tag.id]
-    body text [note: 'we will use markdown language, 한글']
-    reminders varchar [ref: <> User.uuid]
-    poster_id varchar 
     deadline date
     created_at timestamp
-    imageUrls varchar
+    deleted_at timestamp
+    author_id varchar [ref: > User.uuid]
+    reminders varchar [ref: <> User.uuid]
+    tags integer [ref: <> Tag.id]
+}
+
+Table FcmToken {
+    token varchar [pk]
+    createdAt timestamp
+    lastCheckAt timestamp
+    successCount integer
+    failCount integer
+    errors varchar
+    user varchar [ref: > User.uuid]
 }
 
 Table Tag {
     id integer [pk, increment]
     name varchar
-}
-
-Table Recruitment {
-    id integer [pk, increment]
-    title varchar
-    maker_id varchar [ref: > User.uuid]
-    questions integer
-    deadline date
-    created_at timestamp
-}
-
-Table Question {
-    id integer [pk, increment]
-    name varchar
-    recruitment_id integer [ref: > Recruitment.id]
-}
-
-Table Answer {
-    id integer [pk, increment]
-    question_id integer [ref: > Question.id]
-    user_id varchar [ref: > User.uuid]
-    body text
-}
-
-Table Application {
-    id integer [pk, increment]
-    user_id varchar [ref: > User.uuid]
-    recruitment_id integer [ref: > Recruitment.id]
-    Answer integer [ref: <> Answer.id]
-    created_at timestamp
 }
