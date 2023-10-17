@@ -17,7 +17,9 @@ FROM node:18-alpine
 WORKDIR /app
 
 ENV TZ=Asia/Seoul
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+  apk update && \
+  apk add build-base libheif vips-dev vips -q
 
 COPY --from=builder /app ./
 
