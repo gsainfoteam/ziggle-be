@@ -24,7 +24,7 @@ export class Notice extends BaseEntity {
   @Column({ default: 0 })
   views: number;
 
-  @Column({ length: 3000 })
+  @Column('longtext')
   body: string;
 
   @Column('datetime', { nullable: true })
