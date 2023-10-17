@@ -31,11 +31,7 @@ jobs:
 
       - name: Set version ENV, and commit
         run: |
-          if [ "${GITHUB_REF_NAME}" == "master" ]; then
-            VERSIONS_FILE_PATH=apps/mail/ziggle-backend-prod/versions.env
-          else
-            VERSIONS_FILE_PATH=apps/mail/ziggle-backend-stg/versions.env
-          fi
+          VERSIONS_FILE_PATH=apps/mail/ziggle-backend-prod/versions.env
 
           source $VERSIONS_FILE_PATH
           BACKEND_TAG="${GITHUB_REF_NAME}_${GITHUB_SHA}"
