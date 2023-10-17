@@ -40,11 +40,7 @@ jobs:
           EOF
           git config --local user.email "github-actions+ziggle_be@servers.gistory.me"
           git config --local user.name "Github-Actions[bot] @ gsainfoteam/ziggle_be"
-          if [ "${GITHUB_REF_NAME}" == "master" ]; then
-            git commit -a -m "mail/ziggle-backend-prod: update version.env to ${GITHUB_SHA::7}"
-          else
-            git commit -a -m "mail/ziggle-backend-stg: update version.env to ${GITHUB_SHA::7}"
-          fi
+          git commit -a -m "mail/ziggle-backend-stg: update version.env to ${GITHUB_SHA::7}"
       - name: Push to infoteam-infra
         uses: ad-m/github-push-action@master
         with:
