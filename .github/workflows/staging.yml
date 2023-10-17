@@ -2,7 +2,7 @@ name: Build & Deploy Staging
 
 on:
   push:
-    branch:
+    branches:
       - master
 
 jobs:
@@ -32,7 +32,7 @@ jobs:
       - name: Set version ENV, and commit
         run: |
           VERSIONS_FILE_PATH=apps/mail/ziggle-backend-stg/versions.env
-          
+
           source $VERSIONS_FILE_PATH
           BACKEND_TAG="${GITHUB_REF_NAME}_${GITHUB_SHA}"
           cat <<EOF > $VERSIONS_FILE_PATH
