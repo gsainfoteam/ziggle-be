@@ -31,10 +31,13 @@ export class UserController {
     @Query() authCode: LoginDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
+    @Query('type') type?: 'web' | 'local' | 'flutter',
   ): Promise<Omit<JwtToken, 'refresh_token'>> {
     const { refresh_token, ...token } = await this.userService.login(
       authCode,
-      (req.headers['user-agent'] as string).includes('Dart'),
+      type ?? (req.headers['user-agent'] as string).includes('Dart')
+        ? 'flutter'
+        : 'web',
     );
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,

@@ -29,7 +29,7 @@ export class UserService {
   /** get access token from idp server */
   async getAccessTokenFromIdP(
     authCode: string,
-    isFlutter: boolean,
+    type: 'web' | 'local' | 'flutter',
   ): Promise<idpJwtResponse> {
     const url = this.idp_url + '/token';
     const accessTokeResponse = await firstValueFrom(
@@ -39,9 +39,12 @@ export class UserService {
           {
             code: authCode,
             grant_type: 'authorization_code',
-            redirect_uri: isFlutter
-              ? this.configService.get<string>('FLUTTER_REDIRECT_URI')
-              : this.configService.get<string>('WEB_REDIRECT_URI'),
+            redirect_uri:
+              type === 'flutter'
+                ? this.configService.get<string>('FLUTTER_REDIRECT_URI')
+                : type === 'local'
+                ? this.configService.get<string>('WEB_LOCAL_REDIRECT_URI')
+                : this.configService.get<string>('WEB_REDIRECT_URI'),
           },
           {
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -131,8 +134,11 @@ export class UserService {
   }
 
   /** we assume user must have idp account */
-  async login({ code }: LoginDto, isFlutter: boolean): Promise<JwtToken> {
-    const tokens = await this.getAccessTokenFromIdP(code, isFlutter);
+  async login(
+    { code }: LoginDto,
+    type: 'web' | 'local' | 'flutter',
+  ): Promise<JwtToken> {
+    const tokens = await this.getAccessTokenFromIdP(code, type);
     const userData = await this.getUserInfoFromIdP(tokens.access_token);
 
     // if user not exist (user not use ziggle, but user has idp account), create user (auto sign up)
