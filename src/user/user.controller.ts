@@ -35,9 +35,10 @@ export class UserController {
   ): Promise<Omit<JwtToken, 'refresh_token'>> {
     const { refresh_token, ...token } = await this.userService.login(
       authCode,
-      type ?? (req.headers['user-agent'] as string).includes('Dart')
-        ? 'flutter'
-        : 'web',
+      type ??
+        ((req.headers['user-agent'] as string).includes('Dart')
+          ? 'flutter'
+          : 'web'),
     );
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
