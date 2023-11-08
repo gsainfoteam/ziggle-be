@@ -25,20 +25,39 @@ Table File {
 
 Table Content {
     id integer [pk, increment]
-    title varchar
-    body text [note: 'we will use markdown language, korean or english']
+
+    deadline timestamp
+    created_at timestamp
+
     notice_id integer [ref: > Notice.id]
+}
+
+Table Body {
+    id integer [pk, increment]
+    
+    lang varchar
+    detail text
+
+    content_id integer [ref: > Content.id]
 }
 
 Table Notice {
     id integer [pk, increment]
+
+    title varchar
     views integer
-    deadline date
+    current_deadline date
     created_at timestamp
     deleted_at timestamp
+
     author_id varchar [ref: > User.uuid]
     reminders varchar [ref: <> User.uuid]
     tags integer [ref: <> Tag.id]
+}
+
+Table Tag {
+    id integer [pk, increment]
+    name varchar
 }
 
 Table FcmToken {
@@ -49,9 +68,4 @@ Table FcmToken {
     failCount integer
     errors varchar
     user varchar [ref: > User.uuid]
-}
-
-Table Tag {
-    id integer [pk, increment]
-    name varchar
 }
