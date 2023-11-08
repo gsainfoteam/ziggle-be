@@ -10,26 +10,26 @@ Enum FileType {
 Table User {
     uuid varchar [pk]
     name varchar
-    created_at timestamp
+    createdAt timestamp
     consent boolean
 }
 
 Table File {
     uuid varchar [pk]
     name varchar
-    created_at timestamp
+    createdAt timestamp
     url varchar
     type FileType
-    notice_id integer [ref: > Notice.id]
+    notice integer [ref: > Notice.id]
 }
 
 Table Content {
     id integer [pk, increment]
 
     deadline timestamp
-    created_at timestamp
+    createdAt timestamp
 
-    notice_id integer [ref: > Notice.id]
+    notice integer [ref: > Notice.id]
 }
 
 Table Body {
@@ -38,7 +38,7 @@ Table Body {
     lang varchar
     detail text
 
-    content_id integer [ref: > Content.id]
+    content integer [ref: > Content.id]
 }
 
 Table Notice {
@@ -46,11 +46,11 @@ Table Notice {
 
     title varchar
     views integer
-    current_deadline date
-    created_at timestamp
-    deleted_at timestamp
+    currentDeadline date
+    createdAt timestamp
+    deletedAt timestamp
 
-    author_id varchar [ref: > User.uuid]
+    author varchar [ref: > User.uuid]
     reminders varchar [ref: <> User.uuid]
     tags integer [ref: <> Tag.id]
 }
