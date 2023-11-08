@@ -26,6 +26,7 @@ Table File {
 Table Content {
     id integer [pk, increment]
 
+    title varchar
     deadline timestamp
     createdAt timestamp
 
@@ -44,7 +45,6 @@ Table Body {
 Table Notice {
     id integer [pk, increment]
 
-    title varchar
     views integer
     currentDeadline date
     createdAt timestamp

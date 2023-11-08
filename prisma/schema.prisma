@@ -37,31 +37,46 @@ model File {
   notice   Notice @relation(fields: [noticeId], references: [id])
 }
 
-model Content {
-  id    Int    @id @default(autoincrement())
-  title String
-  body  String
+model Body {
+  id Int @id @default(autoincrement())
 
+  lang String
+  body String
+
+  contentId Int     @map("content_id")
+  content   Content @relation(fields: [contentId], references: [id])
+}
+
+model Content {
+  id Int @id @default(autoincrement())
+
+  title     String
+  deadline  DateTime
+  createdAt DateTime @default(now()) @map("created_at")
+
+
+  bodys     Body[]
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id])
 }
 
 model Tag {
-  id   Int    @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   name String @unique
 
   notices Notice[]
 }
 
 model Notice {
-  id        Int       @id @default(autoincrement())
-  title     String
-  views     Int       @default(0)
-  deadline  DateTime
-  createdAt DateTime  @default(now()) @map("created_at")
-  deletedAt DateTime? @map("deleted_at")
-  authorId  String    @map("author_id")
+  id Int @id @default(autoincrement())
 
+  views           Int       @default(0)
+  currentDeadline DateTime  @map("current_deadline")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  authorId  String    @map("author_id")
   reminders User[]    @relation("Reminder")
   author    User      @relation(fields: [authorId], references: [uuid])
   files     File[]
