@@ -106,14 +106,23 @@ export class NoticeService {
     };
   }
 
-  async getNotice(id: number, user?: User) {
+  async getNotice(id: number, userUuid?: string) {
     const notice = await this.prismaService.notice
       .update({
         where: { id },
         include: {
-          contents: true,
+          contents: {
+            orderBy: {
+              id: 'asc',
+            },
+          },
           reminders: true,
-          author: true,
+          tags: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
           files: true,
         },
         data: { views: { increment: 1 } },
@@ -130,8 +139,8 @@ export class NoticeService {
     return {
       ...noticeInfo,
       author: notice.author.name,
-      imagesUrl: notice.files?.map((file) => `${this.s3Url}${file.url}`),
-      reminder: reminders.some((reminder) => reminder.uuid === user?.uuid),
+      imagesUrls: notice.files?.map((file) => `${this.s3Url}${file.url}`),
+      reminder: reminders.some((reminder) => reminder.uuid === userUuid),
     };
   }
 

@@ -37,7 +37,7 @@ export class NoticeController {
   @Get(':id')
   @UseGuards(IdPOptionalGuard)
   async getNotice(@Param('id') id: number, @GetUser() user?: User) {
-    return this.noticeService.getNotice(id, user);
+    return this.noticeService.getNotice(id, user?.uuid);
   }
 
   /* notice 생성 */
