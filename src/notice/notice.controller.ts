@@ -19,6 +19,7 @@ import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
 import { GetUser } from 'src/user/decorator/get-user.decorator';
 import { User } from '@prisma/client';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
+import { ForeignContentDto } from './dto/foreignContent.dto';
 
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -68,12 +69,18 @@ export class NoticeController {
 
   @Post(':id/:contentIdx/forign')
   @UseGuards(IdPGuard)
-  async addForignContent(
+  async addForeignContent(
     @Param('id') id: number,
     @Param('contentIdx') idx: number,
     @GetUser() user: User,
+    @Body() foreignContentDto: ForeignContentDto,
   ) {
-    return;
+    return this.noticeService.addForeignContent(
+      foreignContentDto,
+      id,
+      idx,
+      user?.uuid,
+    );
   }
 
   /* notice 구독자 추가 notice 수정이 아니므로 작성자가 아니어도 가능 */

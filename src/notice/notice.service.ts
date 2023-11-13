@@ -14,9 +14,10 @@ import { ConfigService } from '@nestjs/config';
 import { htmlToText } from 'html-to-text';
 import dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { FileType, Notice, User } from '@prisma/client';
+import { FileType } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
+import { ForeignContentDto } from './dto/foreignContent.dto';
 
 @Injectable()
 export class NoticeService {
@@ -262,6 +263,35 @@ export class NoticeService {
         currentDeadline: deadline,
       },
     });
+  }
+
+  async addForeignContent(
+    { lang, title, body, deadline }: ForeignContentDto,
+    id: number,
+    idx: number,
+    userUuid: string,
+  ) {
+    return this.prismaService.notice
+      .update({
+        where: {
+          id,
+          authorId: userUuid,
+        },
+        data: {
+          contents: {
+            create: {
+              id: idx,
+              lang,
+              title,
+              body,
+              deadline,
+            },
+          },
+        },
+      })
+      .catch(() => {
+        throw new ForbiddenException();
+      });
   }
 
   async modifyNoticeReminder(id: number, userUuid: string, remind: boolean) {
