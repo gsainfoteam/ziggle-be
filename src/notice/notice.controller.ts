@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseBoolPipe,
   Post,
   Put,
   Query,
@@ -78,8 +79,12 @@ export class NoticeController {
   /* notice 구독자 추가 notice 수정이 아니므로 작성자가 아니어도 가능 */
   @Put(':id/reminder')
   @UseGuards(IdPGuard)
-  async addNoticeReminder(@GetUser() user: User, @Param('id') id: number) {
-    return this.noticeService.modifyNoticeReminder(id, user?.uuid);
+  async addNoticeReminder(
+    @GetUser() user: User,
+    @Param('id') id: number,
+    @Body('remind', ParseBoolPipe) remind: boolean,
+  ) {
+    return this.noticeService.modifyNoticeReminder(id, user?.uuid, remind);
   }
 
   /* notice 삭제는 작성자만 가능 */

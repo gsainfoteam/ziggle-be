@@ -264,8 +264,34 @@ export class NoticeService {
     });
   }
 
-  async modifyNoticeReminder(id: number, userUuid: string) {
-    return;
+  async modifyNoticeReminder(id: number, userUuid: string, remind: boolean) {
+    if (remind) {
+      return this.prismaService.notice.update({
+        where: {
+          id,
+        },
+        data: {
+          reminders: {
+            connect: {
+              uuid: userUuid,
+            },
+          },
+        },
+      });
+    } else {
+      return this.prismaService.notice.update({
+        where: {
+          id,
+        },
+        data: {
+          reminders: {
+            disconnect: {
+              uuid: userUuid,
+            },
+          },
+        },
+      });
+    }
   }
 
   async deleteNotice(id: number, userUUID: string): Promise<void> {
