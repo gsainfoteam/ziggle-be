@@ -146,15 +146,16 @@ export class NoticeService {
 
   async createNotice(
     { title, body, deadline, tags, images }: CreateNoticeDto,
-    userUUID: string,
+    userUuid: string,
   ) {
     const user = await this.prismaService.user
       .findUniqueOrThrow({
-        where: { uuid: userUUID },
+        where: { uuid: userUuid },
       })
       .catch(() => {
-        throw new NotFoundException(`User with UUID "${userUUID}" not found`);
+        throw new NotFoundException(`User with UUID "${userUuid}" not found`);
       });
+
     let findTags = undefined;
     if (tags) {
       findTags = await this.prismaService.tag.findMany({
@@ -201,16 +202,16 @@ export class NoticeService {
         throw new InternalServerErrorException();
       });
 
-    // const tokens = await this.prismaService.fcmToken.findMany();
-    // this.fcmService.postMessage(
-    //   {
-    //     title: '새 공지글',
-    //     body: title,
-    //     imageUrl: images.length === 0 ? undefined : `${this.s3Url}${images[0]}`,
-    //   },
-    //   tokens.map(({ token }) => token),
-    //   { path: `/root/article?id=${notice.id}` },
-    // );
+    const tokens = await this.prismaService.fcmToken.findMany();
+    this.fcmService.postMessage(
+      {
+        title: '새 공지글',
+        body: title,
+        imageUrl: images.length === 0 ? undefined : `${this.s3Url}${images[0]}`,
+      },
+      tokens.map(({ token }) => token),
+      { path: `/root/article?id=${notice.id}` },
+    );
     return this.getNotice(notice.id);
   }
 

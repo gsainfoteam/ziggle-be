@@ -42,15 +42,12 @@ export class NoticeController {
 
   /* notice 생성 */
   @Post()
-  //@UseGuards(IdPGuard)
+  @UseGuards(IdPGuard)
   async createNotice(
-    //@GetUser() user: User,
+    @GetUser() user: User,
     @Body() createNoticeDto: CreateNoticeDto,
   ) {
-    return this.noticeService.createNotice(
-      createNoticeDto,
-      '26fdf01a-1aa3-4e65-97ba-de2f0e6a9cc5',
-    );
+    return this.noticeService.createNotice(createNoticeDto, user.uuid);
   }
 
   @Post(':id/additional')
