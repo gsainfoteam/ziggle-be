@@ -8,18 +8,15 @@ import {
   ParseIntPipe,
   Post,
   Query,
-  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { TagService } from './tag.service';
 import { GetTagDto } from './dto/getTag.dto';
 import { CreateTagDto } from './dto/createTag.dto';
-import { convertCaseInterceptor } from 'src/global/interceptor/convertCase.interceptor';
 
 @Controller('tag')
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseInterceptors(convertCaseInterceptor)
 export class TagController {
   constructor(private tagService: TagService) {}
 
