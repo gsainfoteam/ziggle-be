@@ -17,6 +17,7 @@ import { IdPGuard, IdPOptionalGuard } from 'src/user/guard/idp.guard';
 import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
 import { GetUser } from 'src/user/decorator/get-user.decorator';
 import { User } from '@prisma/client';
+import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
 
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -51,14 +52,25 @@ export class NoticeController {
   }
 
   @Post(':id/additional')
-  async addNoticeAdditional(@Param('id') id: number) {
-    return;
+  @UseGuards(IdPGuard)
+  async addNoticeAdditional(
+    @Param('id') id: number,
+    @GetUser() user: User,
+    @Body() additionalNoticeDto: AdditionalNoticeDto,
+  ) {
+    return this.noticeService.addNoticeAdditional(
+      additionalNoticeDto,
+      id,
+      user.uuid,
+    );
   }
 
   @Post(':id/:contentIdx/forign')
+  @UseGuards(IdPGuard)
   async addForignContent(
     @Param('id') id: number,
     @Param('contentIdx') idx: number,
+    @GetUser() user: User,
   ) {
     return;
   }
@@ -67,7 +79,7 @@ export class NoticeController {
   @Put(':id/reminder')
   @UseGuards(IdPGuard)
   async addNoticeReminder(@GetUser() user: User, @Param('id') id: number) {
-    return this.noticeService.addNoticeReminder(id, user);
+    return this.noticeService.modifyNoticeReminder(id, user?.uuid);
   }
 
   /* notice 삭제는 작성자만 가능 */

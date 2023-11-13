@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -15,6 +16,7 @@ import dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FileType, Notice, User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
 
 @Injectable()
 export class NoticeService {
@@ -215,30 +217,55 @@ export class NoticeService {
     return this.getNotice(notice.id);
   }
 
-  async addNoticeReminder(id: number, user: User): Promise<Notice> {
-    return await this.prismaService.notice.update({
-      where: { id },
-      data: {
-        reminders: {
-          connect: {
-            uuid: user.uuid,
+  async addNoticeAdditional(
+    { title, body, deadline }: AdditionalNoticeDto,
+    id: number,
+    userUuid: string,
+  ) {
+    const notice = await this.prismaService.notice
+      .findUniqueOrThrow({
+        where: {
+          id,
+        },
+        include: {
+          contents: {
+            where: {
+              lang: 'ko',
+            },
+            orderBy: {
+              id: 'desc',
+            },
           },
         },
+      })
+      .catch(() => {
+        throw new NotFoundException();
+      });
+    if (notice.authorId !== userUuid) {
+      throw new ForbiddenException();
+    }
+
+    return this.prismaService.notice.update({
+      where: {
+        id,
+      },
+      data: {
+        contents: {
+          create: {
+            id: notice.contents[0].id,
+            lang: 'ko',
+            title: title ?? '',
+            body,
+            deadline,
+          },
+        },
+        currentDeadline: deadline,
       },
     });
   }
 
-  async removeNoticeReminder(id: number, user: User): Promise<Notice> {
-    return await this.prismaService.notice.update({
-      where: { id },
-      data: {
-        reminders: {
-          disconnect: {
-            uuid: user.uuid,
-          },
-        },
-      },
-    });
+  async modifyNoticeReminder(id: number, userUuid: string) {
+    return;
   }
 
   async deleteNotice(id: number, userUUID: string): Promise<void> {
