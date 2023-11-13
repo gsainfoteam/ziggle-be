@@ -23,6 +23,7 @@ import { convertCaseInterceptor } from 'src/global/interceptor/convertCase.inter
 export class TagController {
   constructor(private tagService: TagService) {}
 
+  /* query에 name이 있으면, 그 이름의 tag, search가 있으면, 그 키워드가 들어가는 tag, 아무것도 없으면 모든 tags를 받아오는 api */
   @Get()
   async findAll(@Query() query: GetTagDto) {
     if (Object.keys(query).length === 0) {
@@ -36,11 +37,13 @@ export class TagController {
     }
   }
 
+  /* tag를 만드는 api */
   @Post()
   async create(@Body() body: CreateTagDto) {
     return this.tagService.createTag(body);
   }
 
+  /* tag를 삭제하는 api */
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
     return this.tagService.deleteTag(id);
