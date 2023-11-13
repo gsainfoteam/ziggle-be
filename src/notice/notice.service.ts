@@ -93,13 +93,16 @@ export class NoticeService {
       },
     });
     return {
-      list: notices.map(({ authorId, files, author, ...notice }) => ({
-        ...notice,
-        author: author.name,
-        imageUrl: files?.[0]?.url ? `${this.s3Url}${files[0].url}` : null,
-        title: notice.contents[0].title,
-        body: htmlToText(notice.contents[0].body),
-      })),
+      list: notices.map(({ files, author, ...notice }) => {
+        delete notice.authorId;
+        return {
+          ...notice,
+          author: author.name,
+          imageUrl: files?.[0]?.url ? `${this.s3Url}${files[0].url}` : null,
+          title: notice.contents[0].title,
+          body: htmlToText(notice.contents[0].body),
+        };
+      }),
     };
   }
 
