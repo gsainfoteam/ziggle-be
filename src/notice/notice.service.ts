@@ -32,19 +32,57 @@ export class NoticeService {
   }
 
   async getNoticeList(
-    getAllNoticeQueryDto: GetAllNoticeQueryDto,
+    { offset, limit, lang, search, tags, orderBy, my }: GetAllNoticeQueryDto,
     userUuid?: string,
   ) {
-    const result = await this.prismaService.notice.findMany({
-      take: getAllNoticeQueryDto.limit,
-      skip: getAllNoticeQueryDto.offset,
-      include: {
-        author: true,
+    const notices = await this.prismaService.notice.findMany({
+      take: limit,
+      skip: offset,
+      orderBy: {
+        currentDeadline: orderBy === 'deadline' ? 'asc' : undefined,
+        views: orderBy === 'hot' ? 'desc' : undefined,
+        createdAt: orderBy === 'recent' ? 'desc' : undefined,
+      },
+      where: {
+        deletedAt: null,
+        authorId: my === 'own' ? userUuid : undefined,
+        reminders:
+          my === 'reminders'
+            ? {
+                some: {
+                  uuid: userUuid,
+                },
+              }
+            : undefined,
+        tags:
+          tags === undefined
+            ? undefined
+            : {
+                some: { name: { in: tags } },
+              },
         contents: {
-          include: {
-            bodys: {
-              take: 1,
+          some: {
+            AND: {
+              lang: lang ?? 'ko',
+              OR: [
+                { title: { contains: search } },
+                { body: { contains: search } },
+              ],
             },
+          },
+        },
+      },
+      include: {
+        tags: true,
+        contents: {
+          orderBy: {
+            id: 'asc',
+          },
+          take: 1,
+        },
+        author: {
+          select: {
+            name: true,
           },
         },
         files: {
@@ -53,57 +91,14 @@ export class NoticeService {
           },
         },
       },
-      orderBy: {
-        currentDeadline:
-          getAllNoticeQueryDto.orderBy === 'deadline' ? 'desc' : undefined,
-        views: getAllNoticeQueryDto.orderBy === 'hot' ? 'desc' : undefined,
-        createdAt:
-          getAllNoticeQueryDto.orderBy === 'recent' ? 'desc' : undefined,
-      },
-      where: {
-        authorId: getAllNoticeQueryDto.my === 'own' ? userUuid : undefined,
-        reminders: {
-          some: {
-            uuid:
-              getAllNoticeQueryDto.my === 'reminders' ? userUuid : undefined,
-          },
-        },
-        contents: {
-          some: {
-            OR: [
-              {
-                bodys: {
-                  some: {
-                    body: {
-                      contains: getAllNoticeQueryDto.search,
-                    },
-                  },
-                },
-              },
-              {
-                title: {
-                  contains: getAllNoticeQueryDto.search,
-                },
-              },
-            ],
-          },
-        },
-        tags: {
-          some: {
-            name: {
-              in: getAllNoticeQueryDto.tags,
-            },
-          },
-        },
-      },
     });
     return {
-      ...result,
-      list: result.map(({ files, ...notice }) => ({
+      list: notices.map(({ authorId, files, author, ...notice }) => ({
         ...notice,
-        author: notice.author.name,
-        imageUrl: files?.[0].url ? `${this.s3Url}${files[0].url}` : null,
-        body: htmlToText(notice.contents[0].bodys[0].body).slice(0, 100),
+        author: author.name,
+        imageUrl: files?.[0]?.url ? `${this.s3Url}${files[0].url}` : null,
+        title: notice.contents[0].title,
+        body: htmlToText(notice.contents[0].body),
       })),
     };
   }
@@ -142,13 +137,13 @@ export class NoticeService {
     userUUID: string,
   ) {
     const user = await this.prismaService.user
-      .findUnique({
+      .findUniqueOrThrow({
         where: { uuid: userUUID },
       })
       .catch(() => {
         throw new NotFoundException(`User with UUID "${userUUID}" not found`);
       });
-    let findTags = null;
+    let findTags = undefined;
     if (tags) {
       findTags = await this.prismaService.tag.findMany({
         where: {
@@ -170,13 +165,10 @@ export class NoticeService {
           },
           contents: {
             create: {
+              id: 1,
               title,
-              bodys: {
-                create: {
-                  lang: 'ko',
-                  body,
-                },
-              },
+              body,
+              lang: 'ko',
               deadline: deadline || null,
             },
           },
@@ -197,16 +189,16 @@ export class NoticeService {
         throw new InternalServerErrorException();
       });
 
-    const tokens = await this.prismaService.fcmToken.findMany();
-    this.fcmService.postMessage(
-      {
-        title: '새 공지글',
-        body: title,
-        imageUrl: images.length === 0 ? undefined : `${this.s3Url}${images[0]}`,
-      },
-      tokens.map(({ token }) => token),
-      { path: `/root/article?id=${notice.id}` },
-    );
+    // const tokens = await this.prismaService.fcmToken.findMany();
+    // this.fcmService.postMessage(
+    //   {
+    //     title: '새 공지글',
+    //     body: title,
+    //     imageUrl: images.length === 0 ? undefined : `${this.s3Url}${images[0]}`,
+    //   },
+    //   tokens.map(({ token }) => token),
+    //   { path: `/root/article?id=${notice.id}` },
+    // );
     return this.getNotice(notice.id);
   }
 

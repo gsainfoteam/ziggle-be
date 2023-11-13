@@ -37,27 +37,19 @@ model File {
   notice   Notice @relation(fields: [noticeId], references: [id])
 }
 
-model Body {
-  id Int @id @default(autoincrement())
-
-  lang String
-  body String
-
-  contentId Int     @map("content_id")
-  content   Content @relation(fields: [contentId], references: [id])
-}
-
 model Content {
-  id Int @id @default(autoincrement())
+  id Int
 
+  lang      String
   title     String
-  deadline  DateTime
-  createdAt DateTime @default(now()) @map("created_at")
+  body      String
+  deadline  DateTime?
+  createdAt DateTime  @default(now()) @map("created_at")
 
-
-  bodys     Body[]
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id])
+
+  @@id([id, lang, noticeId])
 }
 
 model Tag {
@@ -72,8 +64,9 @@ model Notice {
   id Int @id @default(autoincrement())
 
   views           Int       @default(0)
-  currentDeadline DateTime  @map("current_deadline")
+  currentDeadline DateTime? @map("current_deadline")
   createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @map("updated_at")
   deletedAt       DateTime? @map("deleted_at")
 
   authorId  String    @map("author_id")
