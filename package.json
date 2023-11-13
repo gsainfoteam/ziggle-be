@@ -42,7 +42,8 @@
     "path": "^0.12.7",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
-    "sharp": "^0.32.1"
+    "sharp": "^0.32.1",
+    "ts-case-convert": "^2.0.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
