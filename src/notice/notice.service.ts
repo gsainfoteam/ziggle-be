@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateNoticeDto } from './dto/createNotice.dto';
@@ -17,7 +18,8 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class NoticeService {
-  s3Url: string;
+  private readonly logger = new Logger(NoticeService.name);
+  private readonly s3Url: string;
   constructor(
     private readonly prismaService: PrismaService,
     private readonly imageService: ImageService,
@@ -27,7 +29,6 @@ export class NoticeService {
     this.s3Url = `https://s3.${configService.get<string>(
       'AWS_S3_REGION',
     )}.amazonaws.com/${configService.get<string>('AWS_S3_BUCKET_NAME')}/`;
-    // this.sendReminderMessage();
   }
 
   async getNoticeList(
@@ -39,7 +40,13 @@ export class NoticeService {
       skip: getAllNoticeQueryDto.offset,
       include: {
         author: true,
-        contents: true,
+        contents: {
+          include: {
+            bodys: {
+              take: 1,
+            },
+          },
+        },
         files: {
           where: {
             type: FileType.IMAGE,
@@ -47,7 +54,7 @@ export class NoticeService {
         },
       },
       orderBy: {
-        deadline:
+        currentDeadline:
           getAllNoticeQueryDto.orderBy === 'deadline' ? 'desc' : undefined,
         views: getAllNoticeQueryDto.orderBy === 'hot' ? 'desc' : undefined,
         createdAt:
@@ -65,8 +72,12 @@ export class NoticeService {
           some: {
             OR: [
               {
-                body: {
-                  contains: getAllNoticeQueryDto.search,
+                bodys: {
+                  some: {
+                    body: {
+                      contains: getAllNoticeQueryDto.search,
+                    },
+                  },
                 },
               },
               {
@@ -92,7 +103,7 @@ export class NoticeService {
         ...notice,
         author: notice.author.name,
         imageUrl: files?.[0].url ? `${this.s3Url}${files[0].url}` : null,
-        body: htmlToText(notice.contents[0].body).slice(0, 100),
+        body: htmlToText(notice.contents[0].bodys[0].body).slice(0, 100),
       })),
     };
   }
@@ -154,17 +165,22 @@ export class NoticeService {
     const notice = await this.prismaService.notice
       .create({
         data: {
-          title,
           author: {
             connect: user,
           },
           contents: {
             create: {
               title,
-              body,
+              bodys: {
+                create: {
+                  lang: 'ko',
+                  body,
+                },
+              },
+              deadline: deadline || null,
             },
           },
-          deadline,
+          currentDeadline: deadline || null,
           tags: {
             connect: findTags,
           },
@@ -242,7 +258,7 @@ export class NoticeService {
   async sendReminderMessage() {
     const targetNotices = await this.prismaService.notice.findMany({
       where: {
-        deadline: {
+        currentDeadline: {
           gte: dayjs().startOf('d').add(1, 'd').toDate(),
           lte: dayjs().startOf('d').add(2, 'd').toDate(),
         },
@@ -253,17 +269,18 @@ export class NoticeService {
             fcmTokens: true,
           },
         },
+        contents: true,
         files: true,
       },
     });
     targetNotices.map((notice) => {
-      const leftDate = dayjs(notice.deadline)
+      const leftDate = dayjs(notice.currentDeadline)
         .startOf('d')
         .diff(dayjs().startOf('d'), 'd');
       return this.fcmService.postMessage(
         {
           title: `[Reminder] ${leftDate}일 남은 공지가 있어요!`,
-          body: `${notice.title} 마감이 ${leftDate}일 남았어요`,
+          body: `${notice.contents[0].title} 마감이 ${leftDate}일 남았어요`,
           imageUrl: notice.files?.[0].url
             ? `${this.s3Url}${notice.files[0].url}`
             : undefined,
