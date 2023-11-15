@@ -123,12 +123,15 @@ export class NoticeService {
     return this.getNotice(id);
   }
 
-  async modifyNoticeReminder(id: number, userUuid: string, remind: boolean) {
-    if (remind) {
-      await this.noticeRepository.addReminder(id, userUuid);
-    } else {
-      await this.noticeRepository.removeReminder(id, userUuid);
-    }
+  async addNoticeReminder(id: number, userUuid: string) {
+    await this.noticeRepository.addReminder(id, userUuid);
+
+    return this.getNotice(id, userUuid);
+  }
+
+  async removeNoticeReminder(id: number, userUuid: string) {
+    await this.noticeRepository.removeReminder(id, userUuid);
+
     return this.getNotice(id, userUuid);
   }
 

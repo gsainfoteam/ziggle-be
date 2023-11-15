@@ -4,10 +4,8 @@ import {
   Delete,
   Get,
   Param,
-  ParseBoolPipe,
   ParseIntPipe,
   Post,
-  Put,
   Query,
   UseGuards,
   UsePipes,
@@ -88,14 +86,16 @@ export class NoticeController {
   }
 
   /* notice 구독자 추가 notice 수정이 아니므로 작성자가 아니어도 가능 */
-  @Put(':id/reminder')
+  @Post(':id/reminder')
   @UseGuards(IdPGuard)
-  async addNoticeReminder(
-    @GetUser() user: User,
-    @Param('id') id: number,
-    @Body('remind', ParseBoolPipe) remind: boolean,
-  ) {
-    return this.noticeService.modifyNoticeReminder(id, user?.uuid, remind);
+  async addNoticeReminder(@GetUser() user: User, @Param('id') id: number) {
+    return this.noticeService.addNoticeReminder(id, user?.uuid);
+  }
+
+  @Delete(':id/reminder')
+  @UseGuards(IdPGuard)
+  async deleteNoticeReminder(@GetUser() user: User, @Param('id') id: number) {
+    return this.noticeService.removeNoticeReminder(id, user?.uuid);
   }
 
   /* notice 삭제는 작성자만 가능 */
