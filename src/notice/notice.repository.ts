@@ -21,14 +21,67 @@ export class NoticeRepository {
   private readonly logger = new Logger(NoticeRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
+  async getTotalCount(
+    { lang, search, tags, my }: GetAllNoticeQueryDto,
+    userUuid?: string,
+  ): Promise<number> {
+    return this.prismaService.notice.count({
+      where: {
+        deletedAt: null,
+        authorId: my === 'own' ? userUuid : undefined,
+        reminders:
+          my === 'reminders'
+            ? {
+                some: {
+                  uuid: userUuid,
+                },
+              }
+            : undefined,
+        tags: tags && {
+          some: { name: { in: tags } },
+        },
+        OR: [
+          {
+            contents: {
+              some: {
+                AND: {
+                  lang: lang ?? 'ko',
+                  OR: [
+                    { title: { contains: search } },
+                    { body: { contains: search } },
+                  ],
+                },
+              },
+            },
+          },
+          {
+            tags: {
+              some: {
+                name: { contains: search },
+              },
+            },
+          },
+        ],
+      },
+    });
+  }
+
   async getNoticeList(
-    { offset, limit, lang, search, tags, orderBy, my }: GetAllNoticeQueryDto,
+    {
+      offset = 0,
+      limit = 10,
+      lang,
+      search,
+      tags,
+      orderBy,
+      my,
+    }: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<Omit<NoticeFullcontent, 'reminders'>[]> {
     return this.prismaService.notice
       .findMany({
         take: limit,
-        skip: offset,
+        skip: offset * limit,
         orderBy: {
           currentDeadline: orderBy === 'deadline' ? 'asc' : undefined,
           views: orderBy === 'hot' ? 'desc' : undefined,
