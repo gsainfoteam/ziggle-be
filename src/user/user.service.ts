@@ -1,18 +1,18 @@
+import { HttpService } from '@nestjs/axios';
 import {
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtToken } from './type/jwt.type';
-import { HttpService } from '@nestjs/axios';
-import { catchError, firstValueFrom } from 'rxjs';
-import { idpJwtResponse, idpUserInfoResponse } from './type/idp.type';
-import { AxiosError } from 'axios';
-import { UserInfo } from './type/userInfo.type';
-import { LoginDto } from './dto/login.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
+import { AxiosError } from 'axios';
+import { catchError, firstValueFrom } from 'rxjs';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { LoginDto } from './dto/login.dto';
+import { idpJwtResponse, idpUserInfoResponse } from './type/idp.type';
+import { JwtToken } from './type/jwt.type';
+import { UserInfo } from './type/userInfo.type';
 
 @Injectable()
 export class UserService {
@@ -185,15 +185,13 @@ export class UserService {
   }
 
   async setFcmToken(userUuid: string, fcmToken: string) {
-    await this.prismaService.user.update({
-      where: { uuid: userUuid },
-      data: {
-        fcmTokens: {
-          create: {
-            token: fcmToken,
-          },
-        },
+    this.prismaService.fcmToken.upsert({
+      where: { token: fcmToken },
+      create: {
+        token: fcmToken,
+        user: { connect: { uuid: userUuid } },
       },
+      update: { user: { connect: { uuid: userUuid } } },
     });
     return { message: 'success', fcm_token: fcmToken };
   }
