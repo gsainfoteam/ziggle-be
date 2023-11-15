@@ -1,20 +1,22 @@
 import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import {
   DeleteObjectCommand,
   PutObjectCommand,
   PutObjectTaggingCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import sharp from 'sharp';
 
 @Injectable()
 export class ImageService {
+  private readonly logger = new Logger(ImageService.name);
   constructor(private readonly configService: ConfigService) {}
 
   async uploadImages(files: Express.Multer.File[]): Promise<string[]> {
@@ -64,6 +66,8 @@ export class ImageService {
       await s3.send(command);
       return key;
     } catch (error) {
+      this.logger.error('error uploading image');
+      this.logger.debug(error);
       throw new InternalServerErrorException("Couldn't upload image");
     }
   }
@@ -88,6 +92,8 @@ export class ImageService {
     try {
       await s3.send(command);
     } catch (error) {
+      this.logger.error('error validating image');
+      this.logger.debug(error);
       throw new NotFoundException(`Image with key "${imageKey}" not found`);
     }
   }
@@ -104,7 +110,9 @@ export class ImageService {
 
     try {
       await s3.send(command);
-    } catch {
+    } catch (e) {
+      this.logger.error('error deleting image');
+      this.logger.debug(e);
       throw new InternalServerErrorException("Couldn't delete image");
     }
   }

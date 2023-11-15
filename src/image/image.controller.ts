@@ -1,7 +1,11 @@
-import { Controller, UploadedFiles } from '@nestjs/common';
-import { ImageService } from './image.service';
-import { Post, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { ImageService } from './image.service';
 
 @Controller('image')
 export class ImageController {
