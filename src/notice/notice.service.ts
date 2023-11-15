@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CreateNoticeDto } from './dto/createNotice.dto';
-import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
-import { ImageService } from 'src/image/image.service';
-import { FcmService } from 'src/global/service/fcm.service';
-import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
-import { htmlToText } from 'html-to-text';
+import { Cron } from '@nestjs/schedule';
 import dayjs from 'dayjs';
+import { htmlToText } from 'html-to-text';
+import { FcmService } from 'src/global/service/fcm.service';
+import { ImageService } from 'src/image/image.service';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
+import { CreateNoticeDto } from './dto/createNotice.dto';
 import { ForeignContentDto } from './dto/foreignContent.dto';
+import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
 import { NoticeRepository } from './notice.repository';
 
 @Injectable()
@@ -54,7 +54,7 @@ export class NoticeService {
     return {
       ...noticeInfo,
       author: notice.author.name,
-      imagesUrls: notice.files?.map((file) => `${this.s3Url}${file.url}`),
+      imagesUrl: notice.files?.map((file) => `${this.s3Url}${file.url}`),
       reminder: reminders.some((reminder) => reminder.uuid === userUuid),
     };
   }
