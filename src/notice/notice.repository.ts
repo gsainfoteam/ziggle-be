@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { FcmToken, FileType } from '@prisma/client';
@@ -17,6 +18,7 @@ import { NoticeReminder } from './types/noticeReminer';
 
 @Injectable()
 export class NoticeRepository {
+  private readonly logger = new Logger(NoticeRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
   async getNoticeList(
@@ -89,7 +91,9 @@ export class NoticeRepository {
           },
         },
       })
-      .catch(() => {
+      .catch((err) => {
+        this.logger.error('getNoticeList error');
+        this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
   }
@@ -127,28 +131,36 @@ export class NoticeRepository {
             throw new NotFoundException(`Notice with ID "${id}" not found`);
           }
         }
+        this.logger.error('getNotice');
+        this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
   }
 
   async getNoticeByTime(time: Date): Promise<NoticeReminder[]> {
-    return this.prismaService.notice.findMany({
-      where: {
-        currentDeadline: {
-          gte: dayjs(time).startOf('d').add(1, 'd').toDate(),
-          lte: dayjs(time).startOf('d').add(2, 'd').toDate(),
-        },
-      },
-      include: {
-        reminders: {
-          include: {
-            fcmTokens: true,
+    return this.prismaService.notice
+      .findMany({
+        where: {
+          currentDeadline: {
+            gte: dayjs(time).startOf('d').add(1, 'd').toDate(),
+            lte: dayjs(time).startOf('d').add(2, 'd').toDate(),
           },
         },
-        contents: true,
-        files: true,
-      },
-    });
+        include: {
+          reminders: {
+            include: {
+              fcmTokens: true,
+            },
+          },
+          contents: true,
+          files: true,
+        },
+      })
+      .catch((err) => {
+        this.logger.error('getNoticeByTime');
+        this.logger.debug(err);
+        return [];
+      });
   }
 
   async createNotice(
@@ -200,6 +212,8 @@ export class NoticeRepository {
             );
           }
         }
+        this.logger.error('createNotice error');
+        this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
   }
@@ -231,6 +245,8 @@ export class NoticeRepository {
             throw new NotFoundException(`Notice with ID "${id}" not found`);
           }
         }
+        this.logger.error('addAdditionalNotice - find');
+        this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
     if (notice.authorId !== userUuid) {
@@ -260,6 +276,8 @@ export class NoticeRepository {
             throw new NotFoundException(`Notice with ID "${id}" not found`);
           }
         }
+        this.logger.error('addAdditionalNotice - craete');
+        this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
   }
@@ -294,6 +312,8 @@ export class NoticeRepository {
             throw new ForbiddenException();
           }
         }
+        this.logger.error('addForeignContent');
+        this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
   }
@@ -318,6 +338,8 @@ export class NoticeRepository {
             throw new NotFoundException(`Notice with ID "${id}" not found`);
           }
         }
+        this.logger.error('addReminder');
+        this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
   }
@@ -342,6 +364,9 @@ export class NoticeRepository {
             throw new NotFoundException(`Notice with ID "${id}" not found`);
           }
         }
+        this.logger.error('removeReminder');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('Database error');
       });
   }
 
@@ -359,12 +384,16 @@ export class NoticeRepository {
             throw new ForbiddenException();
           }
         }
+        this.logger.error('deleteNotice');
+        this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
   }
 
   async getAllFcmTokens(): Promise<FcmToken[]> {
-    return this.prismaService.fcmToken.findMany().catch(() => {
+    return this.prismaService.fcmToken.findMany().catch((err) => {
+      this.logger.error('getAllFcmTokens');
+      this.logger.debug(err);
       throw new InternalServerErrorException('Database error');
     });
   }
