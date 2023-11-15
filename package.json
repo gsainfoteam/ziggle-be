@@ -12,6 +12,7 @@
     "start:dev": "NODE_ENV=develop nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "NODE_ENV=production node dist/main",
+    "start:push": "npx prisma db push && NODE_ENV=production node dist/main", 
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch --runInBand",
