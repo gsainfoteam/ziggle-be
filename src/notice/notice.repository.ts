@@ -6,14 +6,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { FcmToken, FileType } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
+import { CreateNoticeDto } from './dto/createNotice.dto';
+import { ForeignContentDto } from './dto/foreignContent.dto';
 import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
 import { NoticeFullcontent } from './types/noticeFullcontent';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { CreateNoticeDto } from './dto/createNotice.dto';
-import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
-import { ForeignContentDto } from './dto/foreignContent.dto';
-import dayjs from 'dayjs';
 import { NoticeReminder } from './types/noticeReminer';
 
 @Injectable()
@@ -88,19 +88,14 @@ export class NoticeRepository {
           createdAt: orderBy === 'recent' ? 'desc' : undefined,
         },
         where: {
+          ...(orderBy === 'deadline'
+            ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
+            : {}),
           deletedAt: null,
           authorId: my === 'own' ? userUuid : undefined,
           reminders:
-            my === 'reminders'
-              ? {
-                  some: {
-                    uuid: userUuid,
-                  },
-                }
-              : undefined,
-          tags: tags && {
-            some: { name: { in: tags } },
-          },
+            my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
+          tags: tags && { some: { name: { in: tags } } },
           OR: [
             {
               contents: {
@@ -115,33 +110,14 @@ export class NoticeRepository {
                 },
               },
             },
-            {
-              tags: {
-                some: {
-                  name: { contains: search },
-                },
-              },
-            },
+            { tags: { some: { name: { contains: search } } } },
           ],
         },
         include: {
           tags: true,
-          contents: {
-            orderBy: {
-              id: 'asc',
-            },
-            take: 1,
-          },
-          author: {
-            select: {
-              name: true,
-            },
-          },
-          files: {
-            where: {
-              type: FileType.IMAGE,
-            },
-          },
+          contents: { orderBy: { id: 'asc' }, take: 1 },
+          author: { select: { name: true } },
+          files: { where: { type: FileType.IMAGE } },
         },
       })
       .catch((err) => {
