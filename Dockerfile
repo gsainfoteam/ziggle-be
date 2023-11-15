@@ -27,6 +27,4 @@ COPY --from=builder /app ./
 
 EXPOSE 3000
 
-RUN npx prisma db push
-
-CMD ["npm", "run", "start:prod"]
+CMD ["./run.sh"]
