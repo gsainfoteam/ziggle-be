@@ -9,6 +9,8 @@ RUN npm install --platform=linuxmusl
 
 COPY . .
 
+RUN npx prisma generate
+
 RUN npm run build
 
 #Step 2: Copy the build from 'builder' to 'runner'
