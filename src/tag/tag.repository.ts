@@ -17,21 +17,23 @@ export class TagRepository {
 
   async findAllTags(): Promise<Tag[]> {
     return this.prismaSerice.tag.findMany().catch((err) => {
-      this.logger.error(err);
+      this.logger.error('findAllTags');
+      this.logger.debug(err);
       throw new InternalServerErrorException('database error');
     });
   }
 
   async findTag({ name }: Pick<GetTagDto, 'name'>): Promise<Tag> {
     return this.prismaSerice.tag
-      .findUnique({ where: { name } })
+      .findUniqueOrThrow({ where: { name } })
       .catch((err) => {
         if (err instanceof PrismaClientKnownRequestError) {
           if (err.code === 'P2025') {
             throw new NotFoundException(`tag with name "${name}" not found`);
           }
         }
-        this.logger.error(err);
+        this.logger.error('findTag');
+        this.logger.debug(err);
         throw new InternalServerErrorException('database error');
       });
   }
@@ -46,7 +48,8 @@ export class TagRepository {
         },
       })
       .catch((err) => {
-        this.logger.error(err);
+        this.logger.error('searchTag');
+        this.logger.debug(err);
         throw new InternalServerErrorException('database error');
       });
   }
@@ -58,7 +61,8 @@ export class TagRepository {
           throw new ConflictException(`tag with name "${name}" already exists`);
         }
       }
-      this.logger.error(err);
+      this.logger.error('createTag');
+      this.logger.debug(err);
       throw new InternalServerErrorException('database error');
     });
   }
@@ -70,7 +74,8 @@ export class TagRepository {
           throw new NotFoundException(`tag with id "${id}" not found`);
         }
       }
-      this.logger.error(err);
+      this.logger.error('deleteTag');
+      this.logger.debug(err);
       throw new InternalServerErrorException('database error');
     });
   }
