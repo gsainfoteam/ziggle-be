@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseBoolPipe,
+  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -39,7 +40,10 @@ export class NoticeController {
   /* notice 상세 조회 */
   @Get(':id')
   @UseGuards(IdPOptionalGuard)
-  async getNotice(@Param('id') id: number, @GetUser() user?: User) {
+  async getNotice(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user?: User,
+  ) {
     return this.noticeService.getNotice(id, user?.uuid);
   }
 
