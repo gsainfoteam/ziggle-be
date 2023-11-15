@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { FcmService } from './fcm.service';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { FcmToken } from '../entity/fcmToken.entity';
+import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
-  imports: [ConfigModule, TypeOrmModule.forFeature([FcmToken])],
+  imports: [ConfigModule, PrismaModule],
   providers: [FcmService],
   exports: [FcmService],
 })

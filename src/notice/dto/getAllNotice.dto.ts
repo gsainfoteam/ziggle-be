@@ -20,6 +20,10 @@ export class GetAllNoticeQueryDto {
 
   @IsString()
   @IsOptional()
+  lang?: string;
+
+  @IsString()
+  @IsOptional()
   search?: string;
 
   @IsArray()

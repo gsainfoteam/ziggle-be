@@ -1,26 +1,15 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { NoticeController } from './notice.controller';
-import { NoticeRepository } from './notice.repository';
 import { NoticeService } from './notice.service';
 import { UserModule } from 'src/user/user.module';
-import { TagModule } from 'src/tag/tag.module';
-import { Notice } from 'src/global/entity/notice.entity';
 import { ConfigModule } from '@nestjs/config';
 import { ImageModule } from 'src/image/image.module';
 import { FcmModule } from 'src/global/service/fcm.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Notice]),
-    ConfigModule,
-    UserModule,
-    TagModule,
-    ImageModule,
-    FcmModule,
-    ConfigModule,
-  ],
+  imports: [ConfigModule, UserModule, ImageModule, FcmModule, PrismaModule],
   controllers: [NoticeController],
-  providers: [NoticeRepository, NoticeService],
+  providers: [NoticeService],
 })
 export class NoticeModule {}

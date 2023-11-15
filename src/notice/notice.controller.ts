@@ -4,7 +4,9 @@ import {
   Delete,
   Get,
   Param,
+  ParseBoolPipe,
   Post,
+  Put,
   Query,
   UseGuards,
   UsePipes,
@@ -15,15 +17,17 @@ import { NoticeService } from './notice.service';
 import { IdPGuard, IdPOptionalGuard } from 'src/user/guard/idp.guard';
 import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
 import { GetUser } from 'src/user/decorator/get-user.decorator';
-import { User } from 'src/global/entity/user.entity';
+import { User } from '@prisma/client';
+import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
+import { ForeignContentDto } from './dto/foreignContent.dto';
 
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class NoticeController {
   constructor(private readonly noticeService: NoticeService) {}
 
-  //notice 전체 목록 조회 (페이지네이션 o)
-  @Get('all')
+  /* notice 전체 목록 조회 (페이지네이션 o) */
+  @Get()
   @UseGuards(IdPOptionalGuard)
   async getNoticeList(
     @Query() getAllNoticeQueryDto: GetAllNoticeQueryDto,
@@ -32,14 +36,14 @@ export class NoticeController {
     return this.noticeService.getNoticeList(getAllNoticeQueryDto, user?.uuid);
   }
 
-  //notice 상세 조회
+  /* notice 상세 조회 */
   @Get(':id')
   @UseGuards(IdPOptionalGuard)
   async getNotice(@Param('id') id: number, @GetUser() user?: User) {
-    return this.noticeService.getNotice(id, user);
+    return this.noticeService.getNotice(id, user?.uuid);
   }
 
-  //notice 생성
+  /* notice 생성 */
   @Post()
   @UseGuards(IdPGuard)
   async createNotice(
@@ -49,20 +53,48 @@ export class NoticeController {
     return this.noticeService.createNotice(createNoticeDto, user.uuid);
   }
 
-  //notice 구독자 추가 **notice 수정이 아니므로 작성자가 아니어도 가능**
-  @Post(':id/reminder')
+  @Post(':id/additional')
   @UseGuards(IdPGuard)
-  async addNoticeReminder(@GetUser() user: User, @Param('id') id: number) {
-    return this.noticeService.addNoticeReminder(id, user);
+  async addNoticeAdditional(
+    @Param('id') id: number,
+    @GetUser() user: User,
+    @Body() additionalNoticeDto: AdditionalNoticeDto,
+  ) {
+    return this.noticeService.addNoticeAdditional(
+      additionalNoticeDto,
+      id,
+      user.uuid,
+    );
   }
 
-  @Delete(':id/reminder')
+  @Post(':id/:contentIdx/forign')
   @UseGuards(IdPGuard)
-  async removeNoticeReminder(@GetUser() user: User, @Param('id') id: number) {
-    return this.noticeService.removeNoticeReminder(id, user);
+  async addForeignContent(
+    @Param('id') id: number,
+    @Param('contentIdx') idx: number,
+    @GetUser() user: User,
+    @Body() foreignContentDto: ForeignContentDto,
+  ) {
+    return this.noticeService.addForeignContent(
+      foreignContentDto,
+      id,
+      idx,
+      user?.uuid,
+    );
   }
 
-  //notice 삭제, 수정은 작성자만 가능
+  /* notice 구독자 추가 notice 수정이 아니므로 작성자가 아니어도 가능 */
+  @Put(':id/reminder')
+  @UseGuards(IdPGuard)
+  async addNoticeReminder(
+    @GetUser() user: User,
+    @Param('id') id: number,
+    @Body('remind', ParseBoolPipe) remind: boolean,
+  ) {
+    return this.noticeService.modifyNoticeReminder(id, user?.uuid, remind);
+  }
+
+  /* notice 삭제는 작성자만 가능 */
   @Delete(':id')
   @UseGuards(IdPGuard)
   async deleteNotice(

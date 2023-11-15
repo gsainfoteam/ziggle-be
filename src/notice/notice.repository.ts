@@ -1,218 +1,371 @@
 import {
-  ConflictException,
+  ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Notice } from 'src/global/entity/notice.entity';
-import {
-  And,
-  LessThanOrEqual,
-  Like,
-  MoreThanOrEqual,
-  Repository,
-} from 'typeorm';
+import { FcmToken, FileType } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
-import { User } from 'src/global/entity/user.entity';
-import { Tag } from 'src/global/entity/tag.entity';
+import { NoticeFullcontent } from './types/noticeFullcontent';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { CreateNoticeDto } from './dto/createNotice.dto';
+import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
+import { ForeignContentDto } from './dto/foreignContent.dto';
 import dayjs from 'dayjs';
+import { NoticeReminder } from './types/noticeReminer';
 
 @Injectable()
 export class NoticeRepository {
-  constructor(
-    @InjectRepository(Notice)
-    private readonly noticeRepository: Repository<Notice>,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async getNoticeList(
-    {
-      offset: skip = 0,
-      limit: take = 10,
-      orderBy = 'recent',
-      search = '',
-      tags = [],
-      my,
-    }: GetAllNoticeQueryDto,
+    { offset, limit, lang, search, tags, orderBy, my }: GetAllNoticeQueryDto,
     userUuid?: string,
-  ): Promise<{ list: Notice[]; total: number }> {
-    const orderByDeadline = orderBy === 'deadline';
-    const orderByRecent = orderBy === 'recent';
-    const orderByHot = orderBy === 'hot';
-
-    const tagsQuery = this.noticeRepository
-      .createQueryBuilder()
-      .subQuery()
-      .select([
-        'notice.id AS id',
-        'notice.deadline AS deadline',
-        'notice.createdAt AS createdAt',
-        'notice.views AS views',
-      ])
-      .from(Notice, 'notice')
-      .leftJoin('notice.tags', 'tag')
-      .where(tags.length > 0 ? 'tag.name IN (:...tags)' : 'TRUE')
-      .distinct()
-      .getQuery();
-
-    const query = this.noticeRepository
-      .createQueryBuilder('notice')
-      .innerJoin(tagsQuery, 'tagNotice', 'notice.id = tagNotice.id', { tags })
-      .leftJoin('notice.reminders', 'reminders')
-      .andWhere(
-        {
-          ...(orderByDeadline && {
-            deadline: MoreThanOrEqual(dayjs().startOf('d').toDate()),
-          }),
-          ...(orderByHot && {
-            views: MoreThanOrEqual(150),
-            createdAt: MoreThanOrEqual(
-              dayjs().startOf('d').subtract(7, 'd').toDate(),
-            ),
-          }),
+  ): Promise<Omit<NoticeFullcontent, 'reminders'>[]> {
+    return this.prismaService.notice
+      .findMany({
+        take: limit,
+        skip: offset,
+        orderBy: {
+          currentDeadline: orderBy === 'deadline' ? 'asc' : undefined,
+          views: orderBy === 'hot' ? 'desc' : undefined,
+          createdAt: orderBy === 'recent' ? 'desc' : undefined,
         },
-        { userUuid },
-      )
-      .andWhere(
-        search
-          ? [{ title: Like(`%${search}%`) }, { body: Like(`%${search}%`) }]
-          : [],
-        { search },
-      )
-      .andWhere(
-        my === 'reminders'
-          ? 'reminders.uuid = :userUuid'
-          : my === 'own'
-          ? 'notice.author = :userUuid'
-          : 'TRUE',
-        { userUuid },
-      )
-      .leftJoinAndSelect('notice.author', 'author')
-      .leftJoinAndSelect('notice.tags', 'tags')
-      .orderBy({
-        ...(orderByDeadline && { 'notice.deadline': 'ASC' }),
-        ...(orderByHot && { 'notice.views': 'DESC' }),
-        ...((orderByRecent || orderByHot) && { 'notice.createdAt': 'DESC' }),
+        where: {
+          deletedAt: null,
+          authorId: my === 'own' ? userUuid : undefined,
+          reminders:
+            my === 'reminders'
+              ? {
+                  some: {
+                    uuid: userUuid,
+                  },
+                }
+              : undefined,
+          tags: tags && {
+            some: { name: { in: tags } },
+          },
+          OR: [
+            {
+              contents: {
+                some: {
+                  AND: {
+                    lang: lang ?? 'ko',
+                    OR: [
+                      { title: { contains: search } },
+                      { body: { contains: search } },
+                    ],
+                  },
+                },
+              },
+            },
+            {
+              tags: {
+                some: {
+                  name: { contains: search },
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          tags: true,
+          contents: {
+            orderBy: {
+              id: 'asc',
+            },
+            take: 1,
+          },
+          author: {
+            select: {
+              name: true,
+            },
+          },
+          files: {
+            where: {
+              type: FileType.IMAGE,
+            },
+          },
+        },
       })
-      .take(take)
-      .skip(skip);
-    return {
-      list: await query.printSql().getMany(),
-      total: await query.getCount(),
-    };
+      .catch(() => {
+        throw new InternalServerErrorException('Database error');
+      });
   }
 
-  private async getNotice(id: number, userUUID?: string): Promise<Notice> {
-    return this.noticeRepository.findOne({
-      where: { id, author: { uuid: userUUID } },
-      relations: { reminders: true },
+  async getNotice(id: number): Promise<NoticeFullcontent> {
+    return this.prismaService.notice
+      .update({
+        where: {
+          id,
+        },
+        data: {
+          views: {
+            increment: 1,
+          },
+        },
+        include: {
+          tags: true,
+          contents: {
+            orderBy: {
+              id: 'asc',
+            },
+          },
+          reminders: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
+          files: true,
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new NotFoundException(`Notice with ID "${id}" not found`);
+          }
+        }
+        throw new InternalServerErrorException('Database error');
+      });
+  }
+
+  async getNoticeByTime(time: Date): Promise<NoticeReminder[]> {
+    return this.prismaService.notice.findMany({
+      where: {
+        currentDeadline: {
+          gte: dayjs(time).startOf('d').add(1, 'd').toDate(),
+          lte: dayjs(time).startOf('d').add(2, 'd').toDate(),
+        },
+      },
+      include: {
+        reminders: {
+          include: {
+            fcmTokens: true,
+          },
+        },
+        contents: true,
+        files: true,
+      },
     });
-  }
-
-  async getNoticeAndUpdateViews(id: number): Promise<Notice> {
-    const notice = await this.getNotice(id);
-    if (!notice) return null;
-    notice.views += 1;
-    return this.noticeRepository.save(notice);
   }
 
   async createNotice(
-    user: User,
-    title: string,
-    body: string,
-    deadline?: Date,
-    tags?: Tag[],
-    images?: string[],
-  ): Promise<Notice> {
-    const notice = this.noticeRepository.create({
-      title,
-      body,
-      deadline: deadline ? deadline : null,
-      author: user,
-      imagesUrl: images,
-      tags,
-    });
-    return this.noticeRepository.save(notice);
-  }
-
-  async updateNotice(
-    userUUID: string,
-    id: number,
-    title?: string,
-    body?: string,
-    deadline?: Date,
-  ): Promise<Notice> {
-    const notice = await this.getNotice(id);
-    if (!notice) return null;
-    if (notice.author.uuid !== userUUID) return null;
-    notice.title = title ? title : notice.title;
-    notice.body = body ? body : notice.body;
-    notice.deadline = deadline ? deadline : notice.deadline;
-    return this.noticeRepository.save(notice);
-  }
-
-  async updateNoticeTags(
-    userUUID: string,
-    id: number,
-    tags: Tag[],
-  ): Promise<Notice> {
-    const notice = await this.getNotice(id);
-    if (!notice) return null;
-    if (notice.author.uuid !== userUUID) return null;
-
-    notice.tags = notice.tags.concat(tags);
-    return this.noticeRepository.save(notice);
-  }
-
-  async addNoticeReminder(id: number, reminder: User): Promise<Notice> {
-    const notice = await this.getNotice(id);
-    if (!notice) throw new NotFoundException(`Notice with ID "${id}"`);
-    if (notice.reminders.some((r) => r.uuid === reminder.uuid))
-      throw new ConflictException('already added');
-    notice.reminders.push(reminder);
-    return this.noticeRepository.save(notice);
-  }
-
-  async removeNoticeReminder(id: number, reminder: User): Promise<Notice> {
-    const notice = await this.getNotice(id);
-    if (!notice) throw new NotFoundException(`Notice with ID "${id}"`);
-    if (notice.reminders.every((r) => r.uuid !== reminder.uuid))
-      throw new ConflictException('already removed');
-
-    notice.reminders = notice.reminders.filter((r) => r.uuid !== reminder.uuid);
-    return this.noticeRepository.save(notice);
-  }
-
-  async updateNoticeImages(
-    userUUID: string,
-    id: number,
-    images: string[],
-  ): Promise<Notice> {
-    const notice = await this.getNotice(id);
-    if (!notice) return null;
-    if (notice.author.uuid !== userUUID) return null;
-
-    notice.imagesUrl = notice.imagesUrl.concat(images);
-    return this.noticeRepository.save(notice);
-  }
-
-  async deleteNotice(userUUID: string, id: number): Promise<Notice> {
-    const notice = await this.getNotice(id, userUUID);
-    if (!notice) return null;
-    const result = await this.noticeRepository.softDelete({ id });
-    if (result.affected === 0) return null;
-    return notice;
-  }
-
-  async getReminderTargetList(): Promise<Notice[]> {
-    const notices = await this.noticeRepository.find({
+    { title, body, deadline, tags, images }: CreateNoticeDto,
+    userUuid: string,
+  ) {
+    const findedTags = await this.prismaService.tag.findMany({
       where: {
-        deadline: And(
-          LessThanOrEqual(dayjs().startOf('d').add(3, 'd').toDate()),
-          MoreThanOrEqual(dayjs().startOf('d').toDate()),
-        ),
+        id: {
+          in: tags,
+        },
       },
-      relations: { reminders: { fcmTokens: true } },
     });
-    return notices.filter((notice) => notice.reminders.length > 0);
+    return this.prismaService.notice
+      .create({
+        data: {
+          author: {
+            connect: {
+              uuid: userUuid,
+            },
+          },
+          contents: {
+            create: {
+              id: 1,
+              lang: 'ko',
+              title,
+              body,
+              deadline: deadline || null,
+            },
+          },
+          currentDeadline: deadline || null,
+          tags: {
+            connect: findedTags,
+          },
+          files: {
+            create: images?.map((image) => ({
+              name: title,
+              type: FileType.IMAGE,
+              url: image,
+            })),
+          },
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new NotFoundException(
+              `User with UUID "${userUuid}" not found`,
+            );
+          }
+        }
+        throw new InternalServerErrorException('Database error');
+      });
+  }
+
+  async addAdditionalNotice(
+    { title, body, deadline }: AdditionalNoticeDto,
+    id: number,
+    userUuid: string,
+  ): Promise<void> {
+    const notice = await this.prismaService.notice
+      .findUniqueOrThrow({
+        where: {
+          id,
+        },
+        include: {
+          contents: {
+            where: {
+              lang: 'ko',
+            },
+            orderBy: {
+              id: 'desc',
+            },
+          },
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new NotFoundException(`Notice with ID "${id}" not found`);
+          }
+        }
+        throw new InternalServerErrorException('Database error');
+      });
+    if (notice.authorId !== userUuid) {
+      throw new ForbiddenException();
+    }
+    await this.prismaService.notice
+      .update({
+        where: {
+          id,
+        },
+        data: {
+          contents: {
+            create: {
+              id: notice.contents[0].id,
+              lang: 'ko',
+              title: title ?? '',
+              body,
+              deadline,
+            },
+          },
+          currentDeadline: deadline ?? undefined,
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new NotFoundException(`Notice with ID "${id}" not found`);
+          }
+        }
+        throw new InternalServerErrorException('Database error');
+      });
+  }
+
+  async addForeignContent(
+    { lang, title, body, deadline }: ForeignContentDto,
+    id: number,
+    idx: number,
+    userUuid: string,
+  ): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: {
+          id,
+          authorId: userUuid,
+        },
+        data: {
+          contents: {
+            create: {
+              id: idx,
+              lang,
+              title,
+              body,
+              deadline,
+            },
+          },
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new ForbiddenException();
+          }
+        }
+        throw new InternalServerErrorException('Database error');
+      });
+  }
+
+  async addReminder(id: number, userUuid: string): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: {
+          id,
+        },
+        data: {
+          reminders: {
+            connect: {
+              uuid: userUuid,
+            },
+          },
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new NotFoundException(`Notice with ID "${id}" not found`);
+          }
+        }
+        throw new InternalServerErrorException('Database error');
+      });
+  }
+
+  async removeReminder(id: number, userUuid: string): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: {
+          id,
+        },
+        data: {
+          reminders: {
+            disconnect: {
+              uuid: userUuid,
+            },
+          },
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new NotFoundException(`Notice with ID "${id}" not found`);
+          }
+        }
+      });
+  }
+
+  async deleteNotice(id: number, userUuid: string): Promise<void> {
+    await this.prismaService.notice
+      .delete({
+        where: {
+          id,
+          authorId: userUuid,
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new ForbiddenException();
+          }
+        }
+        throw new InternalServerErrorException('Database error');
+      });
+  }
+
+  async getAllFcmTokens(): Promise<FcmToken[]> {
+    return this.prismaService.fcmToken.findMany().catch(() => {
+      throw new InternalServerErrorException('Database error');
+    });
   }
 }

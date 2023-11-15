@@ -1,40 +1,30 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Tag } from 'src/global/entity/tag.entity';
-import { Repository, Like, DeleteResult } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { CreateTagDto } from './dto/createTag.dto';
+import { Tag } from '@prisma/client';
+import { GetTagDto } from './dto/getTag.dto';
+import { TagRepository } from './tag.repository';
 
 @Injectable()
 export class TagService {
-  constructor(
-    @InjectRepository(Tag) private readonly tagRepository: Repository<Tag>,
-  ) {}
+  constructor(private readonly tagRepository: TagRepository) {}
 
   async findAllTags(): Promise<Tag[]> {
-    return this.tagRepository.find();
+    return this.tagRepository.findAllTags();
   }
 
-  async getTag(name: string): Promise<Tag> {
-    const tag = await this.tagRepository.findOneBy({ name });
-    if (!tag) {
-      throw new NotFoundException(`Notice with ID "${name}" not found`);
-    }
-    return tag;
+  async findTag({ name }: Pick<GetTagDto, 'name'>): Promise<Tag> {
+    return this.tagRepository.findTag({ name });
   }
 
-  async searchTag(name: string): Promise<Tag[]> {
-    const tag = await this.tagRepository.find({
-      where: { name: Like(`${name}%`) },
-    });
-    return tag;
+  async searchTag({ search }: Pick<GetTagDto, 'search'>): Promise<Tag[]> {
+    return this.tagRepository.searchTag({ search });
   }
 
   async createTag({ name }: CreateTagDto): Promise<Tag> {
-    const newTag = this.tagRepository.create({ name });
-    return this.tagRepository.save(newTag);
+    return this.tagRepository.createTag({ name });
   }
 
-  async deleteTag(id: number): Promise<DeleteResult> {
-    return this.tagRepository.delete({ id });
+  async deleteTag(id: number): Promise<void> {
+    await this.tagRepository.deleteTag(id);
   }
 }
