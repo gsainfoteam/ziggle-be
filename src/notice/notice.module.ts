@@ -6,10 +6,11 @@ import { ConfigModule } from '@nestjs/config';
 import { ImageModule } from 'src/image/image.module';
 import { FcmModule } from 'src/global/service/fcm.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { NoticeRepository } from './notice.repository';
 
 @Module({
   imports: [ConfigModule, UserModule, ImageModule, FcmModule, PrismaModule],
   controllers: [NoticeController],
-  providers: [NoticeService],
+  providers: [NoticeService, NoticeRepository],
 })
 export class NoticeModule {}
