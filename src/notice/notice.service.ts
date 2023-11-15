@@ -1,10 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateNoticeDto } from './dto/createNotice.dto';
 import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
 import { ImageService } from 'src/image/image.service';
@@ -13,18 +7,15 @@ import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { htmlToText } from 'html-to-text';
 import dayjs from 'dayjs';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { FileType } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
 import { ForeignContentDto } from './dto/foreignContent.dto';
+import { NoticeRepository } from './notice.repository';
 
 @Injectable()
 export class NoticeService {
-  private readonly logger = new Logger(NoticeService.name);
   private readonly s3Url: string;
   constructor(
-    private readonly prismaService: PrismaService,
+    private readonly noticeRepository: NoticeRepository,
     private readonly imageService: ImageService,
     private readonly fcmService: FcmService,
     configService: ConfigService,
@@ -35,66 +26,13 @@ export class NoticeService {
   }
 
   async getNoticeList(
-    { offset, limit, lang, search, tags, orderBy, my }: GetAllNoticeQueryDto,
+    getAllNoticeQueryDto: GetAllNoticeQueryDto,
     userUuid?: string,
   ) {
-    const notices = await this.prismaService.notice.findMany({
-      take: limit,
-      skip: offset,
-      orderBy: {
-        currentDeadline: orderBy === 'deadline' ? 'asc' : undefined,
-        views: orderBy === 'hot' ? 'desc' : undefined,
-        createdAt: orderBy === 'recent' ? 'desc' : undefined,
-      },
-      where: {
-        deletedAt: null,
-        authorId: my === 'own' ? userUuid : undefined,
-        reminders:
-          my === 'reminders'
-            ? {
-                some: {
-                  uuid: userUuid,
-                },
-              }
-            : undefined,
-        tags:
-          tags === undefined
-            ? undefined
-            : {
-                some: { name: { in: tags } },
-              },
-        contents: {
-          some: {
-            AND: {
-              lang: lang ?? 'ko',
-              OR: [
-                { title: { contains: search } },
-                { body: { contains: search } },
-              ],
-            },
-          },
-        },
-      },
-      include: {
-        tags: true,
-        contents: {
-          orderBy: {
-            id: 'asc',
-          },
-          take: 1,
-        },
-        author: {
-          select: {
-            name: true,
-          },
-        },
-        files: {
-          where: {
-            type: FileType.IMAGE,
-          },
-        },
-      },
-    });
+    const notices = await this.noticeRepository.getNoticeList(
+      getAllNoticeQueryDto,
+      userUuid,
+    );
     return {
       list: notices.map(({ files, author, ...notice }) => {
         delete notice.authorId;
@@ -110,34 +48,7 @@ export class NoticeService {
   }
 
   async getNotice(id: number, userUuid?: string) {
-    const notice = await this.prismaService.notice
-      .update({
-        where: { id },
-        include: {
-          contents: {
-            orderBy: {
-              id: 'asc',
-            },
-          },
-          reminders: true,
-          tags: true,
-          author: {
-            select: {
-              name: true,
-            },
-          },
-          files: true,
-        },
-        data: { views: { increment: 1 } },
-      })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new NotFoundException(`Notice with ID "${id}" not found`);
-          }
-        }
-        throw new InternalServerErrorException();
-      });
+    const notice = await this.noticeRepository.getNotice(id);
     const { reminders, ...noticeInfo } = notice;
     return {
       ...noticeInfo,
@@ -151,68 +62,28 @@ export class NoticeService {
     { title, body, deadline, tags, images }: CreateNoticeDto,
     userUuid: string,
   ) {
-    const user = await this.prismaService.user
-      .findUniqueOrThrow({
-        where: { uuid: userUuid },
-      })
-      .catch(() => {
-        throw new NotFoundException(`User with UUID "${userUuid}" not found`);
-      });
-
-    let findTags = undefined;
-    if (tags) {
-      findTags = await this.prismaService.tag.findMany({
-        where: {
-          id: {
-            in: tags,
-          },
-        },
-      });
-    }
     if (images) {
       await this.imageService.validateImages(images);
     }
 
-    const notice = await this.prismaService.notice
-      .create({
-        data: {
-          author: {
-            connect: user,
-          },
-          contents: {
-            create: {
-              id: 1,
-              title,
-              body,
-              lang: 'ko',
-              deadline: deadline || null,
-            },
-          },
-          currentDeadline: deadline || null,
-          tags: {
-            connect: findTags,
-          },
-          files: {
-            create: images?.map((image) => ({
-              name: title,
-              type: FileType.IMAGE,
-              url: image,
-            })),
-          },
-        },
-      })
-      .catch(() => {
-        throw new InternalServerErrorException();
-      });
+    const notice = await this.noticeRepository.createNotice(
+      {
+        title,
+        body,
+        deadline,
+        tags,
+        images,
+      },
+      userUuid,
+    );
 
-    const tokens = await this.prismaService.fcmToken.findMany();
     this.fcmService.postMessage(
       {
         title: '새 공지글',
         body: title,
         imageUrl: images.length === 0 ? undefined : `${this.s3Url}${images[0]}`,
       },
-      tokens.map(({ token }) => token),
+      (await this.noticeRepository.getAllFcmTokens()).map(({ token }) => token),
       { path: `/root/article?id=${notice.id}` },
     );
     return this.getNotice(notice.id);
@@ -223,46 +94,17 @@ export class NoticeService {
     id: number,
     userUuid: string,
   ) {
-    const notice = await this.prismaService.notice
-      .findUniqueOrThrow({
-        where: {
-          id,
-        },
-        include: {
-          contents: {
-            where: {
-              lang: 'ko',
-            },
-            orderBy: {
-              id: 'desc',
-            },
-          },
-        },
-      })
-      .catch(() => {
-        throw new NotFoundException();
-      });
-    if (notice.authorId !== userUuid) {
-      throw new ForbiddenException();
-    }
+    await this.noticeRepository.addAdditionalNotice(
+      {
+        title,
+        body,
+        deadline,
+      },
+      id,
+      userUuid,
+    );
 
-    return this.prismaService.notice.update({
-      where: {
-        id,
-      },
-      data: {
-        contents: {
-          create: {
-            id: notice.contents[0].id,
-            lang: 'ko',
-            title: title ?? '',
-            body,
-            deadline,
-          },
-        },
-        currentDeadline: deadline,
-      },
-    });
+    return this.getNotice(id);
   }
 
   async addForeignContent(
@@ -271,96 +113,35 @@ export class NoticeService {
     idx: number,
     userUuid: string,
   ) {
-    return this.prismaService.notice
-      .update({
-        where: {
-          id,
-          authorId: userUuid,
-        },
-        data: {
-          contents: {
-            create: {
-              id: idx,
-              lang,
-              title,
-              body,
-              deadline,
-            },
-          },
-        },
-      })
-      .catch(() => {
-        throw new ForbiddenException();
-      });
+    await this.noticeRepository.addForeignContent(
+      { lang, title, body, deadline },
+      id,
+      idx,
+      userUuid,
+    );
+    return this.getNotice(id);
   }
 
   async modifyNoticeReminder(id: number, userUuid: string, remind: boolean) {
     if (remind) {
-      return this.prismaService.notice.update({
-        where: {
-          id,
-        },
-        data: {
-          reminders: {
-            connect: {
-              uuid: userUuid,
-            },
-          },
-        },
-      });
+      await this.noticeRepository.addReminder(id, userUuid);
     } else {
-      return this.prismaService.notice.update({
-        where: {
-          id,
-        },
-        data: {
-          reminders: {
-            disconnect: {
-              uuid: userUuid,
-            },
-          },
-        },
-      });
+      await this.noticeRepository.removeReminder(id, userUuid);
     }
+    return this.getNotice(id, userUuid);
   }
 
-  async deleteNotice(id: number, userUUID: string): Promise<void> {
-    const result = await this.prismaService.notice
-      .delete({
-        where: { id, authorId: userUUID },
-        select: {
-          files: {
-            where: {
-              type: FileType.IMAGE,
-            },
-          },
-        },
-      })
-      .catch(() => {
-        throw new NotFoundException(`Notice with ID "${id}" not found`);
-      });
-    this.imageService.deleteImages(result.files.map(({ url }) => url));
+  async deleteNotice(id: number, userUuid: string): Promise<void> {
+    const notice = await this.noticeRepository.getNotice(id);
+    this.imageService.deleteImages(notice.files.map(({ url }) => url));
+    await this.noticeRepository.deleteNotice(id, userUuid);
   }
 
   @Cron('0 9 * * *')
   async sendReminderMessage() {
-    const targetNotices = await this.prismaService.notice.findMany({
-      where: {
-        currentDeadline: {
-          gte: dayjs().startOf('d').add(1, 'd').toDate(),
-          lte: dayjs().startOf('d').add(2, 'd').toDate(),
-        },
-      },
-      include: {
-        reminders: {
-          include: {
-            fcmTokens: true,
-          },
-        },
-        contents: true,
-        files: true,
-      },
-    });
+    const targetNotices = await this.noticeRepository.getNoticeByTime(
+      new Date(),
+    );
     targetNotices.map((notice) => {
       const leftDate = dayjs(notice.currentDeadline)
         .startOf('d')
