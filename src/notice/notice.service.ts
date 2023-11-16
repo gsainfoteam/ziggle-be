@@ -82,7 +82,10 @@ export class NoticeService {
       {
         title: '새 공지글',
         body: title,
-        imageUrl: images.length === 0 ? undefined : `${this.s3Url}${images[0]}`,
+        imageUrl:
+          !images || images.length === 0
+            ? undefined
+            : `${this.s3Url}${images[0]}`,
       },
       (await this.noticeRepository.getAllFcmTokens()).map(({ token }) => token),
       { path: `/root/article?id=${notice.id}` },
