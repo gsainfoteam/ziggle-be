@@ -130,9 +130,7 @@ export class NoticeRepository {
   async getNotice(id: number): Promise<NoticeFullcontent> {
     return this.prismaService.notice
       .update({
-        where: {
-          id,
-        },
+        where: { id, deletedAt: null },
         data: {
           views: {
             increment: 1,
@@ -170,6 +168,7 @@ export class NoticeRepository {
     return this.prismaService.notice
       .findMany({
         where: {
+          deletedAt: null,
           currentDeadline: {
             gte: dayjs(time).startOf('d').add(1, 'd').toDate(),
             lte: dayjs(time).startOf('d').add(2, 'd').toDate(),
@@ -254,9 +253,7 @@ export class NoticeRepository {
   ): Promise<void> {
     const notice = await this.prismaService.notice
       .findUniqueOrThrow({
-        where: {
-          id,
-        },
+        where: { id, deletedAt: null },
         include: {
           contents: {
             where: {
@@ -283,9 +280,7 @@ export class NoticeRepository {
     }
     await this.prismaService.notice
       .update({
-        where: {
-          id,
-        },
+        where: { id, deletedAt: null },
         data: {
           contents: {
             create: {
@@ -319,10 +314,7 @@ export class NoticeRepository {
   ): Promise<void> {
     await this.prismaService.notice
       .update({
-        where: {
-          id,
-          authorId: userUuid,
-        },
+        where: { id, authorId: userUuid, deletedAt: null },
         data: {
           contents: {
             create: {
@@ -350,9 +342,7 @@ export class NoticeRepository {
   async addReminder(id: number, userUuid: string): Promise<void> {
     await this.prismaService.notice
       .update({
-        where: {
-          id,
-        },
+        where: { id, deletedAt: null },
         data: {
           reminders: {
             connect: {
@@ -376,9 +366,7 @@ export class NoticeRepository {
   async removeReminder(id: number, userUuid: string): Promise<void> {
     await this.prismaService.notice
       .update({
-        where: {
-          id,
-        },
+        where: { id, deletedAt: null },
         data: {
           reminders: {
             disconnect: {
@@ -401,11 +389,9 @@ export class NoticeRepository {
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {
     await this.prismaService.notice
-      .delete({
-        where: {
-          id,
-          authorId: userUuid,
-        },
+      .update({
+        where: { id, authorId: userUuid, deletedAt: null },
+        data: { deletedAt: new Date() },
       })
       .catch((err) => {
         if (err instanceof PrismaClientKnownRequestError) {
