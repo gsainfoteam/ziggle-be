@@ -35,6 +35,15 @@ export class NoticeController {
     return this.noticeService.getNoticeList(getAllNoticeQueryDto, user?.uuid);
   }
 
+  @Get('all')
+  @UseGuards(IdPOptionalGuard)
+  async getAllNoticeList(
+    @Query() getAllNoticeQueryDto: GetAllNoticeQueryDto,
+    @GetUser() user?: User,
+  ) {
+    return this.noticeService.getNoticeList(getAllNoticeQueryDto, user?.uuid);
+  }
+
   /* notice 상세 조회 */
   @Get(':id')
   @UseGuards(IdPOptionalGuard)
