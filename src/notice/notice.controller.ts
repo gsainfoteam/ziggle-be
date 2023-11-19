@@ -78,7 +78,7 @@ export class NoticeController {
     );
   }
 
-  @Post(':id/:contentIdx/forign')
+  @Post(':id/:contentIdx/foreign')
   @UseGuards(IdPGuard)
   async addForeignContent(
     @Param('id') id: number,
