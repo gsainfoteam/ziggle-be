@@ -185,7 +185,7 @@ export class UserService {
   }
 
   async setFcmToken(userUuid: string, fcmToken: string) {
-    this.prismaService.fcmToken.upsert({
+    await this.prismaService.fcmToken.upsert({
       where: { token: fcmToken },
       create: {
         token: fcmToken,
