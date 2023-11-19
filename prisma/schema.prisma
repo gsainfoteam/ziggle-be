@@ -85,6 +85,6 @@ model FcmToken {
   failCount    Int      @default(0) @map("fail_count")
   errors       String?
 
-  userUuid String @map("user_uuid")
-  user     User   @relation(fields: [userUuid], references: [uuid])
+  userUuid String? @map("user_uuid")
+  user     User?   @relation(fields: [userUuid], references: [uuid])
 }
