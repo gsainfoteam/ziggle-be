@@ -286,7 +286,7 @@ export class NoticeRepository {
             create: {
               id: notice.contents[0].id,
               lang: 'ko',
-              title: title ?? '',
+              title: title ?? notice.contents[0].title,
               body,
               deadline,
             },

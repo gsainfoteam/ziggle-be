@@ -41,8 +41,8 @@ model Content {
   id Int
 
   lang      String
-  title     String
-  body      String
+  title     String?
+  body      String    @db.LongText
   deadline  DateTime?
   createdAt DateTime  @default(now()) @map("created_at")
 
