@@ -189,10 +189,10 @@ export class UserService {
       where: { token: fcmToken },
       create: {
         token: fcmToken,
-        user: userUuid ? { connect: { uuid: userUuid } } : null,
+        user: { connect: userUuid ? { uuid: userUuid } : null },
       },
       update: {
-        user: userUuid ? { connect: { uuid: userUuid } } : null,
+        user: { connect: userUuid ? { uuid: userUuid } : null },
       },
     });
     return { message: 'success', fcm_token: fcmToken };
