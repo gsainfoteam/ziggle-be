@@ -284,7 +284,7 @@ export class NoticeRepository {
         data: {
           contents: {
             create: {
-              id: notice.contents[0].id,
+              id: Math.max(...notice.contents.map((c) => c.id)) + 1,
               lang: 'ko',
               title: title ?? notice.contents[0].title,
               body,
