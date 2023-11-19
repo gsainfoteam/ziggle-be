@@ -81,7 +81,7 @@ export class NoticeRepository {
     return this.prismaService.notice
       .findMany({
         take: limit,
-        skip: offset * limit,
+        skip: offset,
         orderBy: {
           currentDeadline: orderBy === 'deadline' ? 'asc' : undefined,
           views: orderBy === 'hot' ? 'desc' : undefined,
