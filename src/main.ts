@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -9,7 +10,6 @@ async function bootstrap() {
     /https:\/\/.*ziggle-fe.pages.dev/,
     /http:\/\/localhost:3000/,
   ];
-
   app.enableCors({
     origin: function (origin, callback) {
       if (!origin || whitelist.some((regex) => regex.test(origin))) {
@@ -24,6 +24,12 @@ async function bootstrap() {
     credentials: true,
   });
   app.use(cookieParser());
+  const config = new DocumentBuilder()
+    .setTitle('Ziggle API')
+    .setDescription('Ziggle API description')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
   await app.listen(3000);
 }
 bootstrap();
