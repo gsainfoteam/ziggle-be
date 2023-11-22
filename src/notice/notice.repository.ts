@@ -22,7 +22,7 @@ export class NoticeRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getTotalCount(
-    { lang, search, tags, my }: GetAllNoticeQueryDto,
+    { lang, search, tags, orderBy, my }: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<number> {
     return this.prismaService.notice.count({
@@ -40,6 +40,9 @@ export class NoticeRepository {
         tags: tags && {
           some: { name: { in: tags } },
         },
+        ...(orderBy === 'deadline'
+          ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
+          : {}),
         OR: [
           {
             contents: {
