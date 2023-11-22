@@ -34,7 +34,10 @@ export class NoticeService {
       userUuid,
     );
     return {
-      total: await this.noticeRepository.getTotalCount(getAllNoticeQueryDto),
+      total: await this.noticeRepository.getTotalCount(
+        getAllNoticeQueryDto,
+        userUuid,
+      ),
       list: notices.map(({ files, author, ...notice }) => {
         delete notice.authorId;
         return {
