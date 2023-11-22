@@ -20,7 +20,9 @@ import { GetUser } from './decorator/get-user.decorator';
 import { GetIdPUser } from './decorator/get-idp-user.decorator';
 import { Request, Response } from 'express';
 import { User } from '@prisma/client';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('user')
 @Controller('user')
 @UsePipes(ValidationPipe)
 export class UserController {

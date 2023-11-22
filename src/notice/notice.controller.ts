@@ -19,7 +19,9 @@ import { GetUser } from 'src/user/decorator/get-user.decorator';
 import { User } from '@prisma/client';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
 import { ForeignContentDto } from './dto/foreignContent.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('notice')
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class NoticeController {
