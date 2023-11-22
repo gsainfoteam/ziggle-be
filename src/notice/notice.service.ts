@@ -34,7 +34,10 @@ export class NoticeService {
       userUuid,
     );
     return {
-      total: await this.noticeRepository.getTotalCount(getAllNoticeQueryDto),
+      total: await this.noticeRepository.getTotalCount(
+        getAllNoticeQueryDto,
+        userUuid,
+      ),
       list: notices.map(({ files, author, ...notice }) => {
         delete notice.authorId;
         return {
@@ -96,7 +99,7 @@ export class NoticeService {
   }
 
   async addNoticeAdditional(
-    { title, body, deadline }: AdditionalNoticeDto,
+    { title, body, deadline, to }: AdditionalNoticeDto,
     id: number,
     userUuid: string,
   ) {
@@ -109,6 +112,22 @@ export class NoticeService {
       id,
       userUuid,
     );
+    if (to) {
+      this.fcmService.postMessage(
+        {
+          title: '공지글이 추가되었습니다.',
+          body: title,
+        },
+        to === 'all'
+          ? (await this.noticeRepository.getAllFcmTokens()).map(
+              ({ token }) => token,
+            )
+          : (await this.noticeRepository.getFcmTokensByNoticeId(id)).map(
+              ({ token }) => token,
+            ),
+        { path: `/root/article?id=${id}` },
+      );
+    }
 
     return this.getNotice(id);
   }

@@ -28,6 +28,7 @@ model User {
 
 model File {
   uuid      String   @id @default(uuid())
+  order     Int      @default(0)
   name      String
   createdAt DateTime @default(now()) @map("created_at")
   url       String

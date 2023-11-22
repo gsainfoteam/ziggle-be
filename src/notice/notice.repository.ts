@@ -22,7 +22,7 @@ export class NoticeRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getTotalCount(
-    { lang, search, tags, my }: GetAllNoticeQueryDto,
+    { lang, search, tags, orderBy, my }: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<number> {
     return this.prismaService.notice.count({
@@ -40,6 +40,9 @@ export class NoticeRepository {
         tags: tags && {
           some: { name: { in: tags } },
         },
+        ...(orderBy === 'deadline'
+          ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
+          : {}),
         OR: [
           {
             contents: {
@@ -117,7 +120,7 @@ export class NoticeRepository {
           tags: true,
           contents: { orderBy: { id: 'asc' }, take: 1 },
           author: { select: { name: true } },
-          files: { where: { type: FileType.IMAGE } },
+          files: { where: { type: FileType.IMAGE }, orderBy: { order: 'asc' } },
         },
       })
       .catch((err) => {
@@ -149,7 +152,7 @@ export class NoticeRepository {
               name: true,
             },
           },
-          files: true,
+          files: { orderBy: { order: 'asc' } },
         },
       })
       .catch((err) => {
@@ -181,7 +184,7 @@ export class NoticeRepository {
             },
           },
           contents: true,
-          files: true,
+          files: { orderBy: { order: 'asc' } },
         },
       })
       .catch((err) => {
@@ -224,7 +227,8 @@ export class NoticeRepository {
             connect: findedTags,
           },
           files: {
-            create: images?.map((image) => ({
+            create: images?.map((image, idx) => ({
+              order: idx,
               name: title,
               type: FileType.IMAGE,
               url: image,
@@ -403,6 +407,20 @@ export class NoticeRepository {
         this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
+  }
+
+  async getFcmTokensByNoticeId(id: number): Promise<FcmToken[]> {
+    return this.prismaService.fcmToken.findMany({
+      where: {
+        user: {
+          remindedNotices: {
+            some: {
+              id,
+            },
+          },
+        },
+      },
+    });
   }
 
   async getAllFcmTokens(): Promise<FcmToken[]> {
