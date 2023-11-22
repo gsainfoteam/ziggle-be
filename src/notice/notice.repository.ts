@@ -120,7 +120,7 @@ export class NoticeRepository {
           tags: true,
           contents: { orderBy: { id: 'asc' }, take: 1 },
           author: { select: { name: true } },
-          files: { where: { type: FileType.IMAGE } },
+          files: { where: { type: FileType.IMAGE }, orderBy: { order: 'asc' } },
         },
       })
       .catch((err) => {
@@ -152,7 +152,7 @@ export class NoticeRepository {
               name: true,
             },
           },
-          files: true,
+          files: { orderBy: { order: 'asc' } },
         },
       })
       .catch((err) => {
@@ -184,7 +184,7 @@ export class NoticeRepository {
             },
           },
           contents: true,
-          files: true,
+          files: { orderBy: { order: 'asc' } },
         },
       })
       .catch((err) => {
