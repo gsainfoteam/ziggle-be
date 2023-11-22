@@ -14,7 +14,9 @@ import {
 import { TagService } from './tag.service';
 import { GetTagDto } from './dto/getTag.dto';
 import { CreateTagDto } from './dto/createTag.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('tag')
 @Controller('tag')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class TagController {
