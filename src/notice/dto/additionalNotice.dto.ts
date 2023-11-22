@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDate, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsDate,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class AdditionalNoticeDto {
   @ApiProperty({
@@ -30,4 +36,14 @@ export class AdditionalNoticeDto {
   @IsDate()
   @IsOptional()
   deadline?: Date;
+
+  @ApiProperty({
+    example: 'all',
+    description: '공지 알림을 받을 사람들',
+    required: false,
+  })
+  @IsString()
+  @IsEnum(['all', 'reminder'])
+  @IsOptional()
+  to?: string;
 }

@@ -405,6 +405,20 @@ export class NoticeRepository {
       });
   }
 
+  async getFcmTokensByNoticeId(id: number): Promise<FcmToken[]> {
+    return this.prismaService.fcmToken.findMany({
+      where: {
+        user: {
+          remindedNotices: {
+            some: {
+              id,
+            },
+          },
+        },
+      },
+    });
+  }
+
   async getAllFcmTokens(): Promise<FcmToken[]> {
     return this.prismaService.fcmToken.findMany().catch((err) => {
       this.logger.error('getAllFcmTokens');
