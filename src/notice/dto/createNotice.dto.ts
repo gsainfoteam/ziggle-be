@@ -15,7 +15,7 @@ export class CreateNoticeDto {
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(3000)
+  @MaxLength(100000)
   body: string;
 
   @Type(() => Date)

@@ -10,7 +10,7 @@ export class ForeignContentDto {
   title?: string;
 
   @IsString()
-  @MaxLength(3000)
+  @MaxLength(100000)
   body: string;
 
   @Type(() => Date)
