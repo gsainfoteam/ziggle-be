@@ -227,7 +227,8 @@ export class NoticeRepository {
             connect: findedTags,
           },
           files: {
-            create: images?.map((image) => ({
+            create: images?.map((image, idx) => ({
+              order: idx,
               name: title,
               type: FileType.IMAGE,
               url: image,
