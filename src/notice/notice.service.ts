@@ -42,6 +42,10 @@ export class NoticeService {
         delete notice.authorId;
         return {
           ...notice,
+          contents: notice.contents.map((content) => ({
+            ...content,
+            body: htmlToText(content.body),
+          })),
           author: author.name,
           imageUrl: files?.[0]?.url ? `${this.s3Url}${files[0].url}` : null,
           title: notice.contents[0].title,
