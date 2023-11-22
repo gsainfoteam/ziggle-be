@@ -1,10 +1,10 @@
 import { Type } from 'class-transformer';
 import {
-  IsString,
-  IsOptional,
-  IsNumber,
-  IsNotEmpty,
   IsDate,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
   MaxLength,
 } from 'class-validator';
 
@@ -25,9 +25,9 @@ export class CreateNoticeDto {
 
   @IsNumber({}, { each: true })
   @IsOptional()
-  tags?: number[];
+  tags: number[] = [];
 
   @IsString({ each: true })
   @IsOptional()
-  images?: string[];
+  images: string[] = [];
 }

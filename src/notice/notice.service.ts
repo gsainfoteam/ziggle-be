@@ -65,7 +65,7 @@ export class NoticeService {
     { title, body, deadline, tags, images }: CreateNoticeDto,
     userUuid: string,
   ) {
-    if (images) {
+    if (images.length) {
       await this.imageService.validateImages(images);
     }
 
