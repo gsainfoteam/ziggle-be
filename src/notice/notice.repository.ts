@@ -93,6 +93,12 @@ export class NoticeRepository {
         where: {
           ...(orderBy === 'deadline'
             ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
+            : orderBy === 'hot'
+            ? {
+                createdAt: {
+                  gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+                },
+              }
             : {}),
           deletedAt: null,
           authorId: my === 'own' ? userUuid : undefined,
