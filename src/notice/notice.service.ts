@@ -264,7 +264,7 @@ export class NoticeService {
     return { files, content };
   }
 
-  @Cron('0 */10 * * *')
+  @Cron('*/5 * * * *')
   async crawlAcademicNotice() {
     this.logger.log('Academic Notice Crawling Start');
     const notices = await this.getAcademicNoticeList();
