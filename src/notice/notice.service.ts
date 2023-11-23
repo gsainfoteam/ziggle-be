@@ -1,8 +1,19 @@
+import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
+import cheerio from 'cheerio';
 import dayjs from 'dayjs';
 import { htmlToText } from 'html-to-text';
+import {
+  catchError,
+  filter,
+  firstValueFrom,
+  map,
+  of,
+  takeUntil,
+  throwError,
+} from 'rxjs';
 import { FcmService } from 'src/global/service/fcm.service';
 import { ImageService } from 'src/image/image.service';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
@@ -18,8 +29,10 @@ export class NoticeService {
     private readonly noticeRepository: NoticeRepository,
     private readonly imageService: ImageService,
     private readonly fcmService: FcmService,
+    private readonly httpService: HttpService,
     configService: ConfigService,
   ) {
+    this.crawlAcademicNotice();
     this.s3Url = `https://s3.${configService.get<string>(
       'AWS_S3_REGION',
     )}.amazonaws.com/${configService.get<string>('AWS_S3_BUCKET_NAME')}/`;
@@ -192,5 +205,69 @@ export class NoticeService {
         { path: `/root/article?id=${notice.id}` },
       );
     });
+  }
+
+  private async getAcademicNoticeList() {
+    const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
+    const stream = this.httpService.get(baseUrl).pipe(
+      map((res) => res.data),
+      map((e) => cheerio.load(e)),
+      catchError(throwError),
+    );
+    const $ = await firstValueFrom(stream);
+    const notices = $('table > tbody > tr')
+      .filter((_, e) => e.type === 'tag' && !e.attribs.class.includes('lstNtc'))
+      .toArray()
+      .map(
+        (e) =>
+          e.type === 'tag' && {
+            id: Number.parseInt($(e).find('td').first().text().trim()),
+            title: $(e).find('td').eq(2).text().trim(),
+            link: `${baseUrl}${$(e).find('td').eq(2).find('a').attr('href')}`,
+            author: $(e).find('td').eq(3).text().trim(),
+            category: $(e).find('td').eq(1).text().trim(),
+            createdAt: $(e).find('td').eq(5).text().trim(),
+          },
+      );
+    return notices;
+  }
+
+  private async getAcademicNotice(link: string) {
+    const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
+    const stream = this.httpService.get(link).pipe(
+      map((res) => res.data),
+      map((e) => cheerio.load(e)),
+      catchError(throwError),
+    );
+    const $ = await firstValueFrom(stream);
+    const files = $('.bd_detail_file > ul > li > a')
+      .toArray()
+      .map((e) => ({
+        href: `${baseUrl}${$(e).attr('href')}`,
+        name: $(e).text().trim(),
+        type: $(e).attr('class') as
+          | 'doc'
+          | 'hwp'
+          | 'pdf'
+          | 'imgs'
+          | 'xls'
+          | 'etc',
+      }));
+    const content = $('.bd_detail_content').html().trim();
+    return { files, content };
+  }
+
+  // @Cron('*/30 * * * * *')
+  async crawlAcademicNotice() {
+    const notices = await this.getAcademicNoticeList();
+    console.log(notices);
+    // const recentNotice = await this.noticeRepository.getNoticeList({
+    //   limit: 1,
+    //   orderBy: 'recent',
+    //   tags: ['academic'],
+    // });
+    // console.log(recentNotice);
+    // console.log(notices.map((n) => n.link));
+    // console.log((await this.getAcademicNotice(notices[2].link)).files);
   }
 }
