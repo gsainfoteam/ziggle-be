@@ -20,6 +20,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
+  "config": {
+    "libvips": "8.14.3"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.338.0",
     "@nestjs/axios": "^2.0.0",
@@ -36,7 +39,6 @@
     "cookie-parser": "^1.4.6",
     "dayjs": "^1.11.9",
     "firebase-admin": "^11.9.0",
-    "heic-convert": "^2.0.0",
     "html-to-text": "^9.0.5",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.2.4",
@@ -45,7 +47,7 @@
     "path": "^0.12.7",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
-    "sharp": "^0.32.6",
+    "sharp": "^0.32.4",
     "ts-case-convert": "^2.0.2"
   },
   "devDependencies": {
@@ -56,7 +58,6 @@
     "@types/cookie-parser": "^1.4.3",
     "@types/cron": "^2.0.1",
     "@types/express": "^4.17.13",
-    "@types/heic-convert": "^1.2.3",
     "@types/html-to-text": "^9.0.1",
     "@types/jest": "29.2.4",
     "@types/multer": "^1.4.7",

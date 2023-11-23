@@ -12,7 +12,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import convert from 'heic-convert';
 import sharp from 'sharp';
 
 @Injectable()
@@ -119,14 +118,6 @@ export class ImageService {
   }
 
   private async convertToWebp(file: Express.Multer.File): Promise<Buffer> {
-    if (file.mimetype === 'image/heic' || file.mimetype === 'image/heif') {
-      const jpeg = await convert({
-        buffer: file.buffer,
-        format: 'PNG',
-        quality: 1,
-      });
-      return sharp(jpeg).webp().toBuffer();
-    }
     return sharp(file.buffer).webp().toBuffer();
   }
 }
