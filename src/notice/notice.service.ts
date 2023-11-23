@@ -263,7 +263,7 @@ export class NoticeService {
     return { files, content };
   }
 
-  @Cron('30 * * * * *')
+  @Cron('0 */30 * * *')
   async crawlAcademicNotice() {
     const notices = await this.getAcademicNoticeList();
     const recentNotice = await this.noticeRepository.getNoticeList({
@@ -278,7 +278,6 @@ export class NoticeService {
     );
     const noticesToCreate = await firstValueFrom(noticesToCreate$);
     for (const noticeMetadata of noticesToCreate) {
-      console.log(noticeMetadata.title);
       const notice = await this.getAcademicNotice(noticeMetadata.link);
       const filesList = notice.files
         .map((file) => `<li><a href="${file.href}">${file.name}</a></li>`)
@@ -300,6 +299,7 @@ export class NoticeService {
           tags: tags.map(({ id }) => id),
         },
         user.uuid,
+        dayjs(noticeMetadata.createdAt).tz('Asia/Seoul').toDate(),
       );
     }
   }

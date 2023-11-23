@@ -203,6 +203,7 @@ export class NoticeRepository {
   async createNotice(
     { title, body, deadline, tags, images }: CreateNoticeDto,
     userUuid: string,
+    createdAt?: Date,
   ) {
     const findedTags = await this.prismaService.tag.findMany({
       where: {
@@ -240,6 +241,7 @@ export class NoticeRepository {
               url: image,
             })),
           },
+          createdAt,
         },
       })
       .catch((err) => {
