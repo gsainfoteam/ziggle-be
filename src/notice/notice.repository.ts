@@ -30,18 +30,16 @@ export class NoticeRepository {
         deletedAt: null,
         authorId: my === 'own' ? userUuid : undefined,
         reminders:
-          my === 'reminders'
-            ? {
-                some: {
-                  uuid: userUuid,
-                },
-              }
-            : undefined,
-        tags: tags && {
-          some: { name: { in: tags } },
-        },
+          my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
+        tags: tags && { some: { name: { in: tags } } },
         ...(orderBy === 'deadline'
           ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
+          : orderBy === 'hot'
+          ? {
+              createdAt: {
+                gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+              },
+            }
           : {}),
         OR: [
           {
@@ -57,13 +55,7 @@ export class NoticeRepository {
               },
             },
           },
-          {
-            tags: {
-              some: {
-                name: { contains: search },
-              },
-            },
-          },
+          { tags: { some: { name: { contains: search } } } },
         ],
       },
     });
