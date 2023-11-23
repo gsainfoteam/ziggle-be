@@ -44,12 +44,12 @@ export class NoticeService {
           ...notice,
           contents: notice.contents.map((content) => ({
             ...content,
-            body: htmlToText(content.body),
+            body: htmlToText(content.body).slice(0, 100),
           })),
           author: author.name,
           imageUrl: files?.[0]?.url ? `${this.s3Url}${files[0].url}` : null,
           title: notice.contents[0].title,
-          body: htmlToText(notice.contents[0].body),
+          body: htmlToText(notice.contents[0].body).slice(0, 100),
         };
       }),
     };
