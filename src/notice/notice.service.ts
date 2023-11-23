@@ -7,17 +7,18 @@ import dayjs from 'dayjs';
 import { htmlToText } from 'html-to-text';
 import {
   catchError,
-  filter,
   firstValueFrom,
   from,
   map,
   takeWhile,
   throwError,
+  timeout,
   toArray,
 } from 'rxjs';
 import { FcmService } from 'src/global/service/fcm.service';
 import { ImageService } from 'src/image/image.service';
 import { TagService } from 'src/tag/tag.service';
+import { UserService } from 'src/user/user.service';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
 import { CreateNoticeDto } from './dto/createNotice.dto';
 import { ForeignContentDto } from './dto/foreignContent.dto';
@@ -33,9 +34,9 @@ export class NoticeService {
     private readonly fcmService: FcmService,
     private readonly httpService: HttpService,
     private readonly tagService: TagService,
+    private readonly userService: UserService,
     configService: ConfigService,
   ) {
-    this.crawlAcademicNotice();
     this.s3Url = `https://s3.${configService.get<string>(
       'AWS_S3_REGION',
     )}.amazonaws.com/${configService.get<string>('AWS_S3_BUCKET_NAME')}/`;
@@ -213,6 +214,7 @@ export class NoticeService {
   private async getAcademicNoticeList() {
     const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
     const stream = this.httpService.get(baseUrl).pipe(
+      timeout(10000),
       map((res) => res.data),
       map((e) => cheerio.load(e)),
       catchError(throwError),
@@ -238,6 +240,7 @@ export class NoticeService {
   private async getAcademicNotice(link: string) {
     const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
     const stream = this.httpService.get(link).pipe(
+      timeout(10000),
       map((res) => res.data),
       map((e) => cheerio.load(e)),
       catchError(throwError),
@@ -260,7 +263,7 @@ export class NoticeService {
     return { files, content };
   }
 
-  // @Cron('*/30 * * * * *')
+  @Cron('30 * * * * *')
   async crawlAcademicNotice() {
     const notices = await this.getAcademicNoticeList();
     const recentNotice = await this.noticeRepository.getNoticeList({
@@ -268,9 +271,6 @@ export class NoticeService {
       orderBy: 'recent',
       tags: ['academic'],
     });
-    from(notices).pipe(
-      filter((n) => n.title === recentNotice[0].contents[0].title),
-    );
     const noticesToCreate$ = from(notices).pipe(
       takeWhile((n) => n.title !== recentNotice[0].contents[0].title),
       toArray(),
@@ -278,6 +278,7 @@ export class NoticeService {
     );
     const noticesToCreate = await firstValueFrom(noticesToCreate$);
     for (const noticeMetadata of noticesToCreate) {
+      console.log(noticeMetadata.title);
       const notice = await this.getAcademicNotice(noticeMetadata.link);
       const filesList = notice.files
         .map((file) => `<li><a href="${file.href}">${file.name}</a></li>`)
@@ -288,6 +289,9 @@ export class NoticeService {
         'academic',
         noticeMetadata.category,
       ]);
+      const user = await this.userService.addTempUser(
+        `${noticeMetadata.author} (${noticeMetadata.category})`,
+      );
       await this.noticeRepository.createNotice(
         {
           title: noticeMetadata.title,
@@ -295,7 +299,7 @@ export class NoticeService {
           images: [],
           tags: tags.map(({ id }) => id),
         },
-        '1',
+        user.uuid,
       );
     }
   }

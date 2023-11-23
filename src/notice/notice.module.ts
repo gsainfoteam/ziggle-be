@@ -19,6 +19,7 @@ import { NoticeService } from './notice.service';
     PrismaModule,
     HttpModule,
     TagModule,
+    UserModule,
   ],
   controllers: [NoticeController],
   providers: [NoticeService, NoticeRepository],
