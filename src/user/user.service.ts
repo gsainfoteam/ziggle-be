@@ -7,6 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { AxiosError } from 'axios';
+import crypto from 'crypto';
 import { catchError, firstValueFrom } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
@@ -203,6 +204,22 @@ export class UserService {
       where: { uuid: user.uuid },
       data: {
         consent: true,
+      },
+    });
+  }
+
+  async addTempUser(name: string) {
+    const user = await this.prismaService.user.findFirst({
+      where: { name },
+    });
+    if (user) {
+      return user;
+    }
+    return this.prismaService.user.create({
+      data: {
+        uuid: crypto.randomUUID(),
+        name,
+        consent: false,
       },
     });
   }

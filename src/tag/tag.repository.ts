@@ -6,9 +6,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Tag } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GetTagDto } from './dto/getTag.dto';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class TagRepository {
@@ -77,6 +77,26 @@ export class TagRepository {
       this.logger.error('deleteTag');
       this.logger.debug(err);
       throw new InternalServerErrorException('database error');
+    });
+  }
+
+  async findOrCreateTags(tags: string[]): Promise<Tag[]> {
+    await this.prismaSerice.tag
+      .createMany({
+        data: tags.map((name) => ({ name })),
+        skipDuplicates: true,
+      })
+      .catch((err) => {
+        this.logger.error('findOrCreateTags');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('database error');
+      });
+    return this.prismaSerice.tag.findMany({
+      where: {
+        name: {
+          in: tags,
+        },
+      },
     });
   }
 }

@@ -1,10 +1,24 @@
+import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
+import cheerio from 'cheerio';
 import dayjs from 'dayjs';
 import { htmlToText } from 'html-to-text';
+import {
+  catchError,
+  firstValueFrom,
+  from,
+  map,
+  takeWhile,
+  throwError,
+  timeout,
+  toArray,
+} from 'rxjs';
 import { FcmService } from 'src/global/service/fcm.service';
 import { ImageService } from 'src/image/image.service';
+import { TagService } from 'src/tag/tag.service';
+import { UserService } from 'src/user/user.service';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
 import { CreateNoticeDto } from './dto/createNotice.dto';
 import { ForeignContentDto } from './dto/foreignContent.dto';
@@ -18,6 +32,9 @@ export class NoticeService {
     private readonly noticeRepository: NoticeRepository,
     private readonly imageService: ImageService,
     private readonly fcmService: FcmService,
+    private readonly httpService: HttpService,
+    private readonly tagService: TagService,
+    private readonly userService: UserService,
     configService: ConfigService,
   ) {
     this.s3Url = `https://s3.${configService.get<string>(
@@ -192,5 +209,98 @@ export class NoticeService {
         { path: `/root/article?id=${notice.id}` },
       );
     });
+  }
+
+  private async getAcademicNoticeList() {
+    const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
+    const stream = this.httpService.get(baseUrl).pipe(
+      timeout(10000),
+      map((res) => res.data),
+      map((e) => cheerio.load(e)),
+      catchError(throwError),
+    );
+    const $ = await firstValueFrom(stream);
+    const notices = $('table > tbody > tr')
+      .filter((_, e) => e.type === 'tag' && !e.attribs.class.includes('lstNtc'))
+      .toArray()
+      .map(
+        (e) =>
+          e.type === 'tag' && {
+            id: Number.parseInt($(e).find('td').first().text().trim()),
+            title: $(e).find('td').eq(2).text().trim(),
+            link: `${baseUrl}${$(e).find('td').eq(2).find('a').attr('href')}`,
+            author: $(e).find('td').eq(3).text().trim(),
+            category: $(e).find('td').eq(1).text().trim(),
+            createdAt: $(e).find('td').eq(5).text().trim(),
+          },
+      );
+    return notices;
+  }
+
+  private async getAcademicNotice(link: string) {
+    const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
+    const stream = this.httpService.get(link).pipe(
+      timeout(10000),
+      map((res) => res.data),
+      map((e) => cheerio.load(e)),
+      catchError(throwError),
+    );
+    const $ = await firstValueFrom(stream);
+    const files = $('.bd_detail_file > ul > li > a')
+      .toArray()
+      .map((e) => ({
+        href: `${baseUrl}${$(e).attr('href')}`,
+        name: $(e).text().trim(),
+        type: $(e).attr('class') as
+          | 'doc'
+          | 'hwp'
+          | 'pdf'
+          | 'imgs'
+          | 'xls'
+          | 'etc',
+      }));
+    const content = $('.bd_detail_content').html().trim();
+    return { files, content };
+  }
+
+  @Cron('0 */30 * * *')
+  async crawlAcademicNotice() {
+    const notices = await this.getAcademicNoticeList();
+    const recentNotice = await this.noticeRepository.getNoticeList({
+      limit: 1,
+      orderBy: 'recent',
+      tags: ['academic'],
+    });
+    const noticesToCreate$ = from(notices).pipe(
+      takeWhile((n) => n.title !== recentNotice[0].contents[0].title),
+      toArray(),
+      map((n) => n.reverse()),
+    );
+    const noticesToCreate = await firstValueFrom(noticesToCreate$);
+    for (const noticeMetadata of noticesToCreate) {
+      const notice = await this.getAcademicNotice(noticeMetadata.link);
+      const filesList = notice.files
+        .map((file) => `<li><a href="${file.href}">${file.name}</a></li>`)
+        .join('');
+      const filesBody = `<ul>${filesList}</ul>`;
+      const body = `${notice.files.length ? filesBody : ''}${notice.content}`;
+      const tags = await this.tagService.findOrCreateTags([
+        'academic',
+        noticeMetadata.category,
+      ]);
+      const user = await this.userService.addTempUser(
+        `${noticeMetadata.author} (${noticeMetadata.category})`,
+      );
+      await this.noticeRepository.createNotice(
+        {
+          title: noticeMetadata.title,
+          body,
+          images: [],
+          tags: tags.map(({ id }) => id),
+        },
+        user.uuid,
+        dayjs(noticeMetadata.createdAt).tz('Asia/Seoul').toDate(),
+      );
+    }
   }
 }

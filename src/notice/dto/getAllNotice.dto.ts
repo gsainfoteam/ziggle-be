@@ -65,7 +65,7 @@ export class GetAllNoticeQueryDto {
   @IsString()
   @IsEnum(['deadline', 'hot', 'recent'])
   @IsOptional()
-  orderBy?: string;
+  orderBy?: 'recent' | 'deadline' | 'hot';
 
   @ApiProperty({
     example: 'own',
@@ -75,5 +75,5 @@ export class GetAllNoticeQueryDto {
   @IsString()
   @IsEnum(['own', 'reminders'])
   @IsOptional()
-  my?: string;
+  my?: 'own' | 'reminders';
 }
