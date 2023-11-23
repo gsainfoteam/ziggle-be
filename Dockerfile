@@ -20,9 +20,8 @@ WORKDIR /app
 
 ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-  echo "@edge https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
   apk update && \
-  apk add build-base@edge libheif@edge vips-dev@edge vips@edge -q
+  apk add build-base libheif vips-dev vips -q
 
 COPY --from=builder /app ./
 

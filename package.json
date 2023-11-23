@@ -21,7 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "config": {
-    "libvips": "8.15.0"
+    "libvips": "8.14.3"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.338.0",
@@ -47,7 +47,7 @@
     "path": "^0.12.7",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
-    "sharp": "^0.32.1",
+    "sharp": "^0.32.4",
     "ts-case-convert": "^2.0.2"
   },
   "devDependencies": {
