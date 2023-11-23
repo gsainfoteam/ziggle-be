@@ -124,9 +124,13 @@ export class NoticeRepository {
         },
         include: {
           tags: true,
-          contents: { orderBy: { id: 'asc' }, take: 1 },
+          contents: { where: { id: 1 } },
           author: { select: { name: true } },
-          files: { where: { type: FileType.IMAGE }, orderBy: { order: 'asc' } },
+          files: {
+            where: { type: FileType.IMAGE },
+            orderBy: { order: 'asc' },
+            take: 1,
+          },
         },
       })
       .catch((err) => {
