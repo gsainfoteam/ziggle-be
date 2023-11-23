@@ -1,5 +1,5 @@
 #Step 1: Build the app in image 'builder'
-FROM node:18 AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
