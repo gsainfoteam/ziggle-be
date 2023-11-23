@@ -9,10 +9,11 @@ import {
   catchError,
   filter,
   firstValueFrom,
+  from,
   map,
-  of,
-  takeUntil,
+  takeWhile,
   throwError,
+  toArray,
 } from 'rxjs';
 import { FcmService } from 'src/global/service/fcm.service';
 import { ImageService } from 'src/image/image.service';
@@ -260,14 +261,36 @@ export class NoticeService {
   // @Cron('*/30 * * * * *')
   async crawlAcademicNotice() {
     const notices = await this.getAcademicNoticeList();
-    console.log(notices);
-    // const recentNotice = await this.noticeRepository.getNoticeList({
-    //   limit: 1,
-    //   orderBy: 'recent',
-    //   tags: ['academic'],
-    // });
-    // console.log(recentNotice);
-    // console.log(notices.map((n) => n.link));
-    // console.log((await this.getAcademicNotice(notices[2].link)).files);
+    const recentNotice = await this.noticeRepository.getNoticeList({
+      limit: 1,
+      orderBy: 'recent',
+      tags: ['academic'],
+    });
+    from(notices).pipe(
+      filter((n) => n.title === recentNotice[0].contents[0].title),
+    );
+    const noticesToCreate$ = from(notices).pipe(
+      takeWhile((n) => n.title !== recentNotice[0].contents[0].title),
+      toArray(),
+      map((n) => n.reverse()),
+    );
+    const noticesToCreate = await firstValueFrom(noticesToCreate$);
+    for (const noticeMetadata of noticesToCreate) {
+      const notice = await this.getAcademicNotice(noticeMetadata.link);
+      const filesList = notice.files
+        .map((file) => `<li><a href="${file.href}">${file.name}</a></li>`)
+        .join('');
+      const filesBody = `<ul>${filesList}</ul>`;
+      const body = `${notice.files.length ? filesBody : ''}${notice.content}`;
+      await this.noticeRepository.createNotice(
+        {
+          title: noticeMetadata.title,
+          body,
+          images: [],
+          tags: [4],
+        },
+        '1',
+      );
+    }
   }
 }
