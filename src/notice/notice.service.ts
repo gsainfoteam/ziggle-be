@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import cheerio from 'cheerio';
@@ -27,6 +27,7 @@ import { NoticeRepository } from './notice.repository';
 
 @Injectable()
 export class NoticeService {
+  private readonly logger = new Logger(NoticeService.name);
   private readonly s3Url: string;
   constructor(
     private readonly noticeRepository: NoticeRepository,
@@ -263,9 +264,11 @@ export class NoticeService {
     return { files, content };
   }
 
-  @Cron('0 */30 * * *')
+  @Cron('0 */10 * * *')
   async crawlAcademicNotice() {
+    this.logger.log('Academic Notice Crawling Start');
     const notices = await this.getAcademicNoticeList();
+    this.logger.log(`Academic Notice Crawling End (${notices.length} notices)`);
     const recentNotice = await this.noticeRepository.getNoticeList({
       limit: 1,
       orderBy: 'recent',
@@ -277,8 +280,12 @@ export class NoticeService {
       map((n) => n.reverse()),
     );
     const noticesToCreate = await firstValueFrom(noticesToCreate$);
+    this.logger.log(
+      `Academic Notice Creating (${noticesToCreate.length}) notices`,
+    );
     for (const noticeMetadata of noticesToCreate) {
       const notice = await this.getAcademicNotice(noticeMetadata.link);
+      this.logger.log(`Academic Notice Creating (${noticeMetadata.title})`);
       const filesList = notice.files
         .map((file) => `<li><a href="${file.href}">${file.name}</a></li>`)
         .join('');
