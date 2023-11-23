@@ -17,6 +17,7 @@ import {
 } from 'rxjs';
 import { FcmService } from 'src/global/service/fcm.service';
 import { ImageService } from 'src/image/image.service';
+import { TagService } from 'src/tag/tag.service';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
 import { CreateNoticeDto } from './dto/createNotice.dto';
 import { ForeignContentDto } from './dto/foreignContent.dto';
@@ -31,6 +32,7 @@ export class NoticeService {
     private readonly imageService: ImageService,
     private readonly fcmService: FcmService,
     private readonly httpService: HttpService,
+    private readonly tagService: TagService,
     configService: ConfigService,
   ) {
     this.crawlAcademicNotice();
@@ -282,12 +284,16 @@ export class NoticeService {
         .join('');
       const filesBody = `<ul>${filesList}</ul>`;
       const body = `${notice.files.length ? filesBody : ''}${notice.content}`;
+      const tags = await this.tagService.findOrCreateTags([
+        'academic',
+        noticeMetadata.category,
+      ]);
       await this.noticeRepository.createNotice(
         {
           title: noticeMetadata.title,
           body,
           images: [],
-          tags: [4],
+          tags: tags.map(({ id }) => id),
         },
         '1',
       );

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTagDto } from './dto/createTag.dto';
 import { Tag } from '@prisma/client';
+import { CreateTagDto } from './dto/createTag.dto';
 import { GetTagDto } from './dto/getTag.dto';
 import { TagRepository } from './tag.repository';
 
@@ -26,5 +26,9 @@ export class TagService {
 
   async deleteTag(id: number): Promise<void> {
     await this.tagRepository.deleteTag(id);
+  }
+
+  async findOrCreateTags(tags: string[]): Promise<Tag[]> {
+    return this.tagRepository.findOrCreateTags(tags);
   }
 }
