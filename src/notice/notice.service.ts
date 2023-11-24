@@ -214,7 +214,7 @@ export class NoticeService {
 
   private getAcademicNoticeList() {
     const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
-    return range(1).pipe(
+    return range(1, 100).pipe(
       concatMap((page) => this.httpService.get(`${baseUrl}?GotoPage=${page}`)),
       timeout(10000),
       map((res) => cheerio.load(res.data)),
