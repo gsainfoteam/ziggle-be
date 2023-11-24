@@ -7,10 +7,12 @@ import dayjs from 'dayjs';
 import { htmlToText } from 'html-to-text';
 import {
   catchError,
+  concat,
   concatMap,
   lastValueFrom,
   map,
   ObservedValueOf,
+  of,
   range,
   takeWhile,
   throwError,
@@ -266,7 +268,7 @@ export class NoticeService {
     );
   }
 
-  @Cron('*/5 * * * *')
+  @Cron('*/20 * * * *')
   async crawlAcademicNotice() {
     const recentNotice = await this.noticeRepository.getNoticeList({
       limit: 1,
@@ -304,6 +306,6 @@ export class NoticeService {
         );
       }),
     );
-    await lastValueFrom($);
+    await lastValueFrom(concat($, of(null)));
   }
 }
