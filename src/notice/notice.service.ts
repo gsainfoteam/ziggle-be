@@ -216,7 +216,7 @@ export class NoticeService {
 
   private getAcademicNoticeList() {
     const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
-    return range(1, 100).pipe(
+    return range(1, 36).pipe(
       concatMap((page) => this.httpService.get(`${baseUrl}?GotoPage=${page}`)),
       timeout(10000),
       map((res) => cheerio.load(res.data)),
@@ -295,7 +295,7 @@ export class NoticeService {
         const user = await this.userService.addTempUser(
           `${meta.author} (${meta.category})`,
         );
-        const result = await this.noticeRepository.createNotice(
+        await this.noticeRepository.createNotice(
           {
             title: meta.title,
             body,
@@ -305,13 +305,13 @@ export class NoticeService {
           user.uuid,
           dayjs(meta.createdAt).tz('Asia/Seoul').toDate(),
         );
-        await this.fcmService.postMessage(
-          { title: '새 공지글', body: meta.title },
-          (
-            await this.noticeRepository.getAllFcmTokens()
-          ).map(({ token }) => token),
-          { path: `/root/article?id=${result.id}` },
-        );
+        // await this.fcmService.postMessage(
+        //   { title: '새 공지글', body: meta.title },
+        //   (
+        //     await this.noticeRepository.getAllFcmTokens()
+        //   ).map(({ token }) => token),
+        //   { path: `/root/article?id=${result.id}` },
+        // );
       }),
     );
     await lastValueFrom(concat($, of(null)));
