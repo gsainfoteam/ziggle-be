@@ -282,11 +282,12 @@ export class NoticeService {
         this.getAcademicNotice(meta).pipe(map((notice) => ({ notice, meta }))),
       ),
       concatMap(async ({ notice, meta }) => {
+        const original = `<p>학사공지 원본 링크 : <a href="${meta.link}" target="_blank">${meta.link}</a></p>`;
         const filesList = notice.files
           .map((file) => `<li><a href="${file.href}">${file.name}</a></li>`)
           .join('');
-        const filesBody = `<ul>${filesList}</ul>`;
-        const body = `${notice.files.length ? filesBody : ''}${notice.content}`;
+        const filesBody = notice.files.length ? `<ul>${filesList}</ul>` : '';
+        const body = `${original}${filesBody}${notice.content}`;
         const tags = await this.tagService.findOrCreateTags([
           'academic',
           meta.category,
