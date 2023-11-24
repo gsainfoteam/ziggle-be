@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import cheerio from 'cheerio';
@@ -8,10 +8,10 @@ import { htmlToText } from 'html-to-text';
 import {
   catchError,
   concatMap,
-  generate,
   lastValueFrom,
   map,
   ObservedValueOf,
+  range,
   takeWhile,
   throwError,
   timeout,
@@ -28,7 +28,6 @@ import { NoticeRepository } from './notice.repository';
 
 @Injectable()
 export class NoticeService {
-  private readonly logger = new Logger(NoticeService.name);
   private readonly s3Url: string;
   constructor(
     private readonly noticeRepository: NoticeRepository,
@@ -215,19 +214,18 @@ export class NoticeService {
 
   private getAcademicNoticeList() {
     const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
-    return generate({ initialState: 1, iterate: (i) => i + 1 }).pipe(
+    return range(1).pipe(
       concatMap((page) => this.httpService.get(`${baseUrl}?GotoPage=${page}`)),
       timeout(10000),
       map((res) => cheerio.load(res.data)),
       catchError(throwError),
-      map(($) => $('table > tbody > tr')),
       map(($) =>
-        $.filter(
+        $('table > tbody > tr').filter(
           (_, e) => e.type === 'tag' && !e.attribs.class.includes('lstNtc'),
         ),
       ),
       concatMap(($) => $.toArray()),
-      map((s) => cheerio(s)),
+      map(cheerio),
       map(($) => ({
         id: Number.parseInt($.find('td').first().text().trim()),
         title: $.find('td').eq(2).text().trim(),
@@ -270,7 +268,6 @@ export class NoticeService {
 
   @Cron('*/5 * * * *')
   async crawlAcademicNotice() {
-    this.logger.debug('Academic Notice Crawling Start');
     const recentNotice = await this.noticeRepository.getNoticeList({
       limit: 1,
       orderBy: 'recent',
