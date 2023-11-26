@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { apps } from 'firebase-admin';
-import { initializeApp, cert } from 'firebase-admin/app';
-import { Notification, getMessaging } from 'firebase-admin/messaging';
+import { cert, initializeApp } from 'firebase-admin/app';
+import { getMessaging, Notification } from 'firebase-admin/messaging';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -50,7 +50,6 @@ export class FcmService {
       apns: { payload: { aps: { mutableContent: true } } },
       data: data,
     });
-    console.log(result);
     const responses = result.responses.map((response, index) => ({
       response,
       token: tokens[index],

@@ -110,17 +110,10 @@ export class NoticeService {
       userUuid,
     );
 
-    this.fcmService.postMessage(
-      {
-        title: '새 공지글',
-        body: title,
-        imageUrl:
-          !images || images.length === 0
-            ? undefined
-            : `${this.s3Url}${images[0]}`,
-      },
-      (await this.noticeRepository.getAllFcmTokens()).map(({ token }) => token),
-      { path: `/root/article?id=${notice.id}` },
+    this.sendNoticeToAllUsers(
+      title,
+      images?.map((image) => `${this.s3Url}${image}`),
+      notice,
     );
     return this.getNotice(notice.id);
   }
@@ -328,15 +321,25 @@ export class NoticeService {
           user.uuid,
           dayjs(meta.createdAt).tz('Asia/Seoul').toDate(),
         );
-        await this.fcmService.postMessage(
-          { title: '새 공지글', body: meta.title },
-          (
-            await this.noticeRepository.getAllFcmTokens()
-          ).map(({ token }) => token),
-          { path: `/root/article?id=${result.id}` },
-        );
+        await this.sendNoticeToAllUsers(meta.title, [], result);
       }),
     );
     await lastValueFrom(concat($, of(null)));
+  }
+
+  private async sendNoticeToAllUsers(
+    title: string,
+    images: string[],
+    notice: Awaited<ReturnType<NoticeRepository['createNotice']>>,
+  ) {
+    await this.fcmService.postMessage(
+      {
+        title: '새 공지글',
+        body: title,
+        imageUrl: images?.length ? images[0] : undefined,
+      },
+      (await this.noticeRepository.getAllFcmTokens()).map(({ token }) => token),
+      { path: `/root/article?id=${notice.id}` },
+    );
   }
 }
