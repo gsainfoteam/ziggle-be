@@ -9,6 +9,8 @@ import {
   catchError,
   concat,
   concatMap,
+  firstValueFrom,
+  from,
   lastValueFrom,
   map,
   ObservedValueOf,
@@ -17,6 +19,7 @@ import {
   takeWhile,
   throwError,
   timeout,
+  toArray,
 } from 'rxjs';
 import { FcmService } from 'src/global/service/fcm.service';
 import { ImageService } from 'src/image/image.service';
@@ -295,11 +298,31 @@ export class NoticeService {
         const user = await this.userService.addTempUser(
           `${meta.author} (${meta.category})`,
         );
+        const imagesStream = from(
+          cheerio.load(notice.content)('img').toArray(),
+        ).pipe(
+          map((e) => e.type === 'tag' && e.attribs.src),
+          concatMap((v) =>
+            this.httpService.get(v, { responseType: 'arraybuffer' }),
+          ),
+          map((res) => res.data as ArrayBuffer),
+          map(
+            (buffer, index) =>
+              ({
+                buffer,
+                originalname: `${meta.id}-${meta.title}-${index}.png`,
+              } as Express.Multer.File),
+          ),
+          toArray(),
+        );
+        const images = await this.imageService.uploadImages(
+          await firstValueFrom(imagesStream),
+        );
         const result = await this.noticeRepository.createNotice(
           {
             title: meta.title,
             body,
-            images: [],
+            images,
             tags: tags.map(({ id }) => id),
           },
           user.uuid,
