@@ -321,7 +321,7 @@ export class NoticeService {
           user.uuid,
           dayjs(meta.createdAt)
             .tz()
-            .add(dayjs().tz().startOf('d').diff(dayjs().tz()))
+            .add(dayjs().tz().diff(dayjs().tz().startOf('d')))
             .toDate(),
         );
         await this.sendNoticeToAllUsers(meta.title, [], result);
