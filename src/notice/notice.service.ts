@@ -319,7 +319,10 @@ export class NoticeService {
             tags: tags.map(({ id }) => id),
           },
           user.uuid,
-          dayjs(meta.createdAt).tz('Asia/Seoul').toDate(),
+          dayjs(meta.createdAt)
+            .tz()
+            .add(dayjs().tz().startOf('d').diff(dayjs().tz()))
+            .toDate(),
         );
         await this.sendNoticeToAllUsers(meta.title, [], result);
       }),
