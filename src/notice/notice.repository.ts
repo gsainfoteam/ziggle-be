@@ -299,7 +299,7 @@ export class NoticeRepository {
               deadline,
             },
           },
-          currentDeadline: deadline ?? undefined,
+          currentDeadline: deadline ?? notice.currentDeadline,
         },
       })
       .catch((err) => {
