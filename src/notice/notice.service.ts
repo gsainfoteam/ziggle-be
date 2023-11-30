@@ -15,7 +15,6 @@ import {
   map,
   ObservedValueOf,
   of,
-  range,
   takeWhile,
   throwError,
   timeout,
@@ -212,26 +211,25 @@ export class NoticeService {
 
   private getAcademicNoticeList() {
     const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
-    return range(1, 36).pipe(
-      concatMap((page) => this.httpService.get(`${baseUrl}?GotoPage=${page}`)),
+    return this.httpService.get(baseUrl).pipe(
       timeout(10000),
       map((res) => cheerio.load(res.data)),
       catchError(throwError),
-      map(($) =>
-        $('table > tbody > tr').filter(
-          (_, e) => e.type === 'tag' && !e.attribs.class.includes('lstNtc'),
-        ),
-      ),
-      concatMap(($) => $.toArray()),
-      map(cheerio),
+      map(($) => $('table > tbody > tr')),
+      concatMap(($) => $.toArray().map(cheerio)),
       map(($) => ({
-        id: Number.parseInt($.find('td').first().text().trim()),
         title: $.find('td').eq(2).text().trim(),
         link: `${baseUrl}${$.find('td').eq(2).find('a').attr('href')}`,
         author: $.find('td').eq(3).text().trim(),
         category: $.find('td').eq(1).text().trim(),
         createdAt: $.find('td').eq(5).text().trim(),
       })),
+      map((meta) => ({
+        id: Number.parseInt(meta.link.split('no=')[1].split('&')[0]),
+        ...meta,
+      })),
+      toArray(),
+      concatMap((metas) => metas.sort((a, b) => b.id - a.id)),
     );
   }
 
