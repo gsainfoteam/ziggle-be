@@ -20,6 +20,7 @@ import { User } from '@prisma/client';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
 import { ForeignContentDto } from './dto/foreignContent.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { GetNoticeDto } from './dto/getNotice.dto';
 
 @ApiTags('notice')
 @Controller('notice')
@@ -51,9 +52,10 @@ export class NoticeController {
   @UseGuards(IdPOptionalGuard)
   async getNotice(
     @Param('id', ParseIntPipe) id: number,
+    @Query() query: GetNoticeDto,
     @GetUser() user?: User,
   ) {
-    return this.noticeService.getNotice(id, user?.uuid);
+    return this.noticeService.getNotice(id, query, user?.uuid);
   }
 
   /* notice 생성 */

@@ -134,6 +134,38 @@ export class NoticeRepository {
 
   async getNotice(id: number): Promise<NoticeFullcontent> {
     return this.prismaService.notice
+      .findUniqueOrThrow({
+        where: { id, deletedAt: null },
+        include: {
+          tags: true,
+          contents: {
+            orderBy: {
+              id: 'asc',
+            },
+          },
+          reminders: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
+          files: { orderBy: { order: 'asc' } },
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new NotFoundException(`Notice with ID "${id}" not found`);
+          }
+        }
+        this.logger.error('getNotice');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('Database error');
+      });
+  }
+
+  async getNoticeWithView(id: number): Promise<NoticeFullcontent> {
+    return this.prismaService.notice
       .update({
         where: { id, deletedAt: null },
         data: {
