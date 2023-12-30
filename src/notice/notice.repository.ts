@@ -15,6 +15,7 @@ import { ForeignContentDto } from './dto/foreignContent.dto';
 import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
 import { NoticeFullcontent } from './types/noticeFullcontent';
 import { NoticeReminder } from './types/noticeReminer';
+import { UpdateNoticeDto } from './dto/updateNotice.dto';
 
 @Injectable()
 export class NoticeRepository {
@@ -117,7 +118,7 @@ export class NoticeRepository {
         include: {
           tags: true,
           contents: { where: { id: 1 } },
-          author: { select: { name: true } },
+          author: { select: { name: true, uuid: true } },
           files: {
             where: { type: FileType.IMAGE },
             orderBy: { order: 'asc' },
@@ -147,6 +148,7 @@ export class NoticeRepository {
           author: {
             select: {
               name: true,
+              uuid: true,
             },
           },
           files: { orderBy: { order: 'asc' } },
@@ -184,6 +186,7 @@ export class NoticeRepository {
           author: {
             select: {
               name: true,
+              uuid: true,
             },
           },
           files: { orderBy: { order: 'asc' } },
@@ -440,6 +443,40 @@ export class NoticeRepository {
           }
         }
         this.logger.error('deleteNotice');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('Database error');
+      });
+  }
+
+  async updateNotice(
+    id: number,
+    { body, deadline }: UpdateNoticeDto,
+    userUuid: string,
+  ): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: { id, authorId: userUuid, deletedAt: null },
+        data: {
+          contents: {
+            update: {
+              where: {
+                id_lang_noticeId: {
+                  id: 1,
+                  lang: 'ko',
+                  noticeId: id,
+                },
+              },
+              data: {
+                body,
+                deadline,
+              },
+            },
+          },
+          currentDeadline: deadline,
+        },
+      })
+      .catch((err) => {
+        this.logger.error('updateNotice');
         this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });

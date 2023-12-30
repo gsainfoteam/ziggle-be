@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import cheerio from 'cheerio';
@@ -31,6 +31,7 @@ import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
 import { NoticeRepository } from './notice.repository';
 import { GetNoticeDto } from './dto/getNotice.dto';
 import { NoticeFullcontent } from './types/noticeFullcontent';
+import { UpdateNoticeDto } from './dto/updateNotice.dto';
 
 @Injectable()
 export class NoticeService {
@@ -176,6 +177,18 @@ export class NoticeService {
   async addNoticeReminder(id: number, userUuid: string) {
     await this.noticeRepository.addReminder(id, userUuid);
 
+    return this.getNotice(id, { isViewed: false }, userUuid);
+  }
+
+  async updateNotice(id: number, body: UpdateNoticeDto, userUuid: string) {
+    const notice = await this.noticeRepository.getNotice(id);
+    if (notice.author.uuid !== userUuid) {
+      throw new ForbiddenException();
+    }
+    if (notice.createdAt.getTime() + 15 * 60 * 1000 < Date.now()) {
+      throw new ForbiddenException();
+    }
+    await this.noticeRepository.updateNotice(id, body, userUuid);
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
