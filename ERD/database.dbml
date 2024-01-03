@@ -60,6 +60,15 @@ Table Tag {
     name varchar
 }
 
+Table Reaction {
+    emoji varchar
+    createdAt timestamp
+    notice integer [ref: > Notice.id]
+    user varchar [ref: > User.uuid]
+
+    primary key (emoji, notice, user)
+}
+
 Table FcmToken {
     token varchar [pk]
     createdAt timestamp
