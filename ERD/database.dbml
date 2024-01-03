@@ -63,10 +63,13 @@ Table Tag {
 Table Reaction {
     emoji varchar
     createdAt timestamp
+    deletedAt timestamp
     notice integer [ref: > Notice.id]
     user varchar [ref: > User.uuid]
 
-    primary key (emoji, notice, user)
+    Indexes {
+        (notice, user, emoji) [unique]
+    }
 }
 
 Table FcmToken {
