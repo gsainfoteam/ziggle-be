@@ -3,7 +3,7 @@ name: Update Kubernetes Cluster (Dev)
 on:
   push:
     branches:
-      - develop
+      - master
 
 jobs:
   build:
