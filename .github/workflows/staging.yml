@@ -3,7 +3,7 @@ name: Update Kubernetes Cluster (Dev)
 on:
   push:
     branches:
-      - master
+      - develop
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      ECR_REPOSITORY: skrr-be
+      ECR_REPOSITORY: ziggle-backend
       IMAGE_TAG: dev${{ github.run_number }}
 
     steps:
@@ -37,7 +37,7 @@ jobs:
         uses: docker/build-push-action@v2
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: skrr-be
+          ECR_REPOSITORY: ziggle-backend
           IMAGE_TAG: dev${{ github.run_number }} # Use run number as image tag
         with:
           context: .
@@ -54,10 +54,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
-          repository: skrrteam/skrr-gitops
+          repository: gsainfoteam/icarus-gitops
           ref: master
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
-          path: skrr-gitops
+          path: icarus-gitops
 
       - name: Update Kubernetes Manifest
         env:
@@ -65,5 +65,13 @@ jobs:
           ECR_REPOSITORY: ${{ needs.build.outputs.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ needs.build.outputs.IMAGE_TAG }}
         run: |
-          cd skrr-gitops/service/skrr/dev
-          sed -i "s|image:.*|image: $ECR_REGISTRY\/$ECR_REPOSITORY:$IMAGE_TAG|g" skrr-dev-be.yaml
+          cd icarus-gitops/infoteam/service/ziggle
+          sed -i "s|image:.*|image: $ECR_REGISTRY\/$ECR_REPOSITORY:$IMAGE_TAG|g" stg.yaml
+
+      - name: Commit and Push
+        run: |
+          cd icarus-gitops
+          git config --global user.email "psw041115@gmail.com"
+          git config --global user.name "siwonpada"
+          git commit -am "Update image $ECR_REPOSITORY tag $IMAGE_TAG"
+          git push -u origin master
