@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `file` ADD COLUMN `order` INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE `File` ADD COLUMN `order` INTEGER NOT NULL DEFAULT 0;
 
 -- CreateTable
 CREATE TABLE `Reaction` (
