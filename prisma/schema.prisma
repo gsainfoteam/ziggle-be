@@ -24,6 +24,7 @@ model User {
   remindedNotices Notice[]   @relation("Reminder")
   writedNotices   Notice[]
   fcmTokens       FcmToken[]
+  reactions       Reaction[]
 }
 
 model File {
@@ -70,12 +71,26 @@ model Notice {
   updatedAt       DateTime  @default(now()) @map("updated_at")
   deletedAt       DateTime? @map("deleted_at")
 
-  authorId  String    @map("author_id")
-  reminders User[]    @relation("Reminder")
-  author    User      @relation(fields: [authorId], references: [uuid])
+  authorId  String     @map("author_id")
+  reminders User[]     @relation("Reminder")
+  author    User       @relation(fields: [authorId], references: [uuid])
   files     File[]
   contents  Content[]
   tags      Tag[]
+  reactions Reaction[]
+}
+
+model Reaction {
+  emoji     String
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  noticeId Int    @map("notice_id")
+  notice   Notice @relation(fields: [noticeId], references: [id])
+  userId   String @map("user_id")
+  user     User   @relation(fields: [userId], references: [uuid])
+
+  @@id([emoji, noticeId, userId])
 }
 
 model FcmToken {
