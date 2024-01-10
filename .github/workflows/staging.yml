@@ -69,7 +69,6 @@ jobs:
 
       - name: Commit and Push
         run: |
-          cd icarus-gitops
           git config --global user.email "psw041115@gmail.com"
           git config --global user.name "siwonpada"
           git commit -am "Update image $ECR_REPOSITORY tag $IMAGE_TAG"
