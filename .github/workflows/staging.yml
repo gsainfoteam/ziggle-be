@@ -52,12 +52,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: gsainfoteam/icarus-gitops
-          ref: master
-          token: ${{ secrets.GIT_ACCESS_TOKEN }}
-          path: icarus-gitops
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          fetch-depth: 0
 
       - name: Update Kubernetes Manifest
         env:
