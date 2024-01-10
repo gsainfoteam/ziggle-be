@@ -64,7 +64,7 @@ jobs:
           ECR_REPOSITORY: ${{ needs.build.outputs.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ needs.build.outputs.IMAGE_TAG }}
         run: |
-          cd icarus-gitops/infoteam/service/ziggle
+          cd infoteam/service/ziggle
           sed -i "s|image:.*|image: $ECR_REGISTRY\/$ECR_REPOSITORY:$IMAGE_TAG|g" stg.yaml
 
       - name: Commit and Push
