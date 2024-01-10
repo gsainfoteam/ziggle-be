@@ -5,7 +5,7 @@ import { ApiResponse } from '@nestjs/swagger';
 export class AppController {
   @ApiResponse({
     status: 200,
-    description: 'pong',
+    description: 'Send the message "pong" when the server is active',
     type: String,
   })
   @Get()

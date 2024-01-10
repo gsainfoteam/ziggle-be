@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -20,6 +21,8 @@ import { User } from '@prisma/client';
 import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
 import { ForeignContentDto } from './dto/foreignContent.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { GetNoticeDto } from './dto/getNotice.dto';
+import { UpdateNoticeDto } from './dto/updateNotice.dto';
 
 @ApiTags('notice')
 @Controller('notice')
@@ -51,9 +54,10 @@ export class NoticeController {
   @UseGuards(IdPOptionalGuard)
   async getNotice(
     @Param('id', ParseIntPipe) id: number,
+    @Query() query: GetNoticeDto,
     @GetUser() user?: User,
   ) {
-    return this.noticeService.getNotice(id, user?.uuid);
+    return this.noticeService.getNotice(id, query, user?.uuid);
   }
 
   /* notice 생성 */
@@ -101,6 +105,17 @@ export class NoticeController {
   @UseGuards(IdPGuard)
   async addNoticeReminder(@GetUser() user: User, @Param('id') id: number) {
     return this.noticeService.addNoticeReminder(id, user?.uuid);
+  }
+
+  /* notice 수정은 작성자만 가능, 15분 이내에만 가능 */
+  @Patch(':id')
+  @UseGuards(IdPGuard)
+  async updateNotice(
+    @Param('id') id: number,
+    @GetUser() user: User,
+    @Body() body: UpdateNoticeDto,
+  ) {
+    return this.noticeService.updateNotice(id, body, user.uuid);
   }
 
   @Delete(':id/reminder')

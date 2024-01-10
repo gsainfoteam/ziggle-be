@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import cheerio from 'cheerio';
@@ -29,6 +29,9 @@ import { CreateNoticeDto } from './dto/createNotice.dto';
 import { ForeignContentDto } from './dto/foreignContent.dto';
 import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
 import { NoticeRepository } from './notice.repository';
+import { GetNoticeDto } from './dto/getNotice.dto';
+import { NoticeFullcontent } from './types/noticeFullcontent';
+import { UpdateNoticeDto } from './dto/updateNotice.dto';
 
 @Injectable()
 export class NoticeService {
@@ -77,8 +80,13 @@ export class NoticeService {
     };
   }
 
-  async getNotice(id: number, userUuid?: string) {
-    const notice = await this.noticeRepository.getNotice(id);
+  async getNotice(id: number, { isViewed }: GetNoticeDto, userUuid?: string) {
+    let notice: NoticeFullcontent;
+    if (isViewed) {
+      notice = await this.noticeRepository.getNoticeWithView(id);
+    } else {
+      notice = await this.noticeRepository.getNotice(id);
+    }
     const { reminders, ...noticeInfo } = notice;
     return {
       ...noticeInfo,
@@ -114,7 +122,7 @@ export class NoticeService {
       images?.map((image) => `${this.s3Url}${image}`),
       notice,
     );
-    return this.getNotice(notice.id);
+    return this.getNotice(notice.id, { isViewed: false });
   }
 
   async addNoticeAdditional(
@@ -148,7 +156,7 @@ export class NoticeService {
       );
     }
 
-    return this.getNotice(id);
+    return this.getNotice(id, { isViewed: false });
   }
 
   async addForeignContent(
@@ -163,19 +171,31 @@ export class NoticeService {
       idx,
       userUuid,
     );
-    return this.getNotice(id);
+    return this.getNotice(id, { isViewed: false });
   }
 
   async addNoticeReminder(id: number, userUuid: string) {
     await this.noticeRepository.addReminder(id, userUuid);
 
-    return this.getNotice(id, userUuid);
+    return this.getNotice(id, { isViewed: false }, userUuid);
+  }
+
+  async updateNotice(id: number, body: UpdateNoticeDto, userUuid: string) {
+    const notice = await this.noticeRepository.getNotice(id);
+    if (notice.author.uuid !== userUuid) {
+      throw new ForbiddenException();
+    }
+    if (notice.createdAt.getTime() + 15 * 60 * 1000 < Date.now()) {
+      throw new ForbiddenException();
+    }
+    await this.noticeRepository.updateNotice(id, body, userUuid);
+    return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
   async removeNoticeReminder(id: number, userUuid: string) {
     await this.noticeRepository.removeReminder(id, userUuid);
 
-    return this.getNotice(id, userUuid);
+    return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {
