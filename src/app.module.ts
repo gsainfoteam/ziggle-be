@@ -6,6 +6,7 @@ import { TagModule } from './tag/tag.module';
 import { AppController } from './app.controller';
 import { ImageModule } from './image/image.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { DocumentModule } from './document/document.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     TagModule,
     ImageModule,
     ScheduleModule.forRoot(),
+    DocumentModule,
   ],
   controllers: [AppController],
 })

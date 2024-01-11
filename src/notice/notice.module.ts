@@ -9,12 +9,14 @@ import { UserModule } from 'src/user/user.module';
 import { NoticeController } from './notice.controller';
 import { NoticeRepository } from './notice.repository';
 import { NoticeService } from './notice.service';
+import { DocumentModule } from 'src/document/document.module';
 
 @Module({
   imports: [
     ConfigModule,
     UserModule,
     ImageModule,
+    DocumentModule,
     FcmModule,
     PrismaModule,
     HttpModule,

@@ -56,4 +56,13 @@ export class CreateNoticeDto {
   @IsString({ each: true })
   @IsOptional()
   images: string[] = [];
+
+  @ApiProperty({
+    example: 'wow.docx',
+    description: '파일 이름',
+    required: false,
+  })
+  @IsString({ each: true })
+  @IsOptional()
+  documents: string[] = [];
 }

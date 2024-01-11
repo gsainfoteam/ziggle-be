@@ -32,6 +32,7 @@ import { NoticeRepository } from './notice.repository';
 import { GetNoticeDto } from './dto/getNotice.dto';
 import { NoticeFullcontent } from './types/noticeFullcontent';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
+import { DocumentService } from 'src/document/document.service';
 
 @Injectable()
 export class NoticeService {
@@ -39,6 +40,7 @@ export class NoticeService {
   constructor(
     private readonly noticeRepository: NoticeRepository,
     private readonly imageService: ImageService,
+    private readonly documentService: DocumentService,
     private readonly fcmService: FcmService,
     private readonly httpService: HttpService,
     private readonly tagService: TagService,
@@ -99,11 +101,14 @@ export class NoticeService {
   }
 
   async createNotice(
-    { title, body, deadline, tags, images }: CreateNoticeDto,
+    { title, body, deadline, tags, images, documents }: CreateNoticeDto,
     userUuid: string,
   ) {
     if (images.length) {
       await this.imageService.validateImages(images);
+    }
+    if (documents.length) {
+      await this.documentService.validateDocuments(documents);
     }
 
     const notice = await this.noticeRepository.createNotice(
@@ -113,6 +118,7 @@ export class NoticeService {
         deadline,
         tags,
         images,
+        documents,
       },
       userUuid,
     );
@@ -335,6 +341,7 @@ export class NoticeService {
             body,
             images,
             tags: tags.map(({ id }) => id),
+            documents: [],
           },
           user.uuid,
           dayjs(meta.createdAt)
