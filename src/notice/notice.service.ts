@@ -33,6 +33,7 @@ import { GetNoticeDto } from './dto/getNotice.dto';
 import { NoticeFullcontent } from './types/noticeFullcontent';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { DocumentService } from 'src/document/document.service';
+import { ReactionDto } from './dto/reaction.dto';
 
 @Injectable()
 export class NoticeService {
@@ -186,6 +187,16 @@ export class NoticeService {
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
+  async addNoticeReaction(
+    id: number,
+    { emoji }: ReactionDto,
+    userUuid: string,
+  ) {
+    await this.noticeRepository.addReaction(id, emoji, userUuid);
+
+    return this.getNotice(id, { isViewed: false }, userUuid);
+  }
+
   async updateNotice(id: number, body: UpdateNoticeDto, userUuid: string) {
     const notice = await this.noticeRepository.getNotice(id);
     if (notice.author.uuid !== userUuid) {
@@ -200,6 +211,16 @@ export class NoticeService {
 
   async removeNoticeReminder(id: number, userUuid: string) {
     await this.noticeRepository.removeReminder(id, userUuid);
+
+    return this.getNotice(id, { isViewed: false }, userUuid);
+  }
+
+  async removeNoticeReaction(
+    id: number,
+    { emoji }: ReactionDto,
+    userUuid: string,
+  ) {
+    await this.noticeRepository.removeReaction(id, emoji, userUuid);
 
     return this.getNotice(id, { isViewed: false }, userUuid);
   }

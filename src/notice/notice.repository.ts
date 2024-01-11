@@ -124,6 +124,11 @@ export class NoticeRepository {
             orderBy: { order: 'asc' },
             take: 1,
           },
+          reactions: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
       })
       .catch((err) => {
@@ -152,6 +157,11 @@ export class NoticeRepository {
             },
           },
           files: { orderBy: { order: 'asc' } },
+          reactions: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
       })
       .catch((err) => {
@@ -190,6 +200,11 @@ export class NoticeRepository {
             },
           },
           files: { orderBy: { order: 'asc' } },
+          reactions: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
       })
       .catch((err) => {
@@ -436,6 +451,52 @@ export class NoticeRepository {
         this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
+  }
+
+  async addReaction(
+    id: number,
+    emoji: string,
+    userUuid: string,
+  ): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: { id, deletedAt: null },
+        data: {
+          reactions: {
+            connect: {
+              emoji_noticeId_userId: {
+                emoji,
+                noticeId: id,
+                userId: userUuid,
+              },
+            },
+          },
+        },
+      })
+      .catch((err) => {
+        this.logger.error('addReaction');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('Database error');
+      });
+  }
+
+  async removeReaction(
+    id: number,
+    emoji: string,
+    userUuid: string,
+  ): Promise<void> {
+    await this.prismaService.reaction.update({
+      where: {
+        emoji_noticeId_userId: {
+          emoji,
+          noticeId: id,
+          userId: userUuid,
+        },
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
   }
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {

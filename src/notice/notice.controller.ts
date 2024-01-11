@@ -23,6 +23,7 @@ import { ForeignContentDto } from './dto/foreignContent.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { GetNoticeDto } from './dto/getNotice.dto';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
+import { ReactionDto } from './dto/reaction.dto';
 
 @ApiTags('notice')
 @Controller('notice')
@@ -107,6 +108,17 @@ export class NoticeController {
     return this.noticeService.addNoticeReminder(id, user?.uuid);
   }
 
+  /* notice reaction 추가 */
+  @Post(':id/reaction')
+  @UseGuards(IdPGuard)
+  async addNoticeReaction(
+    @GetUser() user: User,
+    @Param('id') id: number,
+    @Body() body: ReactionDto,
+  ) {
+    return this.noticeService.addNoticeReaction(id, body, user?.uuid);
+  }
+
   /* notice 수정은 작성자만 가능, 15분 이내에만 가능 */
   @Patch(':id')
   @UseGuards(IdPGuard)
@@ -122,6 +134,16 @@ export class NoticeController {
   @UseGuards(IdPGuard)
   async deleteNoticeReminder(@GetUser() user: User, @Param('id') id: number) {
     return this.noticeService.removeNoticeReminder(id, user?.uuid);
+  }
+
+  @Delete(':id/reaction')
+  @UseGuards(IdPGuard)
+  async deleteNoticeReaction(
+    @GetUser() user: User,
+    @Param('id') id: number,
+    @Body() body: ReactionDto,
+  ) {
+    return this.noticeService.removeNoticeReaction(id, body, user?.uuid);
   }
 
   /* notice 삭제는 작성자만 가능 */
