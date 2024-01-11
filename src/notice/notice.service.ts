@@ -34,6 +34,7 @@ import { NoticeFullcontent } from './types/noticeFullcontent';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { DocumentService } from 'src/document/document.service';
 import { ReactionDto } from './dto/reaction.dto';
+import { FileType } from '@prisma/client';
 
 @Injectable()
 export class NoticeService {
@@ -68,6 +69,10 @@ export class NoticeService {
       ),
       list: notices.map(({ files, author, ...notice }) => {
         delete notice.authorId;
+        const images = files?.filter(({ type }) => type === FileType.IMAGE);
+        const documents = files?.filter(
+          ({ type }) => type === FileType.DOCUMENT,
+        );
         return {
           ...notice,
           contents: notice.contents.map((content) => ({
@@ -75,7 +80,10 @@ export class NoticeService {
             body: htmlToText(content.body).slice(0, 100),
           })),
           author: author.name,
-          imageUrl: files?.[0]?.url ? `${this.s3Url}${files[0].url}` : null,
+          imageUrl: images?.[0]?.url ? `${this.s3Url}${images[0].url}` : null,
+          documentUrl: documents?.[0]?.url
+            ? `${this.s3Url}${documents[0].url}`
+            : null,
           title: notice.contents[0].title,
           body: htmlToText(notice.contents[0].body).slice(0, 100),
         };
@@ -90,11 +98,14 @@ export class NoticeService {
     } else {
       notice = await this.noticeRepository.getNotice(id);
     }
-    const { reminders, ...noticeInfo } = notice;
+    const { reminders, files, ...noticeInfo } = notice;
+    const images = files?.filter(({ type }) => type === FileType.IMAGE);
+    const documents = files?.filter(({ type }) => type === FileType.DOCUMENT);
     return {
       ...noticeInfo,
       author: notice.author.name,
-      imagesUrl: notice.files?.map((file) => `${this.s3Url}${file.url}`),
+      imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
+      documentsUrl: documents?.map((file) => `${this.s3Url}${file.url}`),
       reminder: reminders.some((reminder) => reminder.uuid === userUuid),
       title: notice.contents[0].title,
       body: htmlToText(notice.contents[0].body),
