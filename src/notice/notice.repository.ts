@@ -458,26 +458,38 @@ export class NoticeRepository {
     emoji: string,
     userUuid: string,
   ): Promise<void> {
-    await this.prismaService.notice
-      .update({
-        where: { id, deletedAt: null },
-        data: {
-          reactions: {
-            connect: {
-              emoji_noticeId_userId: {
-                emoji,
-                noticeId: id,
-                userId: userUuid,
-              },
-            },
+    const reaction = await this.prismaService.reaction.findUnique({
+      where: {
+        emoji_noticeId_userId: {
+          emoji,
+          noticeId: id,
+          userId: userUuid,
+        },
+      },
+    });
+    if (reaction) {
+      await this.prismaService.reaction.update({
+        where: {
+          emoji_noticeId_userId: {
+            emoji,
+            noticeId: id,
+            userId: userUuid,
           },
         },
-      })
-      .catch((err) => {
-        this.logger.error('addReaction');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        data: {
+          deletedAt: null,
+        },
       });
+    } else {
+      await this.prismaService.reaction.create({
+        data: {
+          emoji,
+          noticeId: id,
+          userId: userUuid,
+          deletedAt: null,
+        },
+      });
+    }
   }
 
   async removeReaction(
