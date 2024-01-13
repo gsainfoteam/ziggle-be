@@ -124,6 +124,11 @@ export class NoticeRepository {
             orderBy: { order: 'asc' },
             take: 1,
           },
+          reactions: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
       })
       .catch((err) => {
@@ -152,6 +157,11 @@ export class NoticeRepository {
             },
           },
           files: { orderBy: { order: 'asc' } },
+          reactions: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
       })
       .catch((err) => {
@@ -190,6 +200,11 @@ export class NoticeRepository {
             },
           },
           files: { orderBy: { order: 'asc' } },
+          reactions: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
       })
       .catch((err) => {
@@ -232,7 +247,7 @@ export class NoticeRepository {
   }
 
   async createNotice(
-    { title, body, deadline, tags, images }: CreateNoticeDto,
+    { title, body, deadline, tags, images, documents }: CreateNoticeDto,
     userUuid: string,
     createdAt?: Date,
   ) {
@@ -265,12 +280,20 @@ export class NoticeRepository {
             connect: findedTags,
           },
           files: {
-            create: images?.map((image, idx) => ({
-              order: idx,
-              name: title,
-              type: FileType.IMAGE,
-              url: image,
-            })),
+            create: [
+              ...images?.map((image, idx) => ({
+                order: idx,
+                name: title,
+                type: FileType.IMAGE,
+                url: image,
+              })),
+              ...documents?.map((document, idx) => ({
+                order: idx,
+                name: title,
+                type: FileType.DOCUMENT,
+                url: document,
+              })),
+            ],
           },
           createdAt,
         },
@@ -428,6 +451,64 @@ export class NoticeRepository {
         this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
+  }
+
+  async addReaction(
+    id: number,
+    emoji: string,
+    userUuid: string,
+  ): Promise<void> {
+    const reaction = await this.prismaService.reaction.findUnique({
+      where: {
+        emoji_noticeId_userId: {
+          emoji,
+          noticeId: id,
+          userId: userUuid,
+        },
+      },
+    });
+    if (reaction) {
+      await this.prismaService.reaction.update({
+        where: {
+          emoji_noticeId_userId: {
+            emoji,
+            noticeId: id,
+            userId: userUuid,
+          },
+        },
+        data: {
+          deletedAt: null,
+        },
+      });
+    } else {
+      await this.prismaService.reaction.create({
+        data: {
+          emoji,
+          noticeId: id,
+          userId: userUuid,
+          deletedAt: null,
+        },
+      });
+    }
+  }
+
+  async removeReaction(
+    id: number,
+    emoji: string,
+    userUuid: string,
+  ): Promise<void> {
+    await this.prismaService.reaction.update({
+      where: {
+        emoji_noticeId_userId: {
+          emoji,
+          noticeId: id,
+          userId: userUuid,
+        },
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
   }
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {

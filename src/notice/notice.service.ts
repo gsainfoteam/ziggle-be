@@ -32,6 +32,9 @@ import { NoticeRepository } from './notice.repository';
 import { GetNoticeDto } from './dto/getNotice.dto';
 import { NoticeFullcontent } from './types/noticeFullcontent';
 import { UpdateNoticeDto } from './dto/updateNotice.dto';
+import { DocumentService } from 'src/document/document.service';
+import { ReactionDto } from './dto/reaction.dto';
+import { FileType } from '@prisma/client';
 
 @Injectable()
 export class NoticeService {
@@ -39,6 +42,7 @@ export class NoticeService {
   constructor(
     private readonly noticeRepository: NoticeRepository,
     private readonly imageService: ImageService,
+    private readonly documentService: DocumentService,
     private readonly fcmService: FcmService,
     private readonly httpService: HttpService,
     private readonly tagService: TagService,
@@ -65,6 +69,10 @@ export class NoticeService {
       ),
       list: notices.map(({ files, author, ...notice }) => {
         delete notice.authorId;
+        const images = files?.filter(({ type }) => type === FileType.IMAGE);
+        const documents = files?.filter(
+          ({ type }) => type === FileType.DOCUMENT,
+        );
         return {
           ...notice,
           contents: notice.contents.map((content) => ({
@@ -72,7 +80,10 @@ export class NoticeService {
             body: htmlToText(content.body).slice(0, 100),
           })),
           author: author.name,
-          imageUrl: files?.[0]?.url ? `${this.s3Url}${files[0].url}` : null,
+          imageUrl: images?.[0]?.url ? `${this.s3Url}${images[0].url}` : null,
+          documentUrl: documents?.[0]?.url
+            ? `${this.s3Url}${documents[0].url}`
+            : null,
           title: notice.contents[0].title,
           body: htmlToText(notice.contents[0].body).slice(0, 100),
         };
@@ -87,11 +98,14 @@ export class NoticeService {
     } else {
       notice = await this.noticeRepository.getNotice(id);
     }
-    const { reminders, ...noticeInfo } = notice;
+    const { reminders, files, ...noticeInfo } = notice;
+    const images = files?.filter(({ type }) => type === FileType.IMAGE);
+    const documents = files?.filter(({ type }) => type === FileType.DOCUMENT);
     return {
       ...noticeInfo,
       author: notice.author.name,
-      imagesUrl: notice.files?.map((file) => `${this.s3Url}${file.url}`),
+      imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
+      documentsUrl: documents?.map((file) => `${this.s3Url}${file.url}`),
       reminder: reminders.some((reminder) => reminder.uuid === userUuid),
       title: notice.contents[0].title,
       body: htmlToText(notice.contents[0].body),
@@ -99,11 +113,14 @@ export class NoticeService {
   }
 
   async createNotice(
-    { title, body, deadline, tags, images }: CreateNoticeDto,
+    { title, body, deadline, tags, images, documents }: CreateNoticeDto,
     userUuid: string,
   ) {
     if (images.length) {
       await this.imageService.validateImages(images);
+    }
+    if (documents.length) {
+      await this.documentService.validateDocuments(documents);
     }
 
     const notice = await this.noticeRepository.createNotice(
@@ -113,6 +130,7 @@ export class NoticeService {
         deadline,
         tags,
         images,
+        documents,
       },
       userUuid,
     );
@@ -180,6 +198,16 @@ export class NoticeService {
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
+  async addNoticeReaction(
+    id: number,
+    { emoji }: ReactionDto,
+    userUuid: string,
+  ) {
+    await this.noticeRepository.addReaction(id, emoji, userUuid);
+
+    return this.getNotice(id, { isViewed: false }, userUuid);
+  }
+
   async updateNotice(id: number, body: UpdateNoticeDto, userUuid: string) {
     const notice = await this.noticeRepository.getNotice(id);
     if (notice.author.uuid !== userUuid) {
@@ -194,6 +222,16 @@ export class NoticeService {
 
   async removeNoticeReminder(id: number, userUuid: string) {
     await this.noticeRepository.removeReminder(id, userUuid);
+
+    return this.getNotice(id, { isViewed: false }, userUuid);
+  }
+
+  async removeNoticeReaction(
+    id: number,
+    { emoji }: ReactionDto,
+    userUuid: string,
+  ) {
+    await this.noticeRepository.removeReaction(id, emoji, userUuid);
 
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
@@ -335,6 +373,7 @@ export class NoticeService {
             body,
             images,
             tags: tags.map(({ id }) => id),
+            documents: [],
           },
           user.uuid,
           dayjs(meta.createdAt)
