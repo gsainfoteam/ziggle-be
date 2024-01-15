@@ -64,12 +64,14 @@ jobs:
           ECR_REPOSITORY: ${{ needs.build.outputs.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ needs.build.outputs.IMAGE_TAG }}
         run: |
-          cd infoteam/service/ziggle
-          sed -i "s|image:.*|image: $ECR_REGISTRY\/$ECR_REPOSITORY:$IMAGE_TAG|g" stg.yaml
+          sed -i "s|image:.*|image: $ECR_REGISTRY\/$ECR_REPOSITORY:$IMAGE_TAG|g" infoteam/service/ziggle/stg.yaml
 
       - name: Commit and Push
+        env:
+          ECR_REPOSITORY: ${{ needs.build.outputs.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ needs.build.outputs.IMAGE_TAG }}
         run: |
-          git config --global user.email "psw041115@gmail.com"
-          git config --global user.name "siwonpada"
-          git commit -am "Update image $ECR_REPOSITORY tag $IMAGE_TAG"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub Actions"
+          git commit -am "Update image $ECR_REPOSITORY:$IMAGE_TAG"
           git push -u origin master
