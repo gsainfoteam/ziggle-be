@@ -77,7 +77,7 @@ export class NoticeService {
           ...notice,
           contents: notice.contents.map((content) => ({
             ...content,
-            body: htmlToText(content.body).slice(0, 100),
+            body: htmlToText(content.body).slice(0, 1000),
           })),
           author: author.name,
           imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
