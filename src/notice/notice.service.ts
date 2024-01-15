@@ -82,8 +82,6 @@ export class NoticeService {
           author: author.name,
           imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
           documentsUrl: documents?.map((file) => `${this.s3Url}${file.url}`),
-          title: notice.contents[0].title,
-          body: htmlToText(notice.contents[0].body).slice(0, 100),
         };
       }),
     };
