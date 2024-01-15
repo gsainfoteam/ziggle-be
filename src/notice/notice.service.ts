@@ -350,12 +350,13 @@ export class NoticeService {
           concatMap((v) =>
             this.httpService.get(v, { responseType: 'arraybuffer' }),
           ),
-          map((res) => res.data as ArrayBuffer),
           map(
-            (buffer, index) =>
+            (res, index) =>
               ({
-                buffer,
-                originalname: `${meta.id}-${meta.title}-${index}.png`,
+                buffer: res.data,
+                originalname: `${meta.id}-${meta.title}-${index}.${
+                  res.headers['content-type'].split('/')[1].split(';')[0]
+                }`,
               } as Express.Multer.File),
           ),
           toArray(),

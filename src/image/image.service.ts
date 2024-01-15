@@ -58,7 +58,7 @@ export class ImageService {
       Body: await this.convertToWebp(file),
       Tagging: 'expiration=true',
       Metadata: {
-        originalName: file.originalname,
+        originalName: encodeURIComponent(file.originalname),
       },
     });
 

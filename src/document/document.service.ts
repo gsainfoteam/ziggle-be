@@ -61,7 +61,7 @@ export class DocumentService {
       Body: file.buffer,
       Tagging: 'expiration=true',
       Metadata: {
-        originalName: file.originalname,
+        originalName: encodeURIComponent(file.originalname),
       },
     });
 
