@@ -122,7 +122,6 @@ export class NoticeRepository {
           files: {
             where: { type: FileType.IMAGE },
             orderBy: { order: 'asc' },
-            take: 1,
           },
           reactions: {
             where: {
