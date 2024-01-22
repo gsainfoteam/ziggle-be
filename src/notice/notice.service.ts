@@ -103,8 +103,6 @@ export class NoticeService {
       imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
       documentsUrl: documents?.map((file) => `${this.s3Url}${file.url}`),
       reminder: reminders.some((reminder) => reminder.uuid === userUuid),
-      title: notice.contents[0].title,
-      body: htmlToText(notice.contents[0].body),
     };
   }
 
