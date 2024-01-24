@@ -120,17 +120,19 @@ export class UserService {
   private async revokeTokenFromIdp(token: string) {
     const url = this.idp_url + '/revoke';
     await firstValueFrom(
-      this.httpService.post(
-        url,
-        { token },
-        {
-          headers: { 'content-type': 'application/x-www-form-urlencoded' },
-          auth: {
-            username: this.configService.get<string>('CLIENT_ID'),
-            password: this.configService.get<string>('CLIENT_SECRET_KEY'),
+      this.httpService
+        .post(
+          url,
+          { token },
+          {
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+            auth: {
+              username: this.configService.get<string>('CLIENT_ID'),
+              password: this.configService.get<string>('CLIENT_SECRET_KEY'),
+            },
           },
-        },
-      ),
+        )
+        .pipe(catchError(() => null)),
     );
   }
 
