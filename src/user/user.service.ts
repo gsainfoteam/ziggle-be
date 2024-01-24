@@ -132,7 +132,7 @@ export class UserService {
             },
           },
         )
-        .pipe(catchError(() => null)),
+        .pipe(catchError(() => Promise.resolve())),
     );
   }
 
