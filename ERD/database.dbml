@@ -7,6 +7,10 @@ Enum FileType {
     DOCUMENT
 }
 
+Enum CrawlType {
+    ACADEMIC
+}
+
 Table User {
     uuid varchar [pk]
     name varchar
@@ -53,6 +57,19 @@ Table Notice {
     author varchar [ref: > User.uuid]
     reminders varchar [ref: <> User.uuid]
     tags integer [ref: <> Tag.id]
+}
+
+Table Crawl {
+    id integer [pk, increment]
+
+    title varchar
+    body longtext
+    type CrawlType
+    crawledAt timestamp
+
+    url varchar
+
+    notice integer [ref: > Notice.id]
 }
 
 Table Tag {

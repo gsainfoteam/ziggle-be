@@ -15,6 +15,10 @@ enum FileType {
   DOCUMENT
 }
 
+enum CrawlType {
+  ACADEMIC
+}
+
 model User {
   uuid      String   @id
   name      String
@@ -76,8 +80,21 @@ model Notice {
   author    User       @relation(fields: [authorId], references: [uuid])
   files     File[]
   contents  Content[]
+  cralws    Crawl[]
   tags      Tag[]
   reactions Reaction[]
+}
+
+model Crawl {
+  id        Int       @id @default(autoincrement())
+  title     String
+  body      String    @db.LongText
+  type      CrawlType
+  url       String
+  crawledAt DateTime  @default(now()) @map("crawled_at")
+
+  noticeId Int    @map("notice_id")
+  notice   Notice @relation(fields: [noticeId], references: [id])
 }
 
 model Reaction {
