@@ -7,14 +7,12 @@ import dayjs from 'dayjs';
 import { htmlToText } from 'html-to-text';
 import {
   catchError,
-  concat,
   concatMap,
   firstValueFrom,
   from,
   lastValueFrom,
   map,
   ObservedValueOf,
-  of,
   takeWhile,
   throwError,
   timeout,
@@ -330,12 +328,6 @@ export class NoticeService {
         this.getAcademicNotice(meta).pipe(map((notice) => ({ notice, meta }))),
       ),
       concatMap(async ({ notice, meta }) => {
-        const original = `<p>학사공지 원본 링크 : <a href="${meta.link}" target="_blank">${meta.link}</a></p>`;
-        const filesList = notice.files
-          .map((file) => `<li><a href="${file.href}">${file.name}</a></li>`)
-          .join('');
-        const filesBody = notice.files.length ? `<ul>${filesList}</ul>` : '';
-        const body = `${original}${filesBody}${notice.content}`;
         const tags = await this.tagService.findOrCreateTags([
           'academic',
           meta.category,
@@ -364,24 +356,22 @@ export class NoticeService {
         const images = await this.imageService.uploadImages(
           await firstValueFrom(imagesStream),
         );
-        const result = await this.noticeRepository.createNotice(
-          {
-            title: meta.title,
-            body,
-            images,
-            tags: tags.map(({ id }) => id),
-            documents: [],
-          },
-          user.uuid,
-          dayjs(meta.createdAt)
+        const result = await this.noticeRepository.createAcademicNotice({
+          title: meta.title,
+          body: notice.content,
+          images,
+          tags,
+          userUuid: user.uuid,
+          createdAt: dayjs(meta.createdAt)
             .tz()
             .add(dayjs().tz().diff(dayjs().tz().startOf('d')))
             .toDate(),
-        );
+          url: meta.link,
+        });
         await this.sendNoticeToAllUsers(meta.title, [], result);
       }),
     );
-    await lastValueFrom(concat($, of(null)));
+    await lastValueFrom($, { defaultValue: null });
   }
 
   private async sendNoticeToAllUsers(
