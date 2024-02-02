@@ -605,15 +605,7 @@ export class NoticeRepository {
       .create({
         data: {
           author: { connect: { uuid: userUuid } },
-          cralws: {
-            create: {
-              id: 1,
-              title,
-              body,
-              type: 'ACADEMIC',
-              url,
-            },
-          },
+          cralws: { create: { id: 1, title, body, type: 'ACADEMIC', url } },
           tags: { connect: tags },
           files: {
             create: images.map((image, idx) => ({
