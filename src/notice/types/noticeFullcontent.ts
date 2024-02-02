@@ -13,5 +13,6 @@ export type NoticeFullcontent = Prisma.NoticeGetPayload<{
     files: true;
     reactions: true;
     reminders: true;
+    cralws: true;
   };
 }>;
