@@ -35,6 +35,8 @@ import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { DocumentService } from 'src/document/document.service';
 import { ReactionDto } from './dto/reaction.dto';
 import { FileType } from '@prisma/client';
+import { NoticeReturn } from './types/noticeReturn.type';
+import { GeneralNotice, GeneralNoticeList } from './types/generalNotice.type';
 
 @Injectable()
 export class NoticeService {
@@ -57,35 +59,56 @@ export class NoticeService {
   async getNoticeList(
     getAllNoticeQueryDto: GetAllNoticeQueryDto,
     userUuid?: string,
-  ) {
-    const notices = await this.noticeRepository.getNoticeList(
-      getAllNoticeQueryDto,
-      userUuid,
+  ): Promise<GeneralNoticeList> {
+    const notices = (
+      await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
+    ).map(
+      ({
+        id,
+        author,
+        createdAt,
+        tags,
+        views,
+        contents,
+        cralws,
+        files,
+      }): GeneralNotice => ({
+        id,
+        ...(cralws.length > 0
+          ? {
+              title: cralws[0].title,
+              lang: 'ko',
+              content: htmlToText(cralws[0].body, {
+                selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+              }),
+            }
+          : {
+              title: contents[0].title,
+              deadline: contents[0].deadline?.toISOString(),
+              lang: contents[0].lang,
+              content: htmlToText(contents[0].body, {
+                selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+              }),
+            }),
+        author: author.name,
+        createdAt: createdAt.toISOString(),
+        tags: tags.map(({ name }) => name),
+        views,
+        additionalContent: [],
+        imageUrls: files
+          ?.filter(({ type }) => type === FileType.IMAGE)
+          .map(({ url }) => `${this.s3Url}${url}`),
+        documentUrls: files
+          ?.filter(({ type }) => type === FileType.DOCUMENT)
+          .map(({ url }) => `${this.s3Url}${url}`),
+      }),
     );
     return {
       total: await this.noticeRepository.getTotalCount(
         getAllNoticeQueryDto,
         userUuid,
       ),
-      list: notices.map(({ files, author, ...notice }) => {
-        delete notice.authorId;
-        const images = files?.filter(({ type }) => type === FileType.IMAGE);
-        const documents = files?.filter(
-          ({ type }) => type === FileType.DOCUMENT,
-        );
-        return {
-          ...notice,
-          contents: notice.contents.map((content) => ({
-            ...content,
-            body: htmlToText(content.body, {
-              selectors: [{ selector: 'a', options: { ignoreHref: true } }],
-            }).slice(0, 1000),
-          })),
-          author: author.name,
-          imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
-          documentsUrl: documents?.map((file) => `${this.s3Url}${file.url}`),
-        };
-      }),
+      list: notices,
     };
   }
 

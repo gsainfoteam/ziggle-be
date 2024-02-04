@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { FcmToken, FileType } from '@prisma/client';
+import { FcmToken, FileType, Crawl } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -118,6 +118,7 @@ export class NoticeRepository {
         include: {
           tags: true,
           contents: { where: { id: 1 } },
+          cralws: true,
           author: { select: { name: true, uuid: true } },
           files: {
             where: { type: FileType.IMAGE },
