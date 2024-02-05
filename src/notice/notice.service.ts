@@ -14,7 +14,6 @@ import {
   identity,
   lastValueFrom,
   map,
-  mergeMap,
   ObservedValueOf,
   range,
   take,
@@ -339,11 +338,7 @@ export class NoticeService {
         if (prev.cralws[0].body !== notice.content) return true;
         return false;
       }),
-      map(({ notice }) => notice),
-      mergeMap(async (notice) => {
-        return notice;
-      }),
-      concatMap(async ({ notice, meta }) => {
+      concatMap(async ({ prev, notice: { notice, meta } }) => {
         const tags = await this.tagService.findOrCreateTags([
           'academic',
           meta.category,
@@ -384,7 +379,7 @@ export class NoticeService {
             .toDate(),
           url: meta.link,
         });
-        await this.sendNoticeToAllUsers(meta.title, [], result);
+        if (!prev) await this.sendNoticeToAllUsers(meta.title, [], result);
       }),
     );
     await lastValueFrom($, { defaultValue: null });
