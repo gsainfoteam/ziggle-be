@@ -590,11 +590,39 @@ export class NoticeRepository {
     url: string;
     createdAt: Date;
   }) {
+    const notice = await this.prismaService.notice.findFirst({
+      where: { cralws: { some: { url } } },
+    });
+    if (notice) {
+      return this.prismaService.notice
+        .update({
+          where: { id: notice.id },
+          data: {
+            updatedAt: createdAt,
+            cralws: { create: { title, body, type: 'ACADEMIC', url } },
+            files: {
+              createMany: {
+                data: images.map((image, idx) => ({
+                  order: idx,
+                  name: title,
+                  type: FileType.IMAGE,
+                  url: image,
+                })),
+              },
+            },
+          },
+        })
+        .catch((err) => {
+          this.logger.error('createAcademicNotice error');
+          this.logger.debug(err);
+          throw new InternalServerErrorException('Database error');
+        });
+    }
     return this.prismaService.notice
       .create({
         data: {
           author: { connect: { uuid: userUuid } },
-          cralws: { create: { id: 1, title, body, type: 'ACADEMIC', url } },
+          cralws: { create: { title, body, type: 'ACADEMIC', url } },
           tags: { connect: tags },
           files: {
             create: images.map((image, idx) => ({
@@ -619,5 +647,17 @@ export class NoticeRepository {
         this.logger.debug(err);
         throw new InternalServerErrorException('Database error');
       });
+  }
+
+  async getAcademicNotice(url: string) {
+    return this.prismaService.notice.findFirst({
+      where: {
+        cralws: { some: { url } },
+        tags: { some: { name: 'academic' } },
+      },
+      include: {
+        cralws: { take: 1, orderBy: { crawledAt: 'desc' } },
+      },
+    });
   }
 }

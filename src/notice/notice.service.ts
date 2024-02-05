@@ -8,12 +8,17 @@ import { htmlToText } from 'html-to-text';
 import {
   catchError,
   concatMap,
+  filter,
   firstValueFrom,
   from,
+  identity,
   lastValueFrom,
   map,
+  mergeMap,
   ObservedValueOf,
-  takeWhile,
+  range,
+  switchMap,
+  take,
   throwError,
   timeout,
   toArray,
@@ -265,7 +270,9 @@ export class NoticeService {
 
   private getAcademicNoticeList() {
     const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
-    return this.httpService.get(baseUrl).pipe(
+    return range(1).pipe(
+      map((n) => `${baseUrl}?GotoPage=${n + 1}`),
+      concatMap((url) => this.httpService.get(url)),
       timeout(10000),
       map((res) => cheerio.load(res.data)),
       catchError(throwError),
@@ -282,8 +289,6 @@ export class NoticeService {
         id: Number.parseInt(meta.link.split('no=')[1].split('&')[0]),
         ...meta,
       })),
-      toArray(),
-      concatMap((metas) => metas.sort((a, b) => b.id - a.id)),
     );
   }
 
@@ -318,17 +323,29 @@ export class NoticeService {
 
   @Cron('*/5 * * * *')
   async crawlAcademicNotice() {
-    const recentNotice = await this.noticeRepository.getNoticeList({
-      limit: 1,
-      orderBy: 'recent',
-      tags: ['academic'],
-    });
     const $ = this.getAcademicNoticeList().pipe(
-      takeWhile((n) => n.title !== recentNotice[0]?.contents[0].title),
+      take(100),
       timeout(60e3),
       concatMap((meta) =>
         this.getAcademicNotice(meta).pipe(map((notice) => ({ notice, meta }))),
       ),
+      map(async (notice) => {
+        const prev = await this.noticeRepository.getAcademicNotice(
+          notice.meta.link,
+        );
+        return { prev, notice };
+      }),
+      concatMap(identity),
+      filter(({ prev, notice: { notice, meta } }) => {
+        if (!prev) return true;
+        if (prev.cralws[0].title !== meta.title) return true;
+        if (prev.cralws[0].body !== notice.content) return true;
+        return false;
+      }),
+      map(({ notice }) => notice),
+      mergeMap(async (notice) => {
+        return notice;
+      }),
       concatMap(async ({ notice, meta }) => {
         const tags = await this.tagService.findOrCreateTags([
           'academic',
