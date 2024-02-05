@@ -112,16 +112,6 @@ export class NoticeRepository {
                 },
               },
             },
-            {
-              cralws: {
-                some: {
-                  OR: [
-                    { title: { contains: search } },
-                    { body: { contains: search } },
-                  ],
-                },
-              },
-            },
             { tags: { some: { name: { contains: search } } } },
           ],
         },
@@ -129,9 +119,15 @@ export class NoticeRepository {
           tags: true,
           contents: { where: { id: 1 } },
           author: { select: { name: true, uuid: true } },
-          files: { where: { type: FileType.IMAGE }, orderBy: { order: 'asc' } },
-          reactions: { where: { deletedAt: null } },
-          cralws: { take: 1, orderBy: { crawledAt: 'desc' } },
+          files: {
+            where: { type: FileType.IMAGE },
+            orderBy: { order: 'asc' },
+          },
+          reactions: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
       })
       .catch((err) => {
@@ -152,7 +148,6 @@ export class NoticeRepository {
               id: 'asc',
             },
           },
-          cralws: { take: 1, orderBy: { crawledAt: 'desc' } },
           reminders: true,
           author: {
             select: {
@@ -184,15 +179,31 @@ export class NoticeRepository {
     return this.prismaService.notice
       .update({
         where: { id, deletedAt: null },
-        data: { views: { increment: 1 } },
+        data: {
+          views: {
+            increment: 1,
+          },
+        },
         include: {
           tags: true,
-          contents: { orderBy: { id: 'asc' } },
-          cralws: { take: 1, orderBy: { crawledAt: 'desc' } },
+          contents: {
+            orderBy: {
+              id: 'asc',
+            },
+          },
           reminders: true,
-          author: { select: { name: true, uuid: true } },
+          author: {
+            select: {
+              name: true,
+              uuid: true,
+            },
+          },
           files: { orderBy: { order: 'asc' } },
-          reactions: { where: { deletedAt: null } },
+          reactions: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
       })
       .catch((err) => {

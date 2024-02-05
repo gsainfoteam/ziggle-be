@@ -17,7 +17,6 @@ import {
   mergeMap,
   ObservedValueOf,
   range,
-  switchMap,
   take,
   throwError,
   timeout,
@@ -70,7 +69,7 @@ export class NoticeService {
         getAllNoticeQueryDto,
         userUuid,
       ),
-      list: notices.map(({ files, author, cralws, ...notice }) => {
+      list: notices.map(({ files, author, ...notice }) => {
         delete notice.authorId;
         const images = files?.filter(({ type }) => type === FileType.IMAGE);
         const documents = files?.filter(
@@ -87,7 +86,6 @@ export class NoticeService {
           author: author.name,
           imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
           documentsUrl: documents?.map((file) => `${this.s3Url}${file.url}`),
-          crawl: cralws[0],
         };
       }),
     };
@@ -100,7 +98,7 @@ export class NoticeService {
     } else {
       notice = await this.noticeRepository.getNotice(id);
     }
-    const { reminders, files, cralws, ...noticeInfo } = notice;
+    const { reminders, files, ...noticeInfo } = notice;
     const images = files?.filter(({ type }) => type === FileType.IMAGE);
     const documents = files?.filter(({ type }) => type === FileType.DOCUMENT);
     return {
@@ -109,7 +107,6 @@ export class NoticeService {
       imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
       documentsUrl: documents?.map((file) => `${this.s3Url}${file.url}`),
       reminder: reminders.some((reminder) => reminder.uuid === userUuid),
-      crawl: cralws[0],
     };
   }
 
