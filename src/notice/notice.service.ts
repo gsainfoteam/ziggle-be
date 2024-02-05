@@ -371,6 +371,7 @@ export class NoticeService {
           title: meta.title,
           body: notice.content,
           images,
+          documents: notice.files,
           tags,
           userUuid: user.uuid,
           createdAt: dayjs(meta.createdAt)

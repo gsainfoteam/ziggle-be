@@ -589,6 +589,7 @@ export class NoticeRepository {
     body,
     tags,
     images,
+    documents,
     userUuid,
     url,
     createdAt,
@@ -597,6 +598,7 @@ export class NoticeRepository {
     body: string;
     tags: Tag[];
     images: string[];
+    documents: { href: string; name: string }[];
     userUuid: string;
     url: string;
     createdAt: Date;
@@ -612,13 +614,22 @@ export class NoticeRepository {
             updatedAt: createdAt,
             cralws: { create: { title, body, type: 'ACADEMIC', url } },
             files: {
+              deleteMany: { type: FileType.DOCUMENT },
               createMany: {
-                data: images.map((image, idx) => ({
-                  order: idx,
-                  name: title,
-                  type: FileType.IMAGE,
-                  url: image,
-                })),
+                data: [
+                  ...images.map((image, idx) => ({
+                    order: idx,
+                    name: title,
+                    type: FileType.IMAGE,
+                    url: image,
+                  })),
+                  ...documents.map((document, idx) => ({
+                    order: idx,
+                    name: document.name,
+                    type: FileType.DOCUMENT,
+                    url: document.href,
+                  })),
+                ],
               },
             },
           },
@@ -636,12 +647,22 @@ export class NoticeRepository {
           cralws: { create: { title, body, type: 'ACADEMIC', url } },
           tags: { connect: tags },
           files: {
-            create: images.map((image, idx) => ({
-              order: idx,
-              name: title,
-              type: FileType.IMAGE,
-              url: image,
-            })),
+            createMany: {
+              data: [
+                ...images.map((image, idx) => ({
+                  order: idx,
+                  name: title,
+                  type: FileType.IMAGE,
+                  url: image,
+                })),
+                ...documents.map((document, idx) => ({
+                  order: idx,
+                  name: document.name,
+                  type: FileType.DOCUMENT,
+                  url: document.href,
+                })),
+              ],
+            },
           },
           createdAt,
         },
