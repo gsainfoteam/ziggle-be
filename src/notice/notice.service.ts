@@ -11,8 +11,10 @@ import {
   concatMap,
   firstValueFrom,
   from,
+  groupBy,
   lastValueFrom,
   map,
+  mergeMap,
   ObservedValueOf,
   of,
   takeWhile,
@@ -36,7 +38,12 @@ import { DocumentService } from 'src/document/document.service';
 import { ReactionDto } from './dto/reaction.dto';
 import { FileType } from '@prisma/client';
 import { NoticeReturn } from './types/noticeReturn.type';
-import { GeneralNotice, GeneralNoticeList } from './types/generalNotice.type';
+import {
+  ExpandedGeneralNotice,
+  GeneralNotice,
+  GeneralNoticeList,
+  GeneralReaction,
+} from './types/generalNotice.type';
 
 @Injectable()
 export class NoticeService {
@@ -94,7 +101,6 @@ export class NoticeService {
         createdAt: createdAt.toISOString(),
         tags: tags.map(({ name }) => name),
         views,
-        additionalContent: [],
         imageUrls: files
           ?.filter(({ type }) => type === FileType.IMAGE)
           .map(({ url }) => `${this.s3Url}${url}`),
@@ -112,22 +118,79 @@ export class NoticeService {
     };
   }
 
-  async getNotice(id: number, { isViewed }: GetNoticeDto, userUuid?: string) {
+  async getNotice(
+    id: number,
+    { isViewed }: GetNoticeDto,
+    userUuid?: string,
+  ): Promise<ExpandedGeneralNotice> {
     let notice: NoticeFullcontent;
     if (isViewed) {
       notice = await this.noticeRepository.getNoticeWithView(id);
     } else {
       notice = await this.noticeRepository.getNotice(id);
     }
-    const { reminders, files, ...noticeInfo } = notice;
-    const images = files?.filter(({ type }) => type === FileType.IMAGE);
-    const documents = files?.filter(({ type }) => type === FileType.DOCUMENT);
+    const {
+      createdAt,
+      tags,
+      views,
+      contents,
+      cralws,
+      author,
+      files,
+      reactions,
+      ...rest
+    } = notice;
+    const source = from(reactions);
+    let reactionResult: GeneralReaction[] = [];
+    const GroupedReactions = source
+      .pipe(
+        groupBy(({ emoji }) => emoji),
+        mergeMap((group) => group.pipe(toArray())),
+      )
+      .subscribe((group) => {
+        reactionResult.push({
+          emoji: group[0].emoji,
+          count: group.length,
+          isReacted: group.map(({ userId }) => userId).includes(userUuid),
+        });
+      });
     return {
-      ...noticeInfo,
-      author: notice.author.name,
-      imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
-      documentsUrl: documents?.map((file) => `${this.s3Url}${file.url}`),
-      reminder: reminders.some((reminder) => reminder.uuid === userUuid),
+      id,
+      ...(cralws.length > 0
+        ? {
+            title: cralws[0].title,
+            lang: 'ko',
+            content: htmlToText(cralws[0].body, {
+              selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+            }),
+          }
+        : {
+            title: contents[0].title,
+            deadline: contents[0].deadline?.toISOString(),
+            lang: contents[0].lang,
+            content: htmlToText(contents[0].body, {
+              selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+            }),
+          }),
+      author: author.name,
+      createdAt: createdAt.toISOString(),
+      tags: tags.map(({ name }) => name),
+      views,
+      imageUrls: files
+        ?.filter(({ type }) => type === FileType.IMAGE)
+        .map(({ url }) => `${this.s3Url}${url}`),
+      documentUrls: files
+        ?.filter(({ type }) => type === FileType.DOCUMENT)
+        .map(({ url }) => `${this.s3Url}${url}`),
+      additionalContent: notice.contents.slice(1).map(({ body, deadline }) => ({
+        content: htmlToText(body, {
+          selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+        }),
+        deadline: deadline?.toISOString(),
+      })),
+      idReminded:
+        notice.reminders.filter(({ uuid }) => uuid === userUuid).length > 0,
+      reactions: reactionResult,
     };
   }
 

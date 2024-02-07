@@ -149,6 +149,7 @@ export class NoticeRepository {
               id: 'asc',
             },
           },
+          cralws: true,
           reminders: true,
           author: {
             select: {
@@ -192,6 +193,7 @@ export class NoticeRepository {
               id: 'asc',
             },
           },
+          cralws: true,
           reminders: true,
           author: {
             select: {
