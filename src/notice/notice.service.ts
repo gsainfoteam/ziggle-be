@@ -140,19 +140,13 @@ export class NoticeService {
       reactions,
       ...rest
     } = notice;
-    let reactionResult: GeneralReaction[] = [];
-    from(reactions)
-      .pipe(
+    const resultReaction = await firstValueFrom(
+      from(reactions).pipe(
         groupBy(({ emoji }) => emoji),
         mergeMap((group) => group.pipe(toArray())),
-      )
-      .subscribe((group) => {
-        reactionResult.push({
-          emoji: group[0].emoji,
-          count: group.length,
-          isReacted: group.map(({ userId }) => userId).includes(userUuid),
-        });
-      });
+        toArray(),
+      ),
+    );
     return {
       id,
       ...(cralws.length > 0
@@ -191,7 +185,11 @@ export class NoticeService {
         })),
       idReminded:
         notice.reminders.filter(({ uuid }) => uuid === userUuid).length > 0,
-      reactions: reactionResult,
+      reactions: resultReaction.map((reactions) => ({
+        emoji: reactions[0].emoji,
+        count: reactions.length,
+        isReacted: reactions.map(({ userId }) => userId).includes(userUuid),
+      })),
     };
   }
 
