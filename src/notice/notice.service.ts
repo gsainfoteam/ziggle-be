@@ -140,9 +140,8 @@ export class NoticeService {
       reactions,
       ...rest
     } = notice;
-    const source = from(reactions);
     let reactionResult: GeneralReaction[] = [];
-    const GroupedReactions = source
+    from(reactions)
       .pipe(
         groupBy(({ emoji }) => emoji),
         mergeMap((group) => group.pipe(toArray())),
@@ -182,12 +181,14 @@ export class NoticeService {
       documentUrls: files
         ?.filter(({ type }) => type === FileType.DOCUMENT)
         .map(({ url }) => `${this.s3Url}${url}`),
-      additionalContent: notice.contents.slice(1).map(({ body, deadline }) => ({
-        content: htmlToText(body, {
-          selectors: [{ selector: 'a', options: { ignoreHref: true } }],
-        }),
-        deadline: deadline?.toISOString(),
-      })),
+      additionalContent: notice.contents
+        .filter(({ id }) => id !== 1)
+        .map(({ body, deadline }) => ({
+          content: htmlToText(body, {
+            selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+          }),
+          deadline: deadline?.toISOString(),
+        })),
       idReminded:
         notice.reminders.filter(({ uuid }) => uuid === userUuid).length > 0,
       reactions: reactionResult,
