@@ -7,15 +7,16 @@ import dayjs from 'dayjs';
 import { htmlToText } from 'html-to-text';
 import {
   catchError,
-  concat,
   concatMap,
+  filter,
   firstValueFrom,
   from,
+  identity,
   lastValueFrom,
   map,
   ObservedValueOf,
-  of,
-  takeWhile,
+  range,
+  take,
   throwError,
   timeout,
   toArray,
@@ -265,7 +266,9 @@ export class NoticeService {
 
   private getAcademicNoticeList() {
     const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
-    return this.httpService.get(baseUrl).pipe(
+    return range(1).pipe(
+      map((n) => `${baseUrl}?GotoPage=${n + 1}`),
+      concatMap((url) => this.httpService.get(url)),
       timeout(10000),
       map((res) => cheerio.load(res.data)),
       catchError(throwError),
@@ -282,8 +285,6 @@ export class NoticeService {
         id: Number.parseInt(meta.link.split('no=')[1].split('&')[0]),
         ...meta,
       })),
-      toArray(),
-      concatMap((metas) => metas.sort((a, b) => b.id - a.id)),
     );
   }
 
@@ -318,24 +319,26 @@ export class NoticeService {
 
   @Cron('*/5 * * * *')
   async crawlAcademicNotice() {
-    const recentNotice = await this.noticeRepository.getNoticeList({
-      limit: 1,
-      orderBy: 'recent',
-      tags: ['academic'],
-    });
     const $ = this.getAcademicNoticeList().pipe(
-      takeWhile((n) => n.title !== recentNotice[0]?.contents[0].title),
+      take(100),
       timeout(60e3),
       concatMap((meta) =>
         this.getAcademicNotice(meta).pipe(map((notice) => ({ notice, meta }))),
       ),
-      concatMap(async ({ notice, meta }) => {
-        const original = `<p>학사공지 원본 링크 : <a href="${meta.link}" target="_blank">${meta.link}</a></p>`;
-        const filesList = notice.files
-          .map((file) => `<li><a href="${file.href}">${file.name}</a></li>`)
-          .join('');
-        const filesBody = notice.files.length ? `<ul>${filesList}</ul>` : '';
-        const body = `${original}${filesBody}${notice.content}`;
+      map(async (notice) => {
+        const prev = await this.noticeRepository.getAcademicNotice(
+          notice.meta.link,
+        );
+        return { prev, notice };
+      }),
+      concatMap(identity),
+      filter(({ prev, notice: { notice, meta } }) => {
+        if (!prev) return true;
+        if (prev.cralws[0].title !== meta.title) return true;
+        if (prev.cralws[0].body !== notice.content) return true;
+        return false;
+      }),
+      concatMap(async ({ prev, notice: { notice, meta } }) => {
         const tags = await this.tagService.findOrCreateTags([
           'academic',
           meta.category,
@@ -364,24 +367,23 @@ export class NoticeService {
         const images = await this.imageService.uploadImages(
           await firstValueFrom(imagesStream),
         );
-        const result = await this.noticeRepository.createNotice(
-          {
-            title: meta.title,
-            body,
-            images,
-            tags: tags.map(({ id }) => id),
-            documents: [],
-          },
-          user.uuid,
-          dayjs(meta.createdAt)
+        const result = await this.noticeRepository.createAcademicNotice({
+          title: meta.title,
+          body: notice.content,
+          images,
+          documents: notice.files,
+          tags,
+          userUuid: user.uuid,
+          createdAt: dayjs(meta.createdAt)
             .tz()
             .add(dayjs().tz().diff(dayjs().tz().startOf('d')))
             .toDate(),
-        );
-        await this.sendNoticeToAllUsers(meta.title, [], result);
+          url: meta.link,
+        });
+        if (!prev) await this.sendNoticeToAllUsers(meta.title, [], result);
       }),
     );
-    await lastValueFrom(concat($, of(null)));
+    await lastValueFrom($, { defaultValue: null });
   }
 
   private async sendNoticeToAllUsers(
