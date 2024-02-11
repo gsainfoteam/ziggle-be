@@ -73,7 +73,7 @@ export class NoticeRepository {
       my,
     }: GetAllNoticeQueryDto,
     userUuid?: string,
-  ): Promise<Omit<NoticeFullcontent, 'reminders'>[]> {
+  ): Promise<NoticeFullcontent[]> {
     return this.prismaService.notice
       .findMany({
         take: limit,
@@ -119,6 +119,7 @@ export class NoticeRepository {
           tags: true,
           contents: { where: { id: 1 } },
           cralws: true,
+          reminders: true,
           author: { select: { name: true, uuid: true } },
           files: {
             where: { type: FileType.IMAGE },

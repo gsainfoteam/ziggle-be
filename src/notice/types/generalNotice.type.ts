@@ -7,6 +7,8 @@ export type GeneralNotice = {
   views: number;
   lang: string;
   content: string;
+  reactions: GeneralReaction[];
+  isReminded: boolean;
   deadline?: string;
   imageUrls?: string[];
   documentUrls?: string[];
@@ -14,8 +16,6 @@ export type GeneralNotice = {
 
 export type ExpandedGeneralNotice = GeneralNotice & {
   additionalContent: SmallNotice[];
-  reactions: GeneralReaction[];
-  idReminded: boolean;
 };
 
 export type SmallNotice = {

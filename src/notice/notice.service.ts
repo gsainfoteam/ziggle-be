@@ -70,7 +70,7 @@ export class NoticeService {
     const notices = (
       await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
     ).map(
-      ({
+      async ({
         id,
         author,
         createdAt,
@@ -79,42 +79,59 @@ export class NoticeService {
         contents,
         cralws,
         files,
-      }): GeneralNotice => ({
-        id,
-        ...(cralws.length > 0
-          ? {
-              title: cralws[0].title,
-              lang: 'ko',
-              content: htmlToText(cralws[0].body, {
-                selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+        reactions,
+        reminders,
+      }): Promise<GeneralNotice> => {
+        const resultReaction = await firstValueFrom(
+          from(reactions).pipe(
+            groupBy(({ emoji }) => emoji),
+            mergeMap((group) => group.pipe(toArray())),
+            toArray(),
+          ),
+        );
+        return {
+          id,
+          ...(cralws.length > 0
+            ? {
+                title: cralws[0].title,
+                lang: 'ko',
+                content: htmlToText(cralws[0].body, {
+                  selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+                }),
+              }
+            : {
+                title: contents[0].title,
+                deadline: contents[0].deadline?.toISOString(),
+                lang: contents[0].lang,
+                content: htmlToText(contents[0].body, {
+                  selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+                }),
               }),
-            }
-          : {
-              title: contents[0].title,
-              deadline: contents[0].deadline?.toISOString(),
-              lang: contents[0].lang,
-              content: htmlToText(contents[0].body, {
-                selectors: [{ selector: 'a', options: { ignoreHref: true } }],
-              }),
-            }),
-        author: author.name,
-        createdAt: createdAt.toISOString(),
-        tags: tags.map(({ name }) => name),
-        views,
-        imageUrls: files
-          ?.filter(({ type }) => type === FileType.IMAGE)
-          .map(({ url }) => `${this.s3Url}${url}`),
-        documentUrls: files
-          ?.filter(({ type }) => type === FileType.DOCUMENT)
-          .map(({ url }) => `${this.s3Url}${url}`),
-      }),
+          author: author.name,
+          createdAt: createdAt.toISOString(),
+          tags: tags.map(({ name }) => name),
+          views,
+          imageUrls: files
+            ?.filter(({ type }) => type === FileType.IMAGE)
+            .map(({ url }) => `${this.s3Url}${url}`),
+          documentUrls: files
+            ?.filter(({ type }) => type === FileType.DOCUMENT)
+            .map(({ url }) => `${this.s3Url}${url}`),
+          isReminded: reminders.some(({ uuid }) => uuid === userUuid),
+          reactions: resultReaction.map((reactions) => ({
+            emoji: reactions[0].emoji,
+            count: reactions.length,
+            isReacted: reactions.some(({ userId }) => userId === userUuid),
+          })),
+        };
+      },
     );
     return {
       total: await this.noticeRepository.getTotalCount(
         getAllNoticeQueryDto,
         userUuid,
       ),
-      list: notices,
+      list: await Promise.all(notices),
     };
   }
 
@@ -138,7 +155,7 @@ export class NoticeService {
       author,
       files,
       reactions,
-      ...rest
+      reminders,
     } = notice;
     const resultReaction = await firstValueFrom(
       from(reactions).pipe(
@@ -183,12 +200,11 @@ export class NoticeService {
           }),
           deadline: deadline?.toISOString(),
         })),
-      idReminded:
-        notice.reminders.filter(({ uuid }) => uuid === userUuid).length > 0,
+      isReminded: reminders.some(({ uuid }) => uuid === userUuid),
       reactions: resultReaction.map((reactions) => ({
         emoji: reactions[0].emoji,
         count: reactions.length,
-        isReacted: reactions.map(({ userId }) => userId).includes(userUuid),
+        isReacted: reactions.some(({ userId }) => userId === userUuid),
       })),
     };
   }
