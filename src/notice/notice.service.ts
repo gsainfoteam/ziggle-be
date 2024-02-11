@@ -93,6 +93,10 @@ export class NoticeService {
             toArray(),
           ),
         );
+        const mainContent =
+          contents.filter(
+            ({ lang }) => lang === (getAllNoticeQueryDto.lang ?? 'ko'),
+          )[0] ?? contents[0];
         return {
           id,
           ...(cralws.length > 0
@@ -104,10 +108,10 @@ export class NoticeService {
                 }),
               }
             : {
-                title: contents[0].title,
-                deadline: contents[0].deadline?.toISOString(),
-                lang: contents[0].lang,
-                content: htmlToText(contents[0].body, {
+                title: mainContent.title,
+                deadline: mainContent.deadline?.toISOString(),
+                lang: mainContent.lang,
+                content: htmlToText(mainContent.body, {
                   selectors: [{ selector: 'a', options: { ignoreHref: true } }],
                 }),
               }),
@@ -168,6 +172,8 @@ export class NoticeService {
         toArray(),
       ),
     );
+    const mainContent =
+      contents.filter(({ lang }) => lang === 'ko')[0] ?? contents[0];
     return {
       id,
       ...(cralws.length > 0
@@ -179,10 +185,10 @@ export class NoticeService {
             }),
           }
         : {
-            title: contents[0].title,
-            deadline: contents[0].deadline?.toISOString(),
-            lang: contents[0].lang,
-            content: htmlToText(contents[0].body, {
+            title: mainContent.title,
+            deadline: mainContent.deadline?.toISOString(),
+            lang: mainContent.lang,
+            content: htmlToText(mainContent.body, {
               selectors: [{ selector: 'a', options: { ignoreHref: true } }],
             }),
           }),
