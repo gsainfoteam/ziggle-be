@@ -180,17 +180,13 @@ export class NoticeService {
         ? {
             title: cralws[0].title,
             lang: 'ko',
-            content: htmlToText(cralws[cralws.length - 1].body, {
-              selectors: [{ selector: 'a', options: { ignoreHref: true } }],
-            }),
+            content: cralws[cralws.length - 1].body,
           }
         : {
             title: mainContent.title,
             deadline: mainContent.deadline?.toISOString(),
             lang: mainContent.lang,
-            content: htmlToText(mainContent.body, {
-              selectors: [{ selector: 'a', options: { ignoreHref: true } }],
-            }),
+            content: mainContent.body,
           }),
       author: author.name,
       createdAt: createdAt.toISOString(),
