@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { FcmToken, FileType, Crawl } from '@prisma/client';
+import { FcmToken, FileType, Tag, Crawl } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -585,6 +585,115 @@ export class NoticeRepository {
       this.logger.error('getAllFcmTokens');
       this.logger.debug(err);
       throw new InternalServerErrorException('Database error');
+    });
+  }
+
+  async createAcademicNotice({
+    title,
+    body,
+    tags,
+    images,
+    documents,
+    userUuid,
+    url,
+    createdAt,
+  }: {
+    title: string;
+    body: string;
+    tags: Tag[];
+    images: string[];
+    documents: { href: string; name: string }[];
+    userUuid: string;
+    url: string;
+    createdAt: Date;
+  }) {
+    const notice = await this.prismaService.notice.findFirst({
+      where: { cralws: { some: { url } } },
+    });
+    if (notice) {
+      return this.prismaService.notice
+        .update({
+          where: { id: notice.id },
+          data: {
+            updatedAt: createdAt,
+            cralws: { create: { title, body, type: 'ACADEMIC', url } },
+            files: {
+              deleteMany: { type: FileType.DOCUMENT },
+              createMany: {
+                data: [
+                  ...images.map((image, idx) => ({
+                    order: idx,
+                    name: title,
+                    type: FileType.IMAGE,
+                    url: image,
+                  })),
+                  ...documents.map((document, idx) => ({
+                    order: idx,
+                    name: document.name,
+                    type: FileType.DOCUMENT,
+                    url: document.href,
+                  })),
+                ],
+              },
+            },
+          },
+        })
+        .catch((err) => {
+          this.logger.error('createAcademicNotice error');
+          this.logger.debug(err);
+          throw new InternalServerErrorException('Database error');
+        });
+    }
+    return this.prismaService.notice
+      .create({
+        data: {
+          author: { connect: { uuid: userUuid } },
+          cralws: { create: { title, body, type: 'ACADEMIC', url } },
+          tags: { connect: tags },
+          files: {
+            createMany: {
+              data: [
+                ...images.map((image, idx) => ({
+                  order: idx,
+                  name: title,
+                  type: FileType.IMAGE,
+                  url: image,
+                })),
+                ...documents.map((document, idx) => ({
+                  order: idx,
+                  name: document.name,
+                  type: FileType.DOCUMENT,
+                  url: document.href,
+                })),
+              ],
+            },
+          },
+          createdAt,
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            throw new NotFoundException(
+              `User with UUID "${userUuid}" not found`,
+            );
+          }
+        }
+        this.logger.error('createAcademicNotice error');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('Database error');
+      });
+  }
+
+  async getAcademicNotice(url: string) {
+    return this.prismaService.notice.findFirst({
+      where: {
+        cralws: { some: { url } },
+        tags: { some: { name: 'academic' } },
+      },
+      include: {
+        cralws: { take: 1, orderBy: { crawledAt: 'desc' } },
+      },
     });
   }
 }
