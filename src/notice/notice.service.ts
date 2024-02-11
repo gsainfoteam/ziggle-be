@@ -103,14 +103,9 @@ export class NoticeService {
             ? {
                 title: cralws[0].title,
                 lang: 'ko',
-                content: htmlToText(
-                  cralws[cralws.length - 1].body.slice(0, 1000),
-                  {
-                    selectors: [
-                      { selector: 'a', options: { ignoreHref: true } },
-                    ],
-                  },
-                ),
+                content: htmlToText(cralws[cralws.length - 1].body, {
+                  selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+                }).slice(0, 1000),
               }
             : {
                 title: mainContent.title,
@@ -118,7 +113,7 @@ export class NoticeService {
                 lang: mainContent.lang,
                 content: htmlToText(mainContent.body, {
                   selectors: [{ selector: 'a', options: { ignoreHref: true } }],
-                }),
+                }).slice(0, 1000),
               }),
           author: author.name,
           createdAt: createdAt.toISOString(),
