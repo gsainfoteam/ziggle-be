@@ -194,11 +194,12 @@ export class NoticeService {
         .map(({ url }) => `${this.s3Url}${url}`),
       additionalContent: notice.contents
         .filter(({ id }) => id !== 1)
-        .map(({ body, deadline }) => ({
+        .map(({ body, deadline, lang }) => ({
           content: htmlToText(body, {
             selectors: [{ selector: 'a', options: { ignoreHref: true } }],
           }),
           deadline: deadline?.toISOString(),
+          lang,
         })),
       isReminded: reminders.some(({ uuid }) => uuid === userUuid),
       reactions: resultReaction.map((reactions) => ({

@@ -21,6 +21,7 @@ export type ExpandedGeneralNotice = GeneralNotice & {
 export type SmallNotice = {
   deadline: string;
   content: string;
+  lang: string;
 };
 
 export type GeneralNoticeList = {
