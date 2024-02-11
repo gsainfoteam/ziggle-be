@@ -46,13 +46,10 @@ export class NoticeRepository {
           {
             contents: {
               some: {
-                AND: {
-                  lang: lang ?? 'ko',
-                  OR: [
-                    { title: { contains: search } },
-                    { body: { contains: search } },
-                  ],
-                },
+                OR: [
+                  { title: { contains: search } },
+                  { body: { contains: search } },
+                ],
               },
             },
           },
@@ -102,13 +99,10 @@ export class NoticeRepository {
             {
               contents: {
                 some: {
-                  AND: {
-                    lang: lang ?? 'ko',
-                    OR: [
-                      { title: { contains: search } },
-                      { body: { contains: search } },
-                    ],
-                  },
+                  OR: [
+                    { title: { contains: search } },
+                    { body: { contains: search } },
+                  ],
                 },
               },
             },

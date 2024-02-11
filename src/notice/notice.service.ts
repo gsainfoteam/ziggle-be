@@ -69,7 +69,10 @@ export class NoticeService {
     userUuid?: string,
   ): Promise<GeneralNoticeList> {
     const notices = (
-      await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
+      await this.noticeRepository.getNoticeList(
+        { lang: getAllNoticeQueryDto.lang ?? 'ko', ...getAllNoticeQueryDto },
+        userUuid,
+      )
     ).map(
       async ({
         id,
@@ -129,7 +132,7 @@ export class NoticeService {
     );
     return {
       total: await this.noticeRepository.getTotalCount(
-        getAllNoticeQueryDto,
+        { lang: getAllNoticeQueryDto.lang ?? 'ko', ...getAllNoticeQueryDto },
         userUuid,
       ),
       list: await Promise.all(notices),
