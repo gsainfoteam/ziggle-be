@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class GetNoticeDto {
   @ApiProperty({
@@ -12,4 +12,13 @@ export class GetNoticeDto {
   @IsBoolean()
   @IsOptional()
   isViewed?: boolean;
+
+  @ApiProperty({
+    example: 'en',
+    description: '언어',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  lang?: string;
 }

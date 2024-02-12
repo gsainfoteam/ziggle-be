@@ -145,11 +145,11 @@ export class NoticeService {
 
   async getNotice(
     id: number,
-    { isViewed }: GetNoticeDto,
+    getNoticeDto: GetNoticeDto,
     userUuid?: string,
   ): Promise<ExpandedGeneralNotice> {
     let notice: NoticeFullcontent;
-    if (isViewed) {
+    if (getNoticeDto.isViewed) {
       notice = await this.noticeRepository.getNoticeWithView(id);
     } else {
       notice = await this.noticeRepository.getNotice(id);
@@ -173,7 +173,8 @@ export class NoticeService {
       ),
     );
     const mainContent =
-      contents.filter(({ lang }) => lang === 'ko')[0] ?? contents[0];
+      contents.filter(({ lang }) => lang === (getNoticeDto.lang ?? 'ko'))[0] ??
+      contents[0];
     return {
       id,
       ...(cralws.length > 0
