@@ -106,10 +106,11 @@ export class NoticeService {
                 content: htmlToText(cralws[cralws.length - 1].body, {
                   selectors: [{ selector: 'a', options: { ignoreHref: true } }],
                 }).slice(0, 1000),
+                deadline: null,
               }
             : {
                 title: mainContent.title,
-                deadline: mainContent.deadline?.toISOString(),
+                deadline: mainContent.deadline?.toISOString() ?? null,
                 lang: mainContent.lang,
                 content: htmlToText(mainContent.body, {
                   selectors: [{ selector: 'a', options: { ignoreHref: true } }],
@@ -182,10 +183,11 @@ export class NoticeService {
             title: cralws[0].title,
             lang: 'ko',
             content: cralws[cralws.length - 1].body,
+            deadline: null,
           }
         : {
             title: mainContent.title,
-            deadline: mainContent.deadline?.toISOString(),
+            deadline: mainContent.deadline?.toISOString() ?? null,
             lang: mainContent.lang,
             content: mainContent.body,
           }),
