@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { FcmToken, FileType, Tag } from '@prisma/client';
+import { FcmToken, FileType, Tag, Crawl } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -46,13 +46,10 @@ export class NoticeRepository {
           {
             contents: {
               some: {
-                AND: {
-                  lang: lang ?? 'ko',
-                  OR: [
-                    { title: { contains: search } },
-                    { body: { contains: search } },
-                  ],
-                },
+                OR: [
+                  { title: { contains: search } },
+                  { body: { contains: search } },
+                ],
               },
             },
           },
@@ -73,7 +70,7 @@ export class NoticeRepository {
       my,
     }: GetAllNoticeQueryDto,
     userUuid?: string,
-  ): Promise<Omit<NoticeFullcontent, 'reminders'>[]> {
+  ): Promise<NoticeFullcontent[]> {
     return this.prismaService.notice
       .findMany({
         take: limit,
@@ -102,13 +99,10 @@ export class NoticeRepository {
             {
               contents: {
                 some: {
-                  AND: {
-                    lang: lang ?? 'ko',
-                    OR: [
-                      { title: { contains: search } },
-                      { body: { contains: search } },
-                    ],
-                  },
+                  OR: [
+                    { title: { contains: search } },
+                    { body: { contains: search } },
+                  ],
                 },
               },
             },
@@ -118,6 +112,8 @@ export class NoticeRepository {
         include: {
           tags: true,
           contents: { where: { id: 1 } },
+          cralws: true,
+          reminders: true,
           author: { select: { name: true, uuid: true } },
           files: {
             where: { type: FileType.IMAGE },
@@ -148,6 +144,7 @@ export class NoticeRepository {
               id: 'asc',
             },
           },
+          cralws: true,
           reminders: true,
           author: {
             select: {
@@ -191,6 +188,7 @@ export class NoticeRepository {
               id: 'asc',
             },
           },
+          cralws: true,
           reminders: true,
           author: {
             select: {

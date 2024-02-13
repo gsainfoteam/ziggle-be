@@ -12,4 +12,4 @@ CREATE TABLE `Crawl` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `Crawl` ADD CONSTRAINT `Crawl_notice_id_fkey` FOREIGN KEY (`notice_id`) REFERENCES `Notice`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Crawl` ADD CONSTRAINT `Crawl_notice_id_fkey` FOREIGN KEY (`notice_id`) REFERENCES `Notice`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE

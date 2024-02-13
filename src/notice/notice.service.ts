@@ -11,9 +11,11 @@ import {
   filter,
   firstValueFrom,
   from,
+  groupBy,
   identity,
   lastValueFrom,
   map,
+  mergeMap,
   ObservedValueOf,
   range,
   take,
@@ -36,6 +38,13 @@ import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { DocumentService } from 'src/document/document.service';
 import { ReactionDto } from './dto/reaction.dto';
 import { FileType } from '@prisma/client';
+import { NoticeReturn } from './types/noticeReturn.type';
+import {
+  ExpandedGeneralNotice,
+  GeneralNotice,
+  GeneralNoticeList,
+  GeneralReaction,
+} from './types/generalNotice.type';
 
 @Injectable()
 export class NoticeService {
@@ -58,54 +67,153 @@ export class NoticeService {
   async getNoticeList(
     getAllNoticeQueryDto: GetAllNoticeQueryDto,
     userUuid?: string,
-  ) {
-    const notices = await this.noticeRepository.getNoticeList(
-      getAllNoticeQueryDto,
-      userUuid,
+  ): Promise<GeneralNoticeList> {
+    const notices = (
+      await this.noticeRepository.getNoticeList(
+        { lang: getAllNoticeQueryDto.lang ?? 'ko', ...getAllNoticeQueryDto },
+        userUuid,
+      )
+    ).map(
+      async ({
+        id,
+        author,
+        createdAt,
+        tags,
+        views,
+        contents,
+        cralws,
+        files,
+        reactions,
+        reminders,
+      }): Promise<GeneralNotice> => {
+        const resultReaction = await firstValueFrom(
+          from(reactions).pipe(
+            groupBy(({ emoji }) => emoji),
+            mergeMap((group) => group.pipe(toArray())),
+            toArray(),
+          ),
+        );
+        const mainContent =
+          contents.filter(
+            ({ lang }) => lang === (getAllNoticeQueryDto.lang ?? 'ko'),
+          )[0] ?? contents[0];
+        return {
+          id,
+          ...(cralws.length > 0
+            ? {
+                title: cralws[0].title,
+                lang: 'ko',
+                content: htmlToText(cralws[cralws.length - 1].body, {
+                  selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+                }).slice(0, 1000),
+              }
+            : {
+                title: mainContent.title,
+                deadline: mainContent.deadline?.toISOString(),
+                lang: mainContent.lang,
+                content: htmlToText(mainContent.body, {
+                  selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+                }).slice(0, 1000),
+              }),
+          author: author.name,
+          createdAt: createdAt.toISOString(),
+          tags: tags.map(({ name }) => name),
+          views,
+          imageUrls: files
+            ?.filter(({ type }) => type === FileType.IMAGE)
+            .map(({ url }) => `${this.s3Url}${url}`),
+          documentUrls: files
+            ?.filter(({ type }) => type === FileType.DOCUMENT)
+            .map(({ url }) => `${this.s3Url}${url}`),
+          isReminded: reminders.some(({ uuid }) => uuid === userUuid),
+          reactions: resultReaction.map((reactions) => ({
+            emoji: reactions[0].emoji,
+            count: reactions.length,
+            isReacted: reactions.some(({ userId }) => userId === userUuid),
+          })),
+        };
+      },
     );
     return {
       total: await this.noticeRepository.getTotalCount(
-        getAllNoticeQueryDto,
+        { lang: getAllNoticeQueryDto.lang ?? 'ko', ...getAllNoticeQueryDto },
         userUuid,
       ),
-      list: notices.map(({ files, author, ...notice }) => {
-        delete notice.authorId;
-        const images = files?.filter(({ type }) => type === FileType.IMAGE);
-        const documents = files?.filter(
-          ({ type }) => type === FileType.DOCUMENT,
-        );
-        return {
-          ...notice,
-          contents: notice.contents.map((content) => ({
-            ...content,
-            body: htmlToText(content.body, {
-              selectors: [{ selector: 'a', options: { ignoreHref: true } }],
-            }).slice(0, 1000),
-          })),
-          author: author.name,
-          imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
-          documentsUrl: documents?.map((file) => `${this.s3Url}${file.url}`),
-        };
-      }),
+      list: await Promise.all(notices),
     };
   }
 
-  async getNotice(id: number, { isViewed }: GetNoticeDto, userUuid?: string) {
+  async getNotice(
+    id: number,
+    getNoticeDto: GetNoticeDto,
+    userUuid?: string,
+  ): Promise<ExpandedGeneralNotice> {
     let notice: NoticeFullcontent;
-    if (isViewed) {
+    if (getNoticeDto.isViewed) {
       notice = await this.noticeRepository.getNoticeWithView(id);
     } else {
       notice = await this.noticeRepository.getNotice(id);
     }
-    const { reminders, files, ...noticeInfo } = notice;
-    const images = files?.filter(({ type }) => type === FileType.IMAGE);
-    const documents = files?.filter(({ type }) => type === FileType.DOCUMENT);
+    const {
+      createdAt,
+      tags,
+      views,
+      contents,
+      cralws,
+      author,
+      files,
+      reactions,
+      reminders,
+    } = notice;
+    const resultReaction = await firstValueFrom(
+      from(reactions).pipe(
+        groupBy(({ emoji }) => emoji),
+        mergeMap((group) => group.pipe(toArray())),
+        toArray(),
+      ),
+    );
+    const mainContent =
+      contents.filter(({ lang }) => lang === (getNoticeDto.lang ?? 'ko'))[0] ??
+      contents[0];
     return {
-      ...noticeInfo,
-      author: notice.author.name,
-      imagesUrl: images?.map((file) => `${this.s3Url}${file.url}`),
-      documentsUrl: documents?.map((file) => `${this.s3Url}${file.url}`),
-      reminder: reminders.some((reminder) => reminder.uuid === userUuid),
+      id,
+      ...(cralws.length > 0
+        ? {
+            title: cralws[0].title,
+            lang: 'ko',
+            content: cralws[cralws.length - 1].body,
+          }
+        : {
+            title: mainContent.title,
+            deadline: mainContent.deadline?.toISOString(),
+            lang: mainContent.lang,
+            content: mainContent.body,
+          }),
+      author: author.name,
+      createdAt: createdAt.toISOString(),
+      tags: tags.map(({ name }) => name),
+      views,
+      imageUrls: files
+        ?.filter(({ type }) => type === FileType.IMAGE)
+        .map(({ url }) => `${this.s3Url}${url}`),
+      documentUrls: files
+        ?.filter(({ type }) => type === FileType.DOCUMENT)
+        .map(({ url }) => `${this.s3Url}${url}`),
+      additionalContent: notice.contents
+        .filter(({ id }) => id !== 1)
+        .map(({ body, deadline, lang }) => ({
+          content: htmlToText(body, {
+            selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+          }),
+          deadline: deadline?.toISOString(),
+          lang,
+        })),
+      isReminded: reminders.some(({ uuid }) => uuid === userUuid),
+      reactions: resultReaction.map((reactions) => ({
+        emoji: reactions[0].emoji,
+        count: reactions.length,
+        isReacted: reactions.some(({ userId }) => userId === userUuid),
+      })),
     };
   }
 
