@@ -5,22 +5,24 @@ export type GeneralNotice = {
   createdAt: string;
   tags: string[];
   views: number;
-  lang: string;
+  langs: string[];
   content: string;
   reactions: GeneralReaction[];
   isReminded: boolean;
-  deadline?: string;
+  deadline: string;
   imageUrls?: string[];
   documentUrls?: string[];
 };
 
 export type ExpandedGeneralNotice = GeneralNotice & {
-  additionalContent: SmallNotice[];
+  additionalContents: SmallNotice[];
 };
 
 export type SmallNotice = {
+  id: number;
   deadline: string;
   content: string;
+  createdAt: string;
   lang: string;
 };
 

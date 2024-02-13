@@ -102,7 +102,7 @@ export class NoticeService {
           ...(cralws.length > 0
             ? {
                 title: cralws[0].title,
-                lang: 'ko',
+                langs: ['ko'],
                 content: htmlToText(cralws[cralws.length - 1].body, {
                   selectors: [{ selector: 'a', options: { ignoreHref: true } }],
                 }).slice(0, 1000),
@@ -111,7 +111,7 @@ export class NoticeService {
             : {
                 title: mainContent.title,
                 deadline: mainContent.deadline?.toISOString() ?? null,
-                lang: mainContent.lang,
+                langs: Array.from(new Set(contents.map(({ lang }) => lang))),
                 content: htmlToText(mainContent.body, {
                   selectors: [{ selector: 'a', options: { ignoreHref: true } }],
                 }).slice(0, 1000),
@@ -181,14 +181,14 @@ export class NoticeService {
       ...(cralws.length > 0
         ? {
             title: cralws[0].title,
-            lang: 'ko',
+            langs: ['ko'],
             content: cralws[cralws.length - 1].body,
             deadline: null,
           }
         : {
             title: mainContent.title,
             deadline: mainContent.deadline?.toISOString() ?? null,
-            lang: mainContent.lang,
+            langs: Array.from(new Set(contents.map(({ lang }) => lang))),
             content: mainContent.body,
           }),
       author: author.name,
@@ -201,13 +201,15 @@ export class NoticeService {
       documentUrls: files
         ?.filter(({ type }) => type === FileType.DOCUMENT)
         .map(({ url }) => `${this.s3Url}${url}`),
-      additionalContent: notice.contents
+      additionalContents: notice.contents
         .filter(({ id }) => id !== 1)
-        .map(({ body, deadline, lang }) => ({
+        .map(({ body, deadline, lang, createdAt }) => ({
+          id,
           content: htmlToText(body, {
             selectors: [{ selector: 'a', options: { ignoreHref: true } }],
           }),
-          deadline: deadline?.toISOString(),
+          deadline: deadline?.toISOString() ?? null,
+          createdAt: createdAt.toISOString(),
           lang,
         })),
       isReminded: reminders.some(({ uuid }) => uuid === userUuid),
