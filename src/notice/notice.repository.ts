@@ -95,19 +95,23 @@ export class NoticeRepository {
           reminders:
             my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
           tags: tags && { some: { name: { in: tags } } },
-          OR: [
-            {
-              contents: {
-                some: {
-                  OR: [
-                    { title: { contains: search } },
-                    { body: { contains: search } },
-                  ],
-                },
-              },
-            },
-            { tags: { some: { name: { contains: search } } } },
-          ],
+          ...(search
+            ? {
+                OR: [
+                  {
+                    contents: {
+                      some: {
+                        OR: [
+                          { title: { contains: search } },
+                          { body: { contains: search } },
+                        ],
+                      },
+                    },
+                  },
+                  { tags: { some: { name: { contains: search } } } },
+                ],
+              }
+            : {}),
         },
         include: {
           tags: true,

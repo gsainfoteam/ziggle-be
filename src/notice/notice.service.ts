@@ -207,7 +207,7 @@ export class NoticeService {
         .map(({ url }) => `${this.s3Url}${url}`),
       additionalContents: notice.contents
         .filter(({ id }) => id !== 1)
-        .map(({ body, deadline, lang, createdAt }) => ({
+        .map(({ body, deadline, lang, createdAt, id }) => ({
           id,
           content: htmlToText(body, {
             selectors: [{ selector: 'a', options: { ignoreHref: true } }],
