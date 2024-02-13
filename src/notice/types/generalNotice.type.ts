@@ -1,7 +1,7 @@
 export type GeneralNotice = {
   id: number;
   title: string;
-  author: string;
+  author: Author;
   createdAt: string;
   tags: string[];
   views: number;
@@ -13,6 +13,11 @@ export type GeneralNotice = {
   currentDeadline: string;
   imageUrls?: string[];
   documentUrls?: string[];
+};
+
+export type Author = {
+  uuid: string;
+  name: string;
 };
 
 export type ExpandedGeneralNotice = GeneralNotice & {
