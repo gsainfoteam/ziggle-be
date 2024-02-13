@@ -1,24 +1,18 @@
 import { HttpService } from '@nestjs/axios';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cron } from '@nestjs/schedule';
 import cheerio from 'cheerio';
-import dayjs from 'dayjs';
 import { htmlToText } from 'html-to-text';
 import {
   catchError,
   concatMap,
-  filter,
   firstValueFrom,
   from,
   groupBy,
-  identity,
-  lastValueFrom,
   map,
   mergeMap,
   ObservedValueOf,
   range,
-  take,
   throwError,
   timeout,
   toArray,
@@ -38,12 +32,10 @@ import { UpdateNoticeDto } from './dto/updateNotice.dto';
 import { DocumentService } from 'src/document/document.service';
 import { ReactionDto } from './dto/reaction.dto';
 import { FileType } from '@prisma/client';
-import { NoticeReturn } from './types/noticeReturn.type';
 import {
   ExpandedGeneralNotice,
   GeneralNotice,
   GeneralNoticeList,
-  GeneralReaction,
 } from './types/generalNotice.type';
 
 @Injectable()
@@ -355,31 +347,6 @@ export class NoticeService {
     await this.noticeRepository.deleteNotice(id, userUuid);
   }
 
-  @Cron('0 9 * * *')
-  async sendReminderMessage() {
-    const targetNotices = await this.noticeRepository.getNoticeByTime(
-      new Date(),
-    );
-    targetNotices.map((notice) => {
-      const leftDate = dayjs(notice.currentDeadline)
-        .startOf('d')
-        .diff(dayjs().startOf('d'), 'd');
-      return this.fcmService.postMessage(
-        {
-          title: `[Reminder] ${leftDate}일 남은 공지가 있어요!`,
-          body: `${notice.contents[0].title} 마감이 ${leftDate}일 남았어요`,
-          imageUrl: notice.files?.[0].url
-            ? `${this.s3Url}${notice.files[0].url}`
-            : undefined,
-        },
-        notice.reminders
-          .flatMap(({ fcmTokens }) => fcmTokens)
-          .map(({ token }) => token),
-        { path: `/root/article?id=${notice.id}` },
-      );
-    });
-  }
-
   private getAcademicNoticeList() {
     const baseUrl = 'https://www.gist.ac.kr/kr/html/sub05/050209.html';
     return range(1).pipe(
@@ -431,75 +398,6 @@ export class NoticeService {
         return { files, content };
       }),
     );
-  }
-
-  @Cron('*/5 * * * *')
-  async crawlAcademicNotice() {
-    const $ = this.getAcademicNoticeList().pipe(
-      take(100),
-      timeout(60e3),
-      concatMap((meta) =>
-        this.getAcademicNotice(meta).pipe(map((notice) => ({ notice, meta }))),
-      ),
-      map(async (notice) => {
-        const prev = await this.noticeRepository.getAcademicNotice(
-          notice.meta.link,
-        );
-        return { prev, notice };
-      }),
-      concatMap(identity),
-      filter(({ prev, notice: { notice, meta } }) => {
-        if (!prev) return true;
-        if (prev.cralws[0].title !== meta.title) return true;
-        if (prev.cralws[0].body !== notice.content) return true;
-        return false;
-      }),
-      concatMap(async ({ prev, notice: { notice, meta } }) => {
-        const tags = await this.tagService.findOrCreateTags([
-          'academic',
-          meta.category,
-        ]);
-        const user = await this.userService.addTempUser(
-          `${meta.author} (${meta.category})`,
-        );
-        const imagesStream = from(
-          cheerio.load(notice.content)('img').toArray(),
-        ).pipe(
-          map((e) => e.type === 'tag' && e.attribs.src),
-          concatMap((v) =>
-            this.httpService.get(v, { responseType: 'arraybuffer' }),
-          ),
-          map(
-            (res, index) =>
-              ({
-                buffer: res.data,
-                originalname: `${meta.id}-${meta.title}-${index}.${
-                  res.headers['content-type'].split('/')[1].split(';')[0]
-                }`,
-              } as Express.Multer.File),
-          ),
-          toArray(),
-        );
-        const images = await this.imageService.uploadImages(
-          await firstValueFrom(imagesStream),
-        );
-        const result = await this.noticeRepository.createAcademicNotice({
-          title: meta.title,
-          body: notice.content,
-          images,
-          documents: notice.files,
-          tags,
-          userUuid: user.uuid,
-          createdAt: dayjs(meta.createdAt)
-            .tz()
-            .add(dayjs().tz().diff(dayjs().tz().startOf('d')))
-            .toDate(),
-          url: meta.link,
-        });
-        if (!prev) await this.sendNoticeToAllUsers(meta.title, [], result);
-      }),
-    );
-    await lastValueFrom($, { defaultValue: null });
   }
 
   private async sendNoticeToAllUsers(
