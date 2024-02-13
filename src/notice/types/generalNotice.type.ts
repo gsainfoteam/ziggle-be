@@ -10,6 +10,7 @@ export type GeneralNotice = {
   reactions: GeneralReaction[];
   isReminded: boolean;
   deadline: string;
+  currentDeadline: string;
   imageUrls?: string[];
   documentUrls?: string[];
 };

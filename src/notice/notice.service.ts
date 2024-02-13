@@ -84,6 +84,7 @@ export class NoticeService {
         cralws,
         files,
         reactions,
+        currentDeadline,
         reminders,
       }): Promise<GeneralNotice> => {
         const resultReaction = await firstValueFrom(
@@ -120,6 +121,7 @@ export class NoticeService {
           createdAt: createdAt.toISOString(),
           tags: tags.map(({ name }) => name),
           views,
+          currentDeadline: currentDeadline.toISOString(),
           imageUrls: files
             ?.filter(({ type }) => type === FileType.IMAGE)
             .map(({ url }) => `${this.s3Url}${url}`),
@@ -164,6 +166,7 @@ export class NoticeService {
       author,
       files,
       reactions,
+      currentDeadline,
       reminders,
     } = notice;
     const resultReaction = await firstValueFrom(
@@ -195,6 +198,7 @@ export class NoticeService {
       createdAt: createdAt.toISOString(),
       tags: tags.map(({ name }) => name),
       views,
+      currentDeadline: currentDeadline.toISOString(),
       imageUrls: files
         ?.filter(({ type }) => type === FileType.IMAGE)
         .map(({ url }) => `${this.s3Url}${url}`),
