@@ -275,7 +275,7 @@ export class NoticeService {
           : (await this.noticeRepository.getFcmTokensByNoticeId(id)).map(
               ({ token }) => token,
             ),
-        { path: `/article/${id}` },
+        { path: `/notice/${id}` },
       );
     }
 
@@ -412,7 +412,7 @@ export class NoticeService {
         imageUrl: images?.length ? images[0] : undefined,
       },
       (await this.noticeRepository.getAllFcmTokens()).map(({ token }) => token),
-      { path: `/article/${notice.id}` },
+      { path: `/notice/${notice.id}` },
     );
   }
 }
