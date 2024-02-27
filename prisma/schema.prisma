@@ -27,7 +27,6 @@ model User {
 
   remindedNotices Notice[]   @relation("Reminder")
   writedNotices   Notice[]
-  fcmTokens       FcmToken[]
   reactions       Reaction[]
 }
 
@@ -58,6 +57,18 @@ model Content {
   @@id([id, lang, noticeId])
 }
 
+model Crawl {
+  id        Int       @id @default(autoincrement())
+  title     String
+  body      String    @db.LongText
+  type      CrawlType
+  url       String    @db.VarChar(300)
+  crawledAt DateTime  @default(now()) @map("crawled_at")
+
+  noticeId Int    @map("notice_id")
+  notice   Notice @relation(fields: [noticeId], references: [id])
+}
+
 model Tag {
   id Int @id @default(autoincrement())
 
@@ -85,18 +96,6 @@ model Notice {
   reactions Reaction[]
 }
 
-model Crawl {
-  id        Int       @id @default(autoincrement())
-  title     String
-  body      String    @db.LongText
-  type      CrawlType
-  url       String    @db.VarChar(300)
-  crawledAt DateTime  @default(now()) @map("crawled_at")
-
-  noticeId Int    @map("notice_id")
-  notice   Notice @relation(fields: [noticeId], references: [id])
-}
-
 model Reaction {
   emoji     String
   createdAt DateTime  @default(now()) @map("created_at")
@@ -108,16 +107,4 @@ model Reaction {
   user     User   @relation(fields: [userId], references: [uuid])
 
   @@id([emoji, noticeId, userId])
-}
-
-model FcmToken {
-  token        String   @id
-  createdAt    DateTime @default(now()) @map("created_at")
-  lastCheckAt  DateTime @updatedAt @map("last_check_at")
-  successCount Int      @default(0) @map("success_count")
-  failCount    Int      @default(0) @map("fail_count")
-  errors       String?
-
-  userUuid String? @map("user_uuid")
-  user     User?   @relation(fields: [userUuid], references: [uuid])
 }
