@@ -1,12 +1,23 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { ApiResponse } from '@nestjs/swagger';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
+  @ApiResponse({
+    status: 200,
+    description: 'Send the message "pong" when the server is active.',
+    content: {
+      'application/json': {
+        examples: {
+          pong: {
+            value: 'pong',
+          },
+        },
+      },
+    },
+  })
   @Get()
   getHello(): string {
-    return this.appService.getHello();
+    return 'pong';
   }
 }
