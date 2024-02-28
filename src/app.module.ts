@@ -2,12 +2,11 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { FileModule } from './file/file.module';
 import { UserModule } from './user/user.module';
-import { MoService } from './idp/mo/mo.service';
 import { IdpModule } from './idp/idp.module';
+import { TagModule } from './tag/tag.module';
 
 @Module({
-  imports: [FileModule, UserModule, IdpModule],
+  imports: [FileModule, UserModule, IdpModule, TagModule],
   controllers: [AppController],
-  providers: [MoService],
 })
 export class AppModule {}
