@@ -14,13 +14,19 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class FileService {
   private readonly logger = new Logger(FileService.name);
-  private s3Client: S3Client;
+  private readonly s3Client: S3Client;
   constructor(private readonly configService: ConfigService) {
     this.s3Client = new S3Client({
       region: configService.get('AWS_REGION'),
     });
   }
 
+  /**
+   * this method uploads a file to the S3 bucket
+   * @param file Express.Multer.File
+   * @param key string
+   * @returns string
+   */
   async uploadFile(file: Express.Multer.File, key: string): Promise<string> {
     this.logger.log('uploadFile called');
     const command = new PutObjectCommand({
@@ -40,7 +46,13 @@ export class FileService {
     return key;
   }
 
-  async validationFile(key: string): Promise<void> {
+  /**
+   * this method validates a file in the S3 bucket
+   * specifically, it sets the expiration tag to false
+   * @param key string
+   * @returns void
+   */
+  async validateFile(key: string): Promise<void> {
     const command = new PutObjectTaggingCommand({
       Bucket: this.configService.getOrThrow('AWS_S3_BUCKET_NAME'),
       Key: key,
@@ -54,6 +66,10 @@ export class FileService {
     });
   }
 
+  /**
+   * this method deletes a file from the S3 bucket
+   * @param key string
+   */
   async deleteFile(key: string): Promise<void> {
     const command = new DeleteObjectCommand({
       Bucket: this.configService.getOrThrow('AWS_S3_BUCKET_NAME'),

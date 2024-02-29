@@ -22,5 +22,6 @@ import { AnonymousStrategy } from './guard/anonymous.strategy';
     AnonymousStrategy,
   ],
   controllers: [UserController],
+  exports: [UserService, IdPOptionalGuard, IdPGuard],
 })
 export class UserModule {}
