@@ -2,10 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
-  Param,
-  ParseIntPipe,
   Post,
   Query,
   UseGuards,
@@ -69,20 +66,5 @@ export class TagController {
   @Post()
   async create(@Body() body: CreateTagDto) {
     return this.tagService.createTag(body);
-  }
-
-  @ApiOperation({
-    summary: 'Delete tag',
-    description: 'Delete tag',
-  })
-  @ApiOkResponse({
-    description: 'Tag',
-    type: TagResDto,
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @Delete(':id')
-  async delete(@Param('id', ParseIntPipe) id: number) {
-    return this.tagService.deleteTag({ id });
   }
 }
