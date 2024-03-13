@@ -19,11 +19,4 @@ export class NoticeService {
       'AWS_S3_REGION',
     )}.amazonaws.com/${configService.get<string>('AWS_S3_BUCKET_NAME')}/`;
   }
-
-  async getNoticeList(
-    getAllNoticeDto: GetAllNoticeQueryDto,
-    { uuid }: User,
-  ): Promise<GeneralNoticeListDto> {
-    this.loggger.log(`getNoticeList called`);
-  }
 }
