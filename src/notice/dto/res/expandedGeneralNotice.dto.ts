@@ -14,11 +14,11 @@ export class AdditionalNoticeDto {
   lang: string;
 
   @ApiProperty()
-  deadline: string;
+  deadline: Date | null;
 
   @ApiProperty()
   content: string;
 
   @ApiProperty()
-  createdAt: string;
+  createdAt: Date;
 }

@@ -112,7 +112,7 @@ model Reaction {
 
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id])
-  userId   String @map("user_id")
+  userId   String @map("user_uuid")
   user     User   @relation(fields: [userId], references: [uuid])
 
   @@id([emoji, noticeId, userId])

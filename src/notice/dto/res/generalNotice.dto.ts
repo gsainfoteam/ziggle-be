@@ -19,7 +19,7 @@ export class GeneralNoticeDto {
   author: AuthorDto;
 
   @ApiProperty()
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty()
   tags: string[];
@@ -40,10 +40,10 @@ export class GeneralNoticeDto {
   isReminded: boolean;
 
   @ApiProperty()
-  deadline: string;
+  deadline: Date | null;
 
   @ApiProperty()
-  currentDeadline: string;
+  currentDeadline: Date | null;
 
   @ApiPropertyOptional()
   imageUrls?: string[];

@@ -25,7 +25,7 @@ export class NoticeRepository {
    */
   async getTotalCount(
     { search, tags, orderBy, my }: GetAllNoticeQueryDto,
-    userUuid: string,
+    userUuid?: string,
   ): Promise<number> {
     this.logger.log(`getTotalCount`);
     return await this.prismaService.notice.count({
