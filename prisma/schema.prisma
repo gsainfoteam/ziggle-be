@@ -1,12 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -28,6 +25,8 @@ model User {
   remindedNotices Notice[]   @relation("Reminder")
   writedNotices   Notice[]
   reactions       Reaction[]
+
+  @@map("user")
 }
 
 model File {
@@ -40,6 +39,8 @@ model File {
 
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id])
+
+  @@map("file")
 }
 
 model Content {
@@ -47,7 +48,7 @@ model Content {
 
   lang      String
   title     String?
-  body      String    @db.LongText
+  body      String
   deadline  DateTime?
   createdAt DateTime  @default(now()) @map("created_at")
 
@@ -55,18 +56,21 @@ model Content {
   notice   Notice @relation(fields: [noticeId], references: [id])
 
   @@id([id, lang, noticeId])
+  @@map("content")
 }
 
 model Crawl {
   id        Int       @id @default(autoincrement())
   title     String
-  body      String    @db.LongText
+  body      String
   type      CrawlType
   url       String    @db.VarChar(300)
   crawledAt DateTime  @default(now()) @map("crawled_at")
 
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id])
+
+  @@map("crawl")
 }
 
 model Tag {
@@ -75,6 +79,8 @@ model Tag {
   name String @unique
 
   notices Notice[]
+
+  @@map("tag")
 }
 
 model Notice {
@@ -94,6 +100,8 @@ model Notice {
   cralws    Crawl[]
   tags      Tag[]
   reactions Reaction[]
+
+  @@map("notice")
 }
 
 model Reaction {
@@ -107,4 +115,5 @@ model Reaction {
   user     User   @relation(fields: [userId], references: [uuid])
 
   @@id([emoji, noticeId, userId])
+  @@map("reaction")
 }
