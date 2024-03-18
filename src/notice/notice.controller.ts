@@ -183,8 +183,8 @@ export class NoticeController {
   }
 
   @ApiOperation({
-    summary: 'Add notice reminder',
-    description: 'Add notice reminder',
+    summary: 'modify notice content',
+    description: 'modify notice content',
   })
   @ApiOkResponse({
     type: ExpandedGeneralNoticeDto,
@@ -202,6 +202,16 @@ export class NoticeController {
     return this.noticeService.updateNotice(body, id, user.uuid);
   }
 
+  @ApiOperation({
+    summary: 'Delete notice reminder',
+    description: 'Delete notice reminder',
+  })
+  @ApiOkResponse({
+    type: ExpandedGeneralNoticeDto,
+    description: 'Return notice',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Delete(':id/reminder')
   @UseGuards(IdPGuard)
   async deleteNoticeReminder(
