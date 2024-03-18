@@ -11,6 +11,9 @@ import { NoticeFullContent } from './types/noticeFullContent';
 import { FileType } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
+import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
+import { ForeignContentDto } from './dto/req/foreignContent.dto';
+import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
 
 @Injectable()
 export class NoticeRepository {
@@ -355,6 +358,315 @@ export class NoticeRepository {
           throw new InternalServerErrorException('Database Error');
         }
         this.logger.error('createNotice error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
+  }
+
+  async addAdditionalNotice(
+    { title, body, deadline }: AdditionalNoticeDto,
+    id: number,
+    userUuid: string,
+  ): Promise<void> {
+    const notice = await this.prismaService.notice
+      .findUniqueOrThrow({
+        where: { id, deletedAt: null, authorId: userUuid },
+        include: {
+          contents: {
+            where: {
+              lang: 'ko',
+            },
+            orderBy: {
+              id: 'desc',
+            },
+          },
+        },
+      })
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${id} not found`);
+            throw new NotFoundException(`Notice with id ${id} not found`);
+          }
+          this.logger.error('addAdditionalNotice error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('addAdditionalNotice Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
+    await this.prismaService.notice
+      .update({
+        where: { id, deletedAt: null, authorId: userUuid },
+        data: {
+          contents: {
+            create: {
+              id: Math.max(...notice.contents.map((content) => content.id)) + 1,
+              lang: 'ko',
+              title: title ?? notice.contents[0].title,
+              body,
+              deadline,
+            },
+          },
+          currentDeadline: deadline ?? notice.currentDeadline,
+        },
+      })
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          this.logger.error('addAdditionalNotice error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('addAdditionalNotice Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
+  }
+
+  async addForeignContent(
+    { title, lang, body, deadline }: ForeignContentDto,
+    id: number,
+    contentIdx: number,
+    userUuid: string,
+  ): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: { id, authorId: userUuid, deletedAt: null },
+        data: {
+          contents: {
+            create: {
+              id: contentIdx,
+              lang,
+              title,
+              body,
+              deadline,
+            },
+          },
+        },
+      })
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          this.logger.error('addForeignContent error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('addForeignContent Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
+  }
+
+  async addReminder(id: number, userUuid: string): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: { id, deletedAt: null },
+        data: {
+          reminders: {
+            connect: {
+              uuid: userUuid,
+            },
+          },
+        },
+      })
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          this.logger.error('addReminder error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('addReminder Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
+  }
+
+  async removeReminder(id: number, userUuid: string): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: { id, deletedAt: null },
+        data: {
+          reminders: {
+            disconnect: {
+              uuid: userUuid,
+            },
+          },
+        },
+      })
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          this.logger.error('removeReminder error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('removeReminder Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
+  }
+
+  async addReaction(
+    emoji: string,
+    id: number,
+    userUuid: string,
+  ): Promise<void> {
+    const reaction = await this.prismaService.reaction.findUnique({
+      where: {
+        emoji_noticeId_userId: {
+          emoji,
+          noticeId: id,
+          userId: userUuid,
+        },
+      },
+    });
+    if (reaction) {
+      await this.prismaService.reaction
+        .update({
+          where: {
+            emoji_noticeId_userId: {
+              emoji,
+              noticeId: id,
+              userId: userUuid,
+            },
+          },
+          data: {
+            deletedAt: null,
+          },
+        })
+        .catch((error) => {
+          if (error instanceof PrismaClientKnownRequestError) {
+            this.logger.error('addReaction error');
+            this.logger.debug(error);
+            throw new InternalServerErrorException('Database Error');
+          }
+          this.logger.error('addReaction Unknown Error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Unknown Error');
+        });
+    } else {
+      await this.prismaService.reaction
+        .create({
+          data: {
+            emoji,
+            notice: {
+              connect: {
+                id,
+              },
+            },
+            user: {
+              connect: {
+                uuid: userUuid,
+              },
+            },
+          },
+        })
+        .catch((error) => {
+          if (error instanceof PrismaClientKnownRequestError) {
+            this.logger.error('addReaction error');
+            this.logger.debug(error);
+            throw new InternalServerErrorException('Database Error');
+          }
+          this.logger.error('addReaction Unknown Error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Unknown Error');
+        });
+    }
+  }
+
+  async removeReaction(
+    emoji: string,
+    id: number,
+    userUuid: string,
+  ): Promise<void> {
+    await this.prismaService.reaction
+      .update({
+        where: {
+          emoji_noticeId_userId: {
+            emoji,
+            noticeId: id,
+            userId: userUuid,
+          },
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      })
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(
+              `Reaction with emoji ${emoji}, user ${userUuid}, id: ${id} not found`,
+            );
+            return;
+          }
+          this.logger.error('removeReaction error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('removeReaction Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
+  }
+
+  async updateNotice(
+    { body, deadline }: UpdateNoticeDto,
+    id: number,
+    userUuid: string,
+  ): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: { id, authorId: userUuid, deletedAt: null },
+        data: {
+          contents: {
+            update: {
+              where: {
+                id_lang_noticeId: {
+                  lang: 'ko',
+                  id: 1,
+                  noticeId: id,
+                },
+              },
+              data: {
+                body,
+                deadline,
+              },
+            },
+          },
+          currentDeadline: deadline,
+        },
+      })
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          this.logger.error('updateNotice error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('updateNotice Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
+  }
+
+  async deleteNotice(id: number, userUuid: string): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: { id, authorId: userUuid, deletedAt: null },
+        data: {
+          deletedAt: new Date(),
+        },
+      })
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${id} not found`);
+            throw new NotFoundException(`Notice with id ${id} not found`);
+          }
+          this.logger.error('deleteNotice error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('deleteNotice Unknown Error');
         this.logger.debug(error);
         throw new InternalServerErrorException('Unknown Error');
       });

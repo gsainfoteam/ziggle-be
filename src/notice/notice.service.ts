@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import { GeneralNoticeListDto } from './dto/res/generalNotice.dto';
@@ -10,6 +10,10 @@ import { NoticeFullContent } from './types/noticeFullContent';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { ImageService } from 'src/image/image.service';
 import { DocumentService } from 'src/document/document.service';
+import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
+import { ForeignContentDto } from './dto/req/foreignContent.dto';
+import { ReactionDto } from './dto/req/reaction.dto';
+import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
 
 @Injectable()
 export class NoticeService {
@@ -79,5 +83,95 @@ export class NoticeService {
     );
 
     return this.getNotice(notice.id, { isViewed: false });
+  }
+
+  async addNoticeAdditional(
+    additionalNoticeDto: AdditionalNoticeDto,
+    id: number,
+    userUuid: string,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    await this.noticeRepository.addAdditionalNotice(
+      additionalNoticeDto,
+      id,
+      userUuid,
+    );
+
+    return this.getNotice(id, { isViewed: false });
+  }
+
+  async addForeignContent(
+    foreignContentDto: ForeignContentDto,
+    id: number,
+    idx: number,
+    userUuid: string,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    await this.noticeRepository.addForeignContent(
+      foreignContentDto,
+      id,
+      idx,
+      userUuid,
+    );
+    return this.getNotice(id, { isViewed: false });
+  }
+
+  async addNoticeReminder(
+    id: number,
+    userUuid: string,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    await this.noticeRepository.addReminder(id, userUuid);
+
+    return this.getNotice(id, { isViewed: false });
+  }
+
+  async addNoticeReaction(
+    { emoji }: ReactionDto,
+    id: number,
+    userUuid: string,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    await this.noticeRepository.addReaction(emoji, id, userUuid);
+
+    return this.getNotice(id, { isViewed: false });
+  }
+
+  async updateNotice(
+    body: UpdateNoticeDto,
+    id: number,
+    userUuid: string,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    const noitce = await this.noticeRepository.getNotice(id);
+    if (noitce.author.uuid !== userUuid) {
+      throw new ForbiddenException();
+    }
+    if (noitce.createdAt.getTime() + 1000 * 60 * 30 < new Date().getTime()) {
+      throw new ForbiddenException();
+    }
+    await this.noticeRepository.updateNotice(body, id, userUuid);
+
+    return this.getNotice(id, { isViewed: false });
+  }
+
+  async removeNoticeReminder(
+    id: number,
+    userUuid: string,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    await this.noticeRepository.removeReminder(id, userUuid);
+
+    return this.getNotice(id, { isViewed: false });
+  }
+
+  async removeNoticeReaction(
+    { emoji }: ReactionDto,
+    id: number,
+    userUuid: string,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    await this.noticeRepository.removeReaction(emoji, id, userUuid);
+
+    return this.getNotice(id, { isViewed: false });
+  }
+
+  async deleteNotice(id: number, userUuid: string): Promise<void> {
+    const notice = await this.noticeRepository.getNotice(id);
+    this.imageService.deleteImages(notice.files.map(({ url }) => url));
+    await this.noticeRepository.deleteNotice(id, userUuid);
   }
 }

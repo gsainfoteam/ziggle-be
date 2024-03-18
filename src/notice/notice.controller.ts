@@ -1,8 +1,12 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
+  Patch,
+  Post,
   Query,
   UseGuards,
   UsePipes,
@@ -10,12 +14,16 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { NoticeService } from './notice.service';
-import { IdPOptionalGuard } from 'src/user/guard/id.guard';
+import { IdPGuard, IdPOptionalGuard } from 'src/user/guard/id.guard';
 import { GeneralNoticeListDto } from './dto/res/generalNotice.dto';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import { User } from '@prisma/client';
 import { GetUser } from 'src/user/decorator/get-user.decorator';
 import { ExpandedGeneralNoticeDto } from './dto/res/expandedGeneralNotice.dto';
+import { CreateNoticeDto } from './dto/req/createNotice.dto';
+import { ForeignContentDto } from './dto/req/foreignContent.dto';
+import { ReactionDto } from './dto/req/reaction.dto';
+import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
 
 @ApiTags('notice')
 @Controller('notice')
@@ -49,5 +57,92 @@ export class NoticeController {
     @GetUser() user?: User,
   ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.getNotice(id, query, user?.uuid);
+  }
+
+  @Post()
+  @UseGuards(IdPGuard)
+  async createNotice(
+    @GetUser() user: User,
+    @Body() createNoticeDto: CreateNoticeDto,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.createNotice(createNoticeDto, user.uuid);
+  }
+
+  @Post(':id/additional')
+  @UseGuards(IdPGuard)
+  async createAdditionalNotice(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+    @Body() additionalNoticeDto: CreateNoticeDto,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.addNoticeAdditional(
+      additionalNoticeDto,
+      id,
+      user.uuid,
+    );
+  }
+
+  @Post(':id/:contentIdx/foreign')
+  @UseGuards(IdPGuard)
+  async addForeignContent(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('contentIdx', ParseIntPipe) contentIdx: number,
+    @GetUser() user: User,
+    @Body() foreignContentDto: ForeignContentDto,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.addForeignContent(
+      foreignContentDto,
+      id,
+      contentIdx,
+      user.uuid,
+    );
+  }
+
+  @Post(':id/reaction')
+  @UseGuards(IdPGuard)
+  async addReaction(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: ReactionDto,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.addNoticeReaction(body, id, user.uuid);
+  }
+
+  @Patch(':id')
+  @UseGuards(IdPGuard)
+  async updateNotice(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+    @Body() body: UpdateNoticeDto,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.updateNotice(body, id, user.uuid);
+  }
+
+  @Delete(':id/reminder')
+  @UseGuards(IdPGuard)
+  async deleteNoticeReminder(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.removeNoticeReminder(id, user.uuid);
+  }
+
+  @Delete(':id/reaction')
+  @UseGuards(IdPGuard)
+  async deleteReaction(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: ReactionDto,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.removeNoticeReaction(body, id, user.uuid);
+  }
+
+  @Delete(':id')
+  @UseGuards(IdPGuard)
+  async deleteNotice(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.noticeService.deleteNotice(id, user.uuid);
   }
 }

@@ -6,7 +6,7 @@ export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   additionalContents: AdditionalNoticeDto[];
 }
 
-export class AdditionalNoticeDto {
+class AdditionalNoticeDto {
   @ApiProperty()
   id: number;
 
