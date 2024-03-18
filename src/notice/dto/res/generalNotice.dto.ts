@@ -7,7 +7,13 @@ export class GeneralNoticeListDto {
   @ApiProperty()
   list: GeneralNoticeDto[];
 }
+export class AuthorDto {
+  @ApiProperty()
+  uuid: string;
 
+  @ApiProperty()
+  name: string;
+}
 export class GeneralNoticeDto {
   @ApiProperty()
   id: number;
@@ -50,14 +56,6 @@ export class GeneralNoticeDto {
 
   @ApiPropertyOptional()
   documentUrls?: string[];
-}
-
-export class AuthorDto {
-  @ApiProperty()
-  uuid: string;
-
-  @ApiProperty()
-  name: string;
 }
 
 export class GeneralReactionDto {
