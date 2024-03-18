@@ -3,6 +3,8 @@ import {
   Post,
   UploadedFiles,
   UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -17,6 +19,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('document')
 @Controller('document')
+@UsePipes(ValidationPipe)
 export class DocumentController {
   constructor(private readonly documentService: DocumentService) {}
 

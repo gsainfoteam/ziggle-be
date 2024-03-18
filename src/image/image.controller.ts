@@ -3,6 +3,8 @@ import {
   Post,
   UploadedFiles,
   UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiResponse,
@@ -17,6 +19,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('image')
 @Controller('image')
+@UsePipes(ValidationPipe)
 export class ImageController {
   constructor(private readonly imageService: ImageService) {}
 
