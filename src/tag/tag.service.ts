@@ -14,10 +14,7 @@ export class TagService {
    */
   async findAllTags(): Promise<Tag[]> {
     this.logger.log('findAllTags');
-    return this.tagRepository.findAllTags().then((tags) => {
-      this.logger.log('findAllTags finished');
-      return tags;
-    });
+    return this.tagRepository.findAllTags();
   }
 
   /**
@@ -31,10 +28,7 @@ export class TagService {
       this.logger.debug('name is required');
       throw new BadRequestException('name is required');
     }
-    return this.tagRepository.findTag({ name }).then((tag) => {
-      this.logger.log('findTag finished');
-      return tag;
-    });
+    return this.tagRepository.findTag({ name });
   }
 
   /**
@@ -48,10 +42,7 @@ export class TagService {
       this.logger.debug('search is required');
       throw new BadRequestException('search is required');
     }
-    return this.tagRepository.searchTags({ name: search }).then((tags) => {
-      this.logger.log('searchTags finished');
-      return tags;
-    });
+    return this.tagRepository.searchTags({ name: search });
   }
 
   /**
@@ -65,10 +56,7 @@ export class TagService {
       this.logger.debug('name is required');
       throw new BadRequestException('name is required');
     }
-    return this.tagRepository.createTag({ name }).then((tag) => {
-      this.logger.log('createTag finished');
-      return tag;
-    });
+    return this.tagRepository.createTag({ name });
   }
 
   /**
@@ -82,8 +70,6 @@ export class TagService {
       this.logger.debug('id is required');
       throw new BadRequestException('name is required');
     }
-    return this.tagRepository.deleteTag({ id }).then(() => {
-      this.logger.log('deleteTag finished');
-    });
+    return this.tagRepository.deleteTag({ id });
   }
 }

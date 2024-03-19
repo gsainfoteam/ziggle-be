@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import { GeneralNoticeListDto } from './dto/res/generalNotice.dto';
@@ -90,11 +95,14 @@ export class NoticeService {
     id: number,
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    await this.noticeRepository.addAdditionalNotice(
-      additionalNoticeDto,
-      id,
-      userUuid,
-    );
+    await this.noticeRepository
+      .addAdditionalNotice(additionalNoticeDto, id, userUuid)
+      .catch((error) => {
+        if (error instanceof NotFoundException) {
+          throw new ForbiddenException();
+        }
+        throw error;
+      });
 
     return this.getNotice(id, { isViewed: false });
   }
@@ -105,12 +113,14 @@ export class NoticeService {
     idx: number,
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    await this.noticeRepository.addForeignContent(
-      foreignContentDto,
-      id,
-      idx,
-      userUuid,
-    );
+    await this.noticeRepository
+      .addForeignContent(foreignContentDto, id, idx, userUuid)
+      .catch((error) => {
+        if (error instanceof NotFoundException) {
+          throw new ForbiddenException();
+        }
+        throw error;
+      });
     return this.getNotice(id, { isViewed: false });
   }
 

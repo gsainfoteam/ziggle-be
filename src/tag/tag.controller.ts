@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -21,7 +20,7 @@ import {
 import { GetTagDto } from './dto/req/getTag.dto';
 import { CreateTagDto } from './dto/req/createTag.dto';
 import { TagResDto } from './dto/res/TagRes.dto';
-import { IdPGuard } from 'src/user/guard/id.guard';
+import { IdPGuard } from 'src/user/guard/idp.guard';
 
 @ApiTags('tag')
 @Controller('tag')
@@ -42,15 +41,13 @@ export class TagController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get()
   async findAll(@Query() query: GetTagDto): Promise<TagResDto | TagResDto[]> {
-    if (Object.keys(query).length === 0) {
-      return this.tagService.findAllTags();
-    } else if (query.name) {
-      return this.tagService.findTag(query);
-    } else if (query.search) {
-      return this.tagService.searchTags(query);
-    } else {
-      throw new BadRequestException('Invalid query');
+    if (query.name) {
+      return this.tagService.findTag({ name: query.name });
     }
+    if (query.search) {
+      return this.tagService.searchTags({ search: query.search });
+    }
+    return this.tagService.findAllTags();
   }
 
   @ApiOperation({

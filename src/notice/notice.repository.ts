@@ -447,6 +447,10 @@ export class NoticeRepository {
       })
       .catch((error) => {
         if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${id} not found`);
+            throw new NotFoundException(`Notice with id ${id} not found`);
+          }
           this.logger.error('addForeignContent error');
           this.logger.debug(error);
           throw new InternalServerErrorException('Database Error');

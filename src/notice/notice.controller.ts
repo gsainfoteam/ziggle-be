@@ -20,7 +20,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { NoticeService } from './notice.service';
-import { IdPGuard, IdPOptionalGuard } from 'src/user/guard/id.guard';
+import { IdPGuard, IdPOptionalGuard } from 'src/user/guard/idp.guard';
 import { GeneralNoticeListDto } from './dto/res/generalNotice.dto';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import { User } from '@prisma/client';

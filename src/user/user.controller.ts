@@ -24,7 +24,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { LogoutDto } from './dto/req/logout.dto';
-import { IdPGuard } from './guard/id.guard';
+import { IdPGuard } from './guard/idp.guard';
 import { User } from '@prisma/client';
 import { GetUser } from './decorator/get-user.decorator';
 import { UserInfoRes } from './dto/res/userInfoRes.dto';

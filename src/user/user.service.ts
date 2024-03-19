@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { LoginDto } from './dto/req/login.dto';
 import { IdpService } from 'src/idp/idp.service';
 import { ConfigService } from '@nestjs/config';
@@ -25,7 +25,7 @@ export class UserService {
     this.logger.log('login called');
     if (!code || !type) {
       this.logger.debug('invalid code or type');
-      throw new UnauthorizedException();
+      throw new BadRequestException();
     }
     const redirectUri =
       type === 'flutter'
@@ -80,7 +80,6 @@ export class UserService {
     this.logger.log('logout called');
     await this.idpService.revokeToken(accessToken);
     await this.idpService.revokeToken(refreshToken);
-    this.logger.log('logout finished');
   }
 
   /**
@@ -91,7 +90,6 @@ export class UserService {
   async setConsent(user: User): Promise<void> {
     this.logger.log('setConsent called');
     await this.userRepository.setConsent(user);
-    this.logger.log('setConsent finished');
   }
 
   /**
@@ -101,9 +99,6 @@ export class UserService {
    */
   async findUserOrCreate(user: Pick<User, 'uuid' | 'name'>): Promise<User> {
     this.logger.log('findUserOrCreate called');
-    return this.userRepository.findUserOrCreate(user).then((user) => {
-      this.logger.log('findUserOrCreate finished');
-      return user;
-    });
+    return this.userRepository.findUserOrCreate(user);
   }
 }
