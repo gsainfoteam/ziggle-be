@@ -92,13 +92,15 @@ export class NoticeMapper {
     langFromDto?: string,
     userUuid?: string,
   ): Promise<GeneralNoticeDto> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { content, additionalContents, ...result } =
-      await this.NoticeFullContentToExpandedGeneralNoticeList(
-        noticeFullContent,
-        langFromDto,
-        userUuid,
-      );
+    const {
+      content,
+      additionalContents: _,
+      ...result
+    } = await this.NoticeFullContentToExpandedGeneralNoticeList(
+      noticeFullContent,
+      langFromDto,
+      userUuid,
+    );
     return {
       content: htmlToText(content, {
         selectors: [{ selector: 'a', options: { ignoreHref: true } }],
