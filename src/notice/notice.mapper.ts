@@ -88,68 +88,22 @@ export class NoticeMapper {
   }
 
   async NoticeFullContentToGeneralNoticeList(
-    {
-      id,
-      author,
-      createdAt,
-      tags,
-      views,
-      contents,
-      cralws,
-      files,
-      reactions,
-      currentDeadline,
-      reminders,
-    }: NoticeFullContent,
+    noticeFullContent: NoticeFullContent,
     langFromDto?: string,
     userUuid?: string,
   ): Promise<GeneralNoticeDto> {
-    const resultReaction = await firstValueFrom(
-      from(reactions).pipe(
-        groupBy(({ emoji }) => emoji),
-        mergeMap((group) => group.pipe(toArray())),
-        toArray(),
-      ),
-    );
-    const mainContent =
-      contents.filter(({ lang }) => lang === (langFromDto ?? 'ko'))[0] ??
-      contents[0];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { content, additionalContents, ...result } =
+      await this.NoticeFullContentToExpandedGeneralNoticeList(
+        noticeFullContent,
+        langFromDto,
+        userUuid,
+      );
     return {
-      id,
-      ...(cralws.length > 0
-        ? {
-            title: cralws[0].title,
-            langs: ['ko'],
-            deadline: null,
-            content: htmlToText(cralws[cralws.length - 1].body, {
-              selectors: [{ selector: 'a', options: { ignoreHref: true } }],
-            }).slice(0, 1000),
-          }
-        : {
-            title: mainContent.title as string,
-            deadline: mainContent.deadline ?? null,
-            langs: Array.from(new Set(contents.map(({ lang }) => lang))),
-            content: htmlToText(mainContent.body, {
-              selectors: [{ selector: 'a', options: { ignoreHref: true } }],
-            }).slice(0, 1000),
-          }),
-      author,
-      createdAt,
-      tags: tags.map(({ name }) => name),
-      views,
-      currentDeadline: currentDeadline ?? null,
-      imageUrls: files
-        ?.filter(({ type }) => type === FileType.IMAGE)
-        .map(({ url }) => `${this.s3Url}${url}`),
-      documentUrls: files
-        ?.filter(({ type }) => type === FileType.DOCUMENT)
-        .map(({ url }) => `${this.s3Url}${url}`),
-      isReminded: reminders.some(({ uuid }) => uuid === userUuid),
-      reactions: resultReaction.map((reactions) => ({
-        emoji: reactions[0].emoji,
-        count: reactions.length,
-        isReacted: reactions.some(({ userId }) => userId === userUuid),
-      })),
+      content: htmlToText(content, {
+        selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+      }).slice(0, 1000),
+      ...result,
     };
   }
 }

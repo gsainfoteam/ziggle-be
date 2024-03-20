@@ -81,4 +81,8 @@ export class FileService {
       throw new InternalServerErrorException();
     });
   }
+
+  async deleteFiles(keys: string[]): Promise<void> {
+    Promise.all(keys.map((key) => this.deleteFile(key)));
+  }
 }

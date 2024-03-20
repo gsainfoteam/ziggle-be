@@ -4,7 +4,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import { GeneralNoticeListDto } from './dto/res/generalNotice.dto';
 import { NoticeRepository } from './notice.repository';
@@ -19,14 +18,15 @@ import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
 import { ReactionDto } from './dto/req/reaction.dto';
 import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
+import { FileService } from 'src/file/file.service';
 
 @Injectable()
 export class NoticeService {
   private readonly loggger = new Logger(NoticeService.name);
   constructor(
-    private readonly configService: ConfigService,
     private readonly imageService: ImageService,
     private readonly documentService: DocumentService,
+    private readonly fileService: FileService,
     private readonly noticeRepository: NoticeRepository,
     private readonly noticeMapper: NoticeMapper,
   ) {}
@@ -181,7 +181,7 @@ export class NoticeService {
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {
     const notice = await this.noticeRepository.getNotice(id);
-    this.imageService.deleteImages(notice.files.map(({ url }) => url));
+    this.fileService.deleteFiles(notice.files.map(({ url }) => url));
     await this.noticeRepository.deleteNotice(id, userUuid);
   }
 }

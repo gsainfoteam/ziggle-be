@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { NoticeMapper } from './notice.mapper';
 import { ImageModule } from 'src/image/image.module';
 import { DocumentModule } from 'src/document/document.module';
+import { FileModule } from 'src/file/file.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { DocumentModule } from 'src/document/document.module';
     ConfigModule,
     ImageModule,
     DocumentModule,
+    FileModule,
   ],
   controllers: [NoticeController],
   providers: [NoticeService, NoticeRepository, NoticeMapper],
