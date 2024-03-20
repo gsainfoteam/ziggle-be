@@ -71,6 +71,7 @@ export class FileService {
    * @param key string
    */
   async deleteFile(key: string): Promise<void> {
+    this.logger.log('deleteFile called key: ' + key);
     const command = new DeleteObjectCommand({
       Bucket: this.configService.getOrThrow('AWS_S3_BUCKET_NAME'),
       Key: key,
@@ -83,6 +84,7 @@ export class FileService {
   }
 
   async deleteFiles(keys: string[]): Promise<void> {
-    Promise.all(keys.map((key) => this.deleteFile(key)));
+    this.logger.log('deleteFiles called');
+    await Promise.all(keys.map((key) => this.deleteFile(key)));
   }
 }

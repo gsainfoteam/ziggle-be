@@ -181,7 +181,10 @@ export class NoticeService {
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {
     const notice = await this.noticeRepository.getNotice(id);
-    this.fileService.deleteFiles(notice.files.map(({ url }) => url));
+    if (notice.author.uuid !== userUuid) {
+      throw new ForbiddenException();
+    }
+    await this.fileService.deleteFiles(notice.files.map(({ url }) => url));
     await this.noticeRepository.deleteNotice(id, userUuid);
   }
 }
