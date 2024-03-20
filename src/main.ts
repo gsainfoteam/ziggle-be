@@ -1,11 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
-import './init';
+import * as cookieParser from 'cookie-parser';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // set CORS config
   const whitelist = [
     /https:\/\/.*ziggle.gistory.me/,
     /https:\/\/.*ziggle-fe.pages.dev/,
@@ -24,13 +24,18 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
     credentials: true,
   });
+  // set cookie config
   app.use(cookieParser());
+  // set swagger config
   const config = new DocumentBuilder()
     .setTitle('Ziggle API')
-    .setDescription('Ziggle API description')
+    .setDescription('Ziggle API')
+    .setVersion('1.0')
+    .addTag('Ziggle')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+  // start server
   await app.listen(3000);
 }
 bootstrap();

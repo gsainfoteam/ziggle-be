@@ -1,34 +1,75 @@
-import { Injectable } from '@nestjs/common';
-import { Tag } from '@prisma/client';
-import { CreateTagDto } from './dto/createTag.dto';
-import { GetTagDto } from './dto/getTag.dto';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { TagRepository } from './tag.repository';
+import { Tag } from '@prisma/client';
+import { GetTagDto } from './dto/req/getTag.dto';
 
 @Injectable()
 export class TagService {
+  private readonly logger = new Logger(TagService.name);
   constructor(private readonly tagRepository: TagRepository) {}
 
+  /**
+   * find all tags
+   * @returns list of tags
+   */
   async findAllTags(): Promise<Tag[]> {
+    this.logger.log('findAllTags');
     return this.tagRepository.findAllTags();
   }
 
+  /**
+   * find tag by name
+   * @param name
+   * @returns tag
+   */
   async findTag({ name }: Pick<GetTagDto, 'name'>): Promise<Tag> {
+    this.logger.log('findTag');
+    if (!name) {
+      this.logger.debug('name is required');
+      throw new BadRequestException('name is required');
+    }
     return this.tagRepository.findTag({ name });
   }
 
-  async searchTag({ search }: Pick<GetTagDto, 'search'>): Promise<Tag[]> {
-    return this.tagRepository.searchTag({ search });
+  /**
+   * search tags by name
+   * @param search
+   * @returns list of tags
+   */
+  async searchTags({ search }: Pick<GetTagDto, 'search'>): Promise<Tag[]> {
+    this.logger.log('searchTags');
+    if (!search) {
+      this.logger.debug('search is required');
+      throw new BadRequestException('search is required');
+    }
+    return this.tagRepository.searchTags({ name: search });
   }
 
-  async createTag({ name }: CreateTagDto): Promise<Tag> {
+  /**
+   * create tag
+   * @param name
+   * @returns tag
+   */
+  async createTag({ name }: Pick<GetTagDto, 'name'>): Promise<Tag> {
+    this.logger.log('createTag');
+    if (!name) {
+      this.logger.debug('name is required');
+      throw new BadRequestException('name is required');
+    }
     return this.tagRepository.createTag({ name });
   }
 
-  async deleteTag(id: number): Promise<void> {
-    await this.tagRepository.deleteTag(id);
-  }
-
-  async findOrCreateTags(tags: string[]): Promise<Tag[]> {
-    return this.tagRepository.findOrCreateTags(tags);
+  /**
+   * delete tag
+   * @param id
+   * @returns void
+   */
+  async deleteTag({ id }: Pick<Tag, 'id'>): Promise<void> {
+    this.logger.log('deleteTag');
+    if (!id) {
+      this.logger.debug('id is required');
+      throw new BadRequestException('name is required');
+    }
+    return this.tagRepository.deleteTag({ id });
   }
 }

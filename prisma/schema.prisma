@@ -1,12 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -27,8 +24,9 @@ model User {
 
   remindedNotices Notice[]   @relation("Reminder")
   writedNotices   Notice[]
-  fcmTokens       FcmToken[]
   reactions       Reaction[]
+
+  @@map("user")
 }
 
 model File {
@@ -41,6 +39,8 @@ model File {
 
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id])
+
+  @@map("file")
 }
 
 model Content {
@@ -48,7 +48,7 @@ model Content {
 
   lang      String
   title     String?
-  body      String    @db.LongText
+  body      String
   deadline  DateTime?
   createdAt DateTime  @default(now()) @map("created_at")
 
@@ -56,6 +56,21 @@ model Content {
   notice   Notice @relation(fields: [noticeId], references: [id])
 
   @@id([id, lang, noticeId])
+  @@map("content")
+}
+
+model Crawl {
+  id        Int       @id @default(autoincrement())
+  title     String
+  body      String
+  type      CrawlType
+  url       String    @db.VarChar(300)
+  crawledAt DateTime  @default(now()) @map("crawled_at")
+
+  noticeId Int    @map("notice_id")
+  notice   Notice @relation(fields: [noticeId], references: [id])
+
+  @@map("crawl")
 }
 
 model Tag {
@@ -64,6 +79,8 @@ model Tag {
   name String @unique
 
   notices Notice[]
+
+  @@map("tag")
 }
 
 model Notice {
@@ -73,6 +90,7 @@ model Notice {
   currentDeadline DateTime? @map("current_deadline")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @default(now()) @map("updated_at")
+  publishedAt     DateTime? @map("published_at")
   deletedAt       DateTime? @map("deleted_at")
 
   authorId  String     @map("author_id")
@@ -83,18 +101,8 @@ model Notice {
   cralws    Crawl[]
   tags      Tag[]
   reactions Reaction[]
-}
 
-model Crawl {
-  id        Int       @id @default(autoincrement())
-  title     String
-  body      String    @db.LongText
-  type      CrawlType
-  url       String    @db.VarChar(300)
-  crawledAt DateTime  @default(now()) @map("crawled_at")
-
-  noticeId Int    @map("notice_id")
-  notice   Notice @relation(fields: [noticeId], references: [id])
+  @@map("notice")
 }
 
 model Reaction {
@@ -104,20 +112,9 @@ model Reaction {
 
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id])
-  userId   String @map("user_id")
+  userId   String @map("user_uuid")
   user     User   @relation(fields: [userId], references: [uuid])
 
   @@id([emoji, noticeId, userId])
-}
-
-model FcmToken {
-  token        String   @id
-  createdAt    DateTime @default(now()) @map("created_at")
-  lastCheckAt  DateTime @updatedAt @map("last_check_at")
-  successCount Int      @default(0) @map("success_count")
-  failCount    Int      @default(0) @map("fail_count")
-  errors       String?
-
-  userUuid String? @map("user_uuid")
-  user     User?   @relation(fields: [userUuid], references: [uuid])
+  @@map("reaction")
 }

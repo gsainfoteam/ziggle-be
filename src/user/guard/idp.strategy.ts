@@ -1,17 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { UnauthorizedException } from '@nestjs/common/exceptions';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-http-bearer';
 import { UserService } from '../user.service';
-import { UserInfo } from '../type/userInfo.type';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { IdpService } from 'src/idp/idp.service';
 import { User } from '@prisma/client';
+import { UserInfo } from 'src/idp/types/userInfo.type';
 
 @Injectable()
-export class IdPStrategy extends PassportStrategy(Strategy, 'gistory-idp') {
+export class IdPStrategy extends PassportStrategy(Strategy, 'idp') {
   constructor(
     private readonly userService: UserService,
-    private readonly prismaService: PrismaService,
+    private readonly idpService: IdpService,
   ) {
     super();
   }
@@ -20,26 +19,17 @@ export class IdPStrategy extends PassportStrategy(Strategy, 'gistory-idp') {
     ziggle: User;
     idp: UserInfo;
   }> {
-    // validate token with idp server
-    const userInfo = await this.userService.getUserInfoFromIdP(token);
-    if (!userInfo) {
-      throw new UnauthorizedException('Invalid token');
-    }
-
-    //validate userUUID with user table
-    const user = await this.prismaService.user.findUnique({
-      where: { uuid: userInfo.user_uuid },
+    const idp = await this.idpService.getUserInfo(token).catch(() => {
+      throw new UnauthorizedException();
     });
-    if (!user) {
-      throw new UnauthorizedException('Invalid user');
-    }
-    if (user.name !== userInfo.user_name) {
-      await this.prismaService.user.update({
-        where: { uuid: userInfo.user_uuid },
-        data: { name: userInfo.user_name },
+    const ziggle = await this.userService
+      .findUserOrCreate({
+        uuid: idp.user_uuid,
+        name: idp.user_name,
+      })
+      .catch(() => {
+        throw new UnauthorizedException();
       });
-    }
-
-    return { ziggle: user, idp: userInfo };
+    return { ziggle, idp };
   }
 }

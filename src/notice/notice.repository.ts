@@ -1,32 +1,37 @@
 import {
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { FcmToken, FileType, Tag, Crawl } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
-import { CreateNoticeDto } from './dto/createNotice.dto';
-import { ForeignContentDto } from './dto/foreignContent.dto';
-import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
-import { NoticeFullcontent } from './types/noticeFullcontent';
-import { NoticeReminder } from './types/noticeReminer';
-import { UpdateNoticeDto } from './dto/updateNotice.dto';
+import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
+import dayjs from 'dayjs';
+import { NoticeFullContent } from './types/noticeFullContent';
+import { FileType } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { CreateNoticeDto } from './dto/req/createNotice.dto';
+import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
+import { ForeignContentDto } from './dto/req/foreignContent.dto';
+import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
 
 @Injectable()
 export class NoticeRepository {
   private readonly logger = new Logger(NoticeRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
+  /**
+   * this method is used to get the total count of the notices
+   * @param param0 the query dto
+   * @param userUuid the user's uuid
+   * @returns the total count of the notices
+   */
   async getTotalCount(
-    { lang, search, tags, orderBy, my }: GetAllNoticeQueryDto,
+    { search, tags, orderBy, my }: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<number> {
-    return this.prismaService.notice.count({
+    this.logger.log(`getTotalCount`);
+    return await this.prismaService.notice.count({
       where: {
         deletedAt: null,
         authorId: my === 'own' ? userUuid : undefined,
@@ -36,41 +41,44 @@ export class NoticeRepository {
         ...(orderBy === 'deadline'
           ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
           : orderBy === 'hot'
+            ? {
+                createdAt: {
+                  gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+                },
+              }
+            : {}),
+        ...(search
           ? {
-              createdAt: {
-                gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
-              },
+              OR: [
+                {
+                  contents: {
+                    some: {
+                      OR: [
+                        { title: { contains: search } },
+                        { body: { contains: search } },
+                      ],
+                    },
+                  },
+                },
+                { tags: { some: { name: { contains: search } } } },
+              ],
             }
           : {}),
-        OR: [
-          {
-            contents: {
-              some: {
-                OR: [
-                  { title: { contains: search } },
-                  { body: { contains: search } },
-                ],
-              },
-            },
-          },
-          { tags: { some: { name: { contains: search } } } },
-        ],
       },
     });
   }
 
+  /**
+   * this method is used to get the list of notices
+   * @param param0 the query dto
+   * @param userUuid user's uuid
+   * @returns the list of notices
+   */
   async getNoticeList(
-    {
-      offset = 0,
-      limit = 10,
-      lang,
-      search,
-      tags,
-      orderBy,
-      my,
-    }: GetAllNoticeQueryDto,
+    { offset = 0, limit = 10, search, tags, orderBy, my }: GetAllNoticeQueryDto,
     userUuid?: string,
-  ): Promise<NoticeFullcontent[]> {
+  ): Promise<NoticeFullContent[]> {
+    this.logger.log(`getNoticeList`);
     return this.prismaService.notice
       .findMany({
         take: limit,
@@ -84,12 +92,12 @@ export class NoticeRepository {
           ...(orderBy === 'deadline'
             ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
             : orderBy === 'hot'
-            ? {
-                createdAt: {
-                  gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
-                },
-              }
-            : {}),
+              ? {
+                  createdAt: {
+                    gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+                  },
+                }
+              : {}),
           deletedAt: null,
           authorId: my === 'own' ? userUuid : undefined,
           reminders:
@@ -115,12 +123,23 @@ export class NoticeRepository {
         },
         include: {
           tags: true,
-          contents: { where: { id: 1 } },
+          contents: {
+            where: {
+              id: 1,
+            },
+          },
           cralws: true,
           reminders: true,
-          author: { select: { name: true, uuid: true } },
+          author: {
+            select: {
+              name: true,
+              uuid: true,
+            },
+          },
           files: {
-            where: { type: FileType.IMAGE },
+            where: {
+              type: FileType.IMAGE,
+            },
             orderBy: { order: 'asc' },
           },
           reactions: {
@@ -130,17 +149,26 @@ export class NoticeRepository {
           },
         },
       })
-      .catch((err) => {
+      .catch((error) => {
         this.logger.error('getNoticeList error');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException();
       });
   }
 
-  async getNotice(id: number): Promise<NoticeFullcontent> {
+  /**
+   * this method is used to get the notice
+   * @param id the notice id
+   * @returns the notice
+   */
+  async getNotice(id: number): Promise<NoticeFullContent> {
+    this.logger.log(`getNotice`);
     return this.prismaService.notice
       .findUniqueOrThrow({
-        where: { id, deletedAt: null },
+        where: {
+          id,
+          deletedAt: null,
+        },
         include: {
           tags: true,
           contents: {
@@ -164,22 +192,35 @@ export class NoticeRepository {
           },
         },
       })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new NotFoundException(`Notice with ID "${id}" not found`);
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${id} not found`);
+            throw new NotFoundException(`Notice with id ${id} not found`);
           }
+          this.logger.error('getNotice error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
         }
-        this.logger.error('getNotice');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.error('getNotice error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
   }
 
-  async getNoticeWithView(id: number): Promise<NoticeFullcontent> {
+  /**
+   * this method is used to get the notice with view
+   * @param id the notice id
+   * @returns notice object
+   */
+  async getNoticeWithView(id: number): Promise<NoticeFullContent> {
+    this.logger.log(`getNoticeWithView`);
     return this.prismaService.notice
       .update({
-        where: { id, deletedAt: null },
+        where: {
+          id,
+          deletedAt: null,
+        },
         data: {
           views: {
             increment: 1,
@@ -208,51 +249,36 @@ export class NoticeRepository {
           },
         },
       })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new NotFoundException(`Notice with ID "${id}" not found`);
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${id} not found`);
+            throw new NotFoundException(`Notice with id ${id} not found`);
           }
+          this.logger.error('getNoticeWithView error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
         }
-        this.logger.error('getNotice');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.error('getNoticeWithView error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
   }
 
-  async getNoticeByTime(time: Date): Promise<NoticeReminder[]> {
-    return this.prismaService.notice
-      .findMany({
-        where: {
-          deletedAt: null,
-          currentDeadline: {
-            gte: dayjs(time).startOf('d').add(1, 'd').toDate(),
-            lte: dayjs(time).startOf('d').add(2, 'd').toDate(),
-          },
-        },
-        include: {
-          reminders: {
-            include: {
-              fcmTokens: true,
-            },
-          },
-          contents: true,
-          files: { orderBy: { order: 'asc' } },
-        },
-      })
-      .catch((err) => {
-        this.logger.error('getNoticeByTime');
-        this.logger.debug(err);
-        return [];
-      });
-  }
-
+  /**
+   * this method is used to create the notice
+   * @param param0 create notice dto
+   * @param userUuid user's uuid
+   * @param createdAt created time
+   * @returns NoticeFullContent
+   */
   async createNotice(
     { title, body, deadline, tags, images, documents }: CreateNoticeDto,
     userUuid: string,
     createdAt?: Date,
-  ) {
-    const findedTags = await this.prismaService.tag.findMany({
+  ): Promise<NoticeFullContent> {
+    this.logger.log(`createNotice`);
+    const findTags = await this.prismaService.tag.findMany({
       where: {
         id: {
           in: tags,
@@ -276,19 +302,20 @@ export class NoticeRepository {
               deadline: deadline || null,
             },
           },
+          createdAt: createdAt || new Date(),
           currentDeadline: deadline || null,
           tags: {
-            connect: findedTags,
+            connect: findTags,
           },
           files: {
             create: [
-              ...images?.map((image, idx) => ({
+              ...images.map((image, idx) => ({
                 order: idx,
                 name: title,
                 type: FileType.IMAGE,
                 url: image,
               })),
-              ...documents?.map((document, idx) => ({
+              ...documents.map((document, idx) => ({
                 order: idx,
                 name: title,
                 type: FileType.DOCUMENT,
@@ -296,20 +323,43 @@ export class NoticeRepository {
               })),
             ],
           },
-          createdAt,
+        },
+        include: {
+          tags: true,
+          contents: {
+            orderBy: {
+              id: 'asc',
+            },
+          },
+          cralws: true,
+          reminders: true,
+          author: {
+            select: {
+              name: true,
+              uuid: true,
+            },
+          },
+          files: { orderBy: { order: 'asc' } },
+          reactions: {
+            where: {
+              deletedAt: null,
+            },
+          },
         },
       })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new NotFoundException(
-              `User with UUID "${userUuid}" not found`,
-            );
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`User uuid not found`);
+            throw new NotFoundException(`User uuid not found`);
           }
+          this.logger.error('createNotice error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
         }
         this.logger.error('createNotice error');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
   }
 
@@ -320,7 +370,7 @@ export class NoticeRepository {
   ): Promise<void> {
     const notice = await this.prismaService.notice
       .findUniqueOrThrow({
-        where: { id, deletedAt: null },
+        where: { id, deletedAt: null, authorId: userUuid },
         include: {
           contents: {
             where: {
@@ -332,26 +382,27 @@ export class NoticeRepository {
           },
         },
       })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new NotFoundException(`Notice with ID "${id}" not found`);
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${id} not found`);
+            throw new NotFoundException(`Notice with id ${id} not found`);
           }
+          this.logger.error('addAdditionalNotice error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
         }
-        this.logger.error('addAdditionalNotice - find');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.error('addAdditionalNotice Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
-    if (notice.authorId !== userUuid) {
-      throw new ForbiddenException();
-    }
     await this.prismaService.notice
       .update({
-        where: { id, deletedAt: null },
+        where: { id, deletedAt: null, authorId: userUuid },
         data: {
           contents: {
             create: {
-              id: Math.max(...notice.contents.map((c) => c.id)) + 1,
+              id: Math.max(...notice.contents.map((content) => content.id)) + 1,
               lang: 'ko',
               title: title ?? notice.contents[0].title,
               body,
@@ -361,22 +412,22 @@ export class NoticeRepository {
           currentDeadline: deadline ?? notice.currentDeadline,
         },
       })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new NotFoundException(`Notice with ID "${id}" not found`);
-          }
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          this.logger.error('addAdditionalNotice error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
         }
-        this.logger.error('addAdditionalNotice - craete');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.error('addAdditionalNotice Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
   }
 
   async addForeignContent(
-    { lang, title, body, deadline }: ForeignContentDto,
+    { title, lang, body, deadline }: ForeignContentDto,
     id: number,
-    idx: number,
+    contentIdx: number,
     userUuid: string,
   ): Promise<void> {
     await this.prismaService.notice
@@ -385,7 +436,7 @@ export class NoticeRepository {
         data: {
           contents: {
             create: {
-              id: idx,
+              id: contentIdx,
               lang,
               title,
               body,
@@ -394,15 +445,19 @@ export class NoticeRepository {
           },
         },
       })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new ForbiddenException();
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${id} not found`);
+            throw new NotFoundException(`Notice with id ${id} not found`);
           }
+          this.logger.error('addForeignContent error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
         }
-        this.logger.error('addForeignContent');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.error('addForeignContent Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
   }
 
@@ -418,15 +473,15 @@ export class NoticeRepository {
           },
         },
       })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new NotFoundException(`Notice with ID "${id}" not found`);
-          }
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          this.logger.error('addReminder error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
         }
-        this.logger.error('addReminder');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.error('addReminder Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
   }
 
@@ -442,21 +497,21 @@ export class NoticeRepository {
           },
         },
       })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new NotFoundException(`Notice with ID "${id}" not found`);
-          }
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          this.logger.error('removeReminder error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
         }
-        this.logger.error('removeReminder');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.error('removeReminder Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
   }
 
   async addReaction(
-    id: number,
     emoji: string,
+    id: number,
     userUuid: string,
   ): Promise<void> {
     const reaction = await this.prismaService.reaction.findUnique({
@@ -469,7 +524,66 @@ export class NoticeRepository {
       },
     });
     if (reaction) {
-      await this.prismaService.reaction.update({
+      await this.prismaService.reaction
+        .update({
+          where: {
+            emoji_noticeId_userId: {
+              emoji,
+              noticeId: id,
+              userId: userUuid,
+            },
+          },
+          data: {
+            deletedAt: null,
+          },
+        })
+        .catch((error) => {
+          if (error instanceof PrismaClientKnownRequestError) {
+            this.logger.error('addReaction error');
+            this.logger.debug(error);
+            throw new InternalServerErrorException('Database Error');
+          }
+          this.logger.error('addReaction Unknown Error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Unknown Error');
+        });
+    } else {
+      await this.prismaService.reaction
+        .create({
+          data: {
+            emoji,
+            notice: {
+              connect: {
+                id,
+              },
+            },
+            user: {
+              connect: {
+                uuid: userUuid,
+              },
+            },
+          },
+        })
+        .catch((error) => {
+          if (error instanceof PrismaClientKnownRequestError) {
+            this.logger.error('addReaction error');
+            this.logger.debug(error);
+            throw new InternalServerErrorException('Database Error');
+          }
+          this.logger.error('addReaction Unknown Error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Unknown Error');
+        });
+    }
+  }
+
+  async removeReaction(
+    emoji: string,
+    id: number,
+    userUuid: string,
+  ): Promise<void> {
+    await this.prismaService.reaction
+      .update({
         where: {
           emoji_noticeId_userId: {
             emoji,
@@ -478,61 +592,30 @@ export class NoticeRepository {
           },
         },
         data: {
-          deletedAt: null,
+          deletedAt: new Date(),
         },
-      });
-    } else {
-      await this.prismaService.reaction.create({
-        data: {
-          emoji,
-          noticeId: id,
-          userId: userUuid,
-          deletedAt: null,
-        },
-      });
-    }
-  }
-
-  async removeReaction(
-    id: number,
-    emoji: string,
-    userUuid: string,
-  ): Promise<void> {
-    await this.prismaService.reaction.update({
-      where: {
-        emoji_noticeId_userId: {
-          emoji,
-          noticeId: id,
-          userId: userUuid,
-        },
-      },
-      data: {
-        deletedAt: new Date(),
-      },
-    });
-  }
-
-  async deleteNotice(id: number, userUuid: string): Promise<void> {
-    await this.prismaService.notice
-      .update({
-        where: { id, authorId: userUuid, deletedAt: null },
-        data: { deletedAt: new Date() },
       })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new ForbiddenException();
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(
+              `Reaction with emoji ${emoji}, user ${userUuid}, id: ${id} not found`,
+            );
+            return;
           }
+          this.logger.error('removeReaction error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
         }
-        this.logger.error('deleteNotice');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.error('removeReaction Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
   }
 
   async updateNotice(
-    id: number,
     { body, deadline }: UpdateNoticeDto,
+    id: number,
     userUuid: string,
   ): Promise<void> {
     await this.prismaService.notice
@@ -543,8 +626,8 @@ export class NoticeRepository {
             update: {
               where: {
                 id_lang_noticeId: {
-                  id: 1,
                   lang: 'ko',
+                  id: 1,
                   noticeId: id,
                 },
               },
@@ -557,141 +640,39 @@ export class NoticeRepository {
           currentDeadline: deadline,
         },
       })
-      .catch((err) => {
-        this.logger.error('updateNotice');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          this.logger.error('updateNotice error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('updateNotice Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
   }
 
-  async getFcmTokensByNoticeId(id: number): Promise<FcmToken[]> {
-    return this.prismaService.fcmToken.findMany({
-      where: {
-        user: {
-          remindedNotices: {
-            some: {
-              id,
-            },
-          },
-        },
-      },
-    });
-  }
-
-  async getAllFcmTokens(): Promise<FcmToken[]> {
-    return this.prismaService.fcmToken.findMany().catch((err) => {
-      this.logger.error('getAllFcmTokens');
-      this.logger.debug(err);
-      throw new InternalServerErrorException('Database error');
-    });
-  }
-
-  async createAcademicNotice({
-    title,
-    body,
-    tags,
-    images,
-    documents,
-    userUuid,
-    url,
-    createdAt,
-  }: {
-    title: string;
-    body: string;
-    tags: Tag[];
-    images: string[];
-    documents: { href: string; name: string }[];
-    userUuid: string;
-    url: string;
-    createdAt: Date;
-  }) {
-    const notice = await this.prismaService.notice.findFirst({
-      where: { cralws: { some: { url } } },
-    });
-    if (notice) {
-      return this.prismaService.notice
-        .update({
-          where: { id: notice.id },
-          data: {
-            updatedAt: createdAt,
-            cralws: { create: { title, body, type: 'ACADEMIC', url } },
-            files: {
-              deleteMany: { type: FileType.DOCUMENT },
-              createMany: {
-                data: [
-                  ...images.map((image, idx) => ({
-                    order: idx,
-                    name: title,
-                    type: FileType.IMAGE,
-                    url: image,
-                  })),
-                  ...documents.map((document, idx) => ({
-                    order: idx,
-                    name: document.name,
-                    type: FileType.DOCUMENT,
-                    url: document.href,
-                  })),
-                ],
-              },
-            },
-          },
-        })
-        .catch((err) => {
-          this.logger.error('createAcademicNotice error');
-          this.logger.debug(err);
-          throw new InternalServerErrorException('Database error');
-        });
-    }
-    return this.prismaService.notice
-      .create({
+  async deleteNotice(id: number, userUuid: string): Promise<void> {
+    await this.prismaService.notice
+      .update({
+        where: { id, authorId: userUuid, deletedAt: null },
         data: {
-          author: { connect: { uuid: userUuid } },
-          cralws: { create: { title, body, type: 'ACADEMIC', url } },
-          tags: { connect: tags },
-          files: {
-            createMany: {
-              data: [
-                ...images.map((image, idx) => ({
-                  order: idx,
-                  name: title,
-                  type: FileType.IMAGE,
-                  url: image,
-                })),
-                ...documents.map((document, idx) => ({
-                  order: idx,
-                  name: document.name,
-                  type: FileType.DOCUMENT,
-                  url: document.href,
-                })),
-              ],
-            },
-          },
-          createdAt,
+          deletedAt: new Date(),
         },
       })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            throw new NotFoundException(
-              `User with UUID "${userUuid}" not found`,
-            );
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${id} not found`);
+            throw new NotFoundException(`Notice with id ${id} not found`);
           }
+          this.logger.error('deleteNotice error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
         }
-        this.logger.error('createAcademicNotice error');
-        this.logger.debug(err);
-        throw new InternalServerErrorException('Database error');
+        this.logger.error('deleteNotice Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
       });
-  }
-
-  async getAcademicNotice(url: string) {
-    return this.prismaService.notice.findFirst({
-      where: {
-        cralws: { some: { url } },
-        tags: { some: { name: 'academic' } },
-      },
-      include: {
-        cralws: { take: 1, orderBy: { crawledAt: 'desc' } },
-      },
-    });
   }
 }

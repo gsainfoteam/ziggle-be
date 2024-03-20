@@ -3,16 +3,31 @@ import {
   Post,
   UploadedFiles,
   UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import {
+  ApiResponse,
+  ApiTags,
+  ApiBody,
+  ApiConsumes,
+  ApiInternalServerErrorResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { ImageService } from './image.service';
-import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('image')
 @Controller('image')
+@UsePipes(ValidationPipe)
 export class ImageController {
   constructor(private readonly imageService: ImageService) {}
 
+  @ApiOperation({
+    summary: 'Upload multiple images',
+    description:
+      'This endpoint allows you to upload multiple images to the S3 bucket',
+  })
   @ApiBody({
     required: true,
     type: 'multipart/form-data',
@@ -31,6 +46,7 @@ export class ImageController {
   })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ type: [String], status: 201 })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Post('upload')
   @UseInterceptors(FilesInterceptor('images'))
   async uploadImage(

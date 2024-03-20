@@ -3,16 +3,30 @@ import {
   Post,
   UploadedFiles,
   UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
-import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiInternalServerErrorResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { DocumentService } from './document.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('document')
 @Controller('document')
+@UsePipes(ValidationPipe)
 export class DocumentController {
   constructor(private readonly documentService: DocumentService) {}
 
+  @ApiOperation({
+    summary: 'Upload multiple documents',
+    description: 'Upload multiple documents to the S3 bucket',
+  })
   @ApiBody({
     required: true,
     type: 'multipart/form-data',
@@ -31,6 +45,7 @@ export class DocumentController {
   })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ type: [String], status: 201 })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Post('upload')
   @UseInterceptors(FilesInterceptor('documents'))
   async uploadDocument(

@@ -1,29 +1,25 @@
-import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { FcmModule } from 'src/global/service/fcm.module';
-import { ImageModule } from 'src/image/image.module';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { TagModule } from 'src/tag/tag.module';
-import { UserModule } from 'src/user/user.module';
 import { NoticeController } from './notice.controller';
-import { NoticeRepository } from './notice.repository';
 import { NoticeService } from './notice.service';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { NoticeRepository } from './notice.repository';
+import { UserModule } from 'src/user/user.module';
+import { ConfigModule } from '@nestjs/config';
+import { NoticeMapper } from './notice.mapper';
+import { ImageModule } from 'src/image/image.module';
 import { DocumentModule } from 'src/document/document.module';
+import { FileModule } from 'src/file/file.module';
 
 @Module({
   imports: [
-    ConfigModule,
+    PrismaModule,
     UserModule,
+    ConfigModule,
     ImageModule,
     DocumentModule,
-    FcmModule,
-    PrismaModule,
-    HttpModule,
-    TagModule,
-    UserModule,
+    FileModule,
   ],
   controllers: [NoticeController],
-  providers: [NoticeService, NoticeRepository],
+  providers: [NoticeService, NoticeRepository, NoticeMapper],
 })
 export class NoticeModule {}

@@ -1,50 +1,67 @@
 import {
-  BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
-  Param,
-  ParseIntPipe,
   Post,
   Query,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { TagService } from './tag.service';
-import { GetTagDto } from './dto/getTag.dto';
-import { CreateTagDto } from './dto/createTag.dto';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { GetTagDto } from './dto/req/getTag.dto';
+import { CreateTagDto } from './dto/req/createTag.dto';
+import { TagResDto } from './dto/res/TagRes.dto';
+import { IdPGuard } from 'src/user/guard/idp.guard';
 
 @ApiTags('tag')
 @Controller('tag')
 @UsePipes(new ValidationPipe({ transform: true }))
+@UseGuards(IdPGuard)
 export class TagController {
-  constructor(private tagService: TagService) {}
+  constructor(private readonly tagService: TagService) {}
 
-  /* query에 name이 있으면, 그 이름의 tag, search가 있으면, 그 키워드가 들어가는 tag, 아무것도 없으면 모든 tags를 받아오는 api */
+  @ApiOperation({
+    summary: 'Find all tags or find tag by name or search tags by name',
+    description: 'Find all tags or find tag by name or search tags by name',
+  })
+  @ApiOkResponse({
+    description: 'List of tags or tag',
+    type: TagResDto,
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get()
-  async findAll(@Query() query: GetTagDto) {
-    if (Object.keys(query).length === 0) {
-      return this.tagService.findAllTags();
-    } else if (query.name) {
+  async findAll(@Query() query: GetTagDto): Promise<TagResDto | TagResDto[]> {
+    if (query.name) {
       return this.tagService.findTag({ name: query.name });
-    } else if (query.search) {
-      return this.tagService.searchTag({ search: query.search });
-    } else {
-      throw new BadRequestException('Invalid query parameters');
     }
+    if (query.search) {
+      return this.tagService.searchTags({ search: query.search });
+    }
+    return this.tagService.findAllTags();
   }
 
-  /* tag를 만드는 api */
+  @ApiOperation({
+    summary: 'Create tag',
+    description: 'Create tag',
+  })
+  @ApiCreatedResponse({
+    description: 'Tag',
+    type: TagResDto,
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post()
   async create(@Body() body: CreateTagDto) {
     return this.tagService.createTag(body);
-  }
-
-  /* tag를 삭제하는 api */
-  @Delete(':id')
-  async delete(@Param('id', ParseIntPipe) id: number) {
-    return this.tagService.deleteTag(id);
   }
 }

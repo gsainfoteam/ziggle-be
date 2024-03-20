@@ -12,18 +12,24 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { CreateNoticeDto } from './dto/createNotice.dto';
+import {
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { NoticeService } from './notice.service';
 import { IdPGuard, IdPOptionalGuard } from 'src/user/guard/idp.guard';
-import { GetAllNoticeQueryDto } from './dto/getAllNotice.dto';
-import { GetUser } from 'src/user/decorator/get-user.decorator';
+import { GeneralNoticeListDto } from './dto/res/generalNotice.dto';
+import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import { User } from '@prisma/client';
-import { AdditionalNoticeDto } from './dto/additionalNotice.dto';
-import { ForeignContentDto } from './dto/foreignContent.dto';
-import { ApiTags } from '@nestjs/swagger';
-import { GetNoticeDto } from './dto/getNotice.dto';
-import { UpdateNoticeDto } from './dto/updateNotice.dto';
-import { ReactionDto } from './dto/reaction.dto';
+import { GetUser } from 'src/user/decorator/get-user.decorator';
+import { ExpandedGeneralNoticeDto } from './dto/res/expandedGeneralNotice.dto';
+import { CreateNoticeDto } from './dto/req/createNotice.dto';
+import { ForeignContentDto } from './dto/req/foreignContent.dto';
+import { ReactionDto } from './dto/req/reaction.dto';
+import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
 
 @ApiTags('notice')
 @Controller('notice')
@@ -31,53 +37,98 @@ import { ReactionDto } from './dto/reaction.dto';
 export class NoticeController {
   constructor(private readonly noticeService: NoticeService) {}
 
-  /* notice 전체 목록 조회 (페이지네이션 o) */
+  @ApiOperation({
+    summary: 'Get notice list',
+    description: 'Get notice list',
+  })
+  @ApiOkResponse({
+    type: GeneralNoticeListDto,
+    description: 'Return notice list',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get()
   @UseGuards(IdPOptionalGuard)
   async getNoticeList(
-    @Query() getAllNoticeQueryDto: GetAllNoticeQueryDto,
+    @Query() query: GetAllNoticeQueryDto,
     @GetUser() user?: User,
-  ) {
-    return this.noticeService.getNoticeList(getAllNoticeQueryDto, user?.uuid);
+  ): Promise<GeneralNoticeListDto> {
+    return this.noticeService.getNoticeList(query, user?.uuid);
   }
 
+  @ApiOperation({
+    summary: 'Get all notice list',
+    description: 'Get all notice list',
+  })
+  @ApiOkResponse({
+    type: GeneralNoticeListDto,
+    description: 'Return all notice list',
+  })
   @Get('all')
   @UseGuards(IdPOptionalGuard)
   async getAllNoticeList(
-    @Query() getAllNoticeQueryDto: GetAllNoticeQueryDto,
+    @Query() query: GetAllNoticeQueryDto,
     @GetUser() user?: User,
-  ) {
-    return this.noticeService.getNoticeList(getAllNoticeQueryDto, user?.uuid);
+  ): Promise<GeneralNoticeListDto> {
+    return this.noticeService.getNoticeList(query, user?.uuid);
   }
 
-  /* notice 상세 조회 */
+  @ApiOperation({
+    summary: 'Get notice',
+    description: 'Get notice',
+  })
+  @ApiOkResponse({
+    type: ExpandedGeneralNoticeDto,
+    description: 'Return notice',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get(':id')
   @UseGuards(IdPOptionalGuard)
   async getNotice(
     @Param('id', ParseIntPipe) id: number,
-    @Query() query: GetNoticeDto,
+    @Query() query: GetAllNoticeQueryDto,
     @GetUser() user?: User,
-  ) {
+  ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.getNotice(id, query, user?.uuid);
   }
 
-  /* notice 생성 */
+  @ApiOperation({
+    summary: 'Create notice',
+    description: 'Create notice',
+  })
+  @ApiOkResponse({
+    type: ExpandedGeneralNoticeDto,
+    description: 'Return notice',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post()
   @UseGuards(IdPGuard)
   async createNotice(
     @GetUser() user: User,
     @Body() createNoticeDto: CreateNoticeDto,
-  ) {
+  ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.createNotice(createNoticeDto, user.uuid);
   }
 
+  @ApiOperation({
+    summary: 'Add additional notice',
+    description: 'Add additional notice',
+  })
+  @ApiOkResponse({
+    type: ExpandedGeneralNoticeDto,
+    description: 'Return notice',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post(':id/additional')
   @UseGuards(IdPGuard)
-  async addNoticeAdditional(
-    @Param('id') id: number,
+  async createAdditionalNotice(
+    @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
-    @Body() additionalNoticeDto: AdditionalNoticeDto,
-  ) {
+    @Body() additionalNoticeDto: CreateNoticeDto,
+  ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.addNoticeAdditional(
       additionalNoticeDto,
       id,
@@ -85,74 +136,124 @@ export class NoticeController {
     );
   }
 
+  @ApiOperation({
+    summary: 'Add notice reminder',
+    description: 'Add notice reminder',
+  })
+  @ApiOkResponse({
+    type: ExpandedGeneralNoticeDto,
+    description: 'Return notice',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post(':id/:contentIdx/foreign')
   @UseGuards(IdPGuard)
   async addForeignContent(
-    @Param('id') id: number,
-    @Param('contentIdx') idx: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('contentIdx', ParseIntPipe) contentIdx: number,
     @GetUser() user: User,
     @Body() foreignContentDto: ForeignContentDto,
-  ) {
+  ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.addForeignContent(
       foreignContentDto,
       id,
-      idx,
-      user?.uuid,
+      contentIdx,
+      user.uuid,
     );
   }
 
-  /* notice 구독자 추가 notice 수정이 아니므로 작성자가 아니어도 가능 */
-  @Post(':id/reminder')
-  @UseGuards(IdPGuard)
-  async addNoticeReminder(@GetUser() user: User, @Param('id') id: number) {
-    return this.noticeService.addNoticeReminder(id, user?.uuid);
-  }
-
-  /* notice reaction 추가 */
+  @ApiOperation({
+    summary: 'Add notice reminder',
+    description: 'Add notice reminder',
+  })
+  @ApiOkResponse({
+    type: ExpandedGeneralNoticeDto,
+    description: 'Return notice',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post(':id/reaction')
   @UseGuards(IdPGuard)
-  async addNoticeReaction(
+  async addReaction(
     @GetUser() user: User,
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: ReactionDto,
-  ) {
-    return this.noticeService.addNoticeReaction(id, body, user?.uuid);
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.addNoticeReaction(body, id, user.uuid);
   }
 
-  /* notice 수정은 작성자만 가능, 15분 이내에만 가능 */
+  @ApiOperation({
+    summary: 'modify notice content',
+    description: 'modify notice content',
+  })
+  @ApiOkResponse({
+    type: ExpandedGeneralNoticeDto,
+    description: 'Return notice',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Patch(':id')
   @UseGuards(IdPGuard)
   async updateNotice(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
     @Body() body: UpdateNoticeDto,
-  ) {
-    return this.noticeService.updateNotice(id, body, user.uuid);
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.updateNotice(body, id, user.uuid);
   }
 
+  @ApiOperation({
+    summary: 'Delete notice reminder',
+    description: 'Delete notice reminder',
+  })
+  @ApiOkResponse({
+    type: ExpandedGeneralNoticeDto,
+    description: 'Return notice',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Delete(':id/reminder')
   @UseGuards(IdPGuard)
-  async deleteNoticeReminder(@GetUser() user: User, @Param('id') id: number) {
-    return this.noticeService.removeNoticeReminder(id, user?.uuid);
+  async deleteNoticeReminder(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.removeNoticeReminder(id, user.uuid);
   }
 
+  @ApiOperation({
+    summary: 'Delete notice reaction',
+    description: 'Delete notice reaction',
+  })
+  @ApiOkResponse({
+    type: ExpandedGeneralNoticeDto,
+    description: 'Return notice',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Delete(':id/reaction')
   @UseGuards(IdPGuard)
-  async deleteNoticeReaction(
+  async deleteReaction(
     @GetUser() user: User,
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: ReactionDto,
-  ) {
-    return this.noticeService.removeNoticeReaction(id, body, user?.uuid);
+  ): Promise<ExpandedGeneralNoticeDto> {
+    return this.noticeService.removeNoticeReaction(body, id, user.uuid);
   }
 
-  /* notice 삭제는 작성자만 가능 */
+  @ApiOperation({
+    summary: 'Delete notice',
+    description: 'Delete notice',
+  })
+  @ApiOkResponse({ description: 'Return notice' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Delete(':id')
   @UseGuards(IdPGuard)
   async deleteNotice(
     @GetUser() user: User,
-    @Param('id') id: number,
-  ): Promise<void> {
+    @Param('id', ParseIntPipe) id: number,
+  ) {
     return this.noticeService.deleteNotice(id, user.uuid);
   }
 }

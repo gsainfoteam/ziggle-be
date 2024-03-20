@@ -1,5 +1,5 @@
 Project Ziggle {
-    database_type: 'mysql'
+    database_type: 'postgresql'
 }
 
 Enum FileType {
@@ -30,20 +30,13 @@ Table File {
 Table Content {
     id integer [pk, increment]
 
+    lang varchar
     title varchar
+    body text
     deadline timestamp
     createdAt timestamp
 
     notice integer [ref: > Notice.id]
-}
-
-Table Body {
-    id integer [pk, increment]
-    
-    lang varchar
-    detail text
-
-    content integer [ref: > Content.id]
 }
 
 Table Notice {
@@ -87,14 +80,4 @@ Table Reaction {
     Indexes {
         (notice, user, emoji) [unique]
     }
-}
-
-Table FcmToken {
-    token varchar [pk]
-    createdAt timestamp
-    lastCheckAt timestamp
-    successCount integer
-    failCount integer
-    errors varchar
-    user varchar [ref: > User.uuid]
 }

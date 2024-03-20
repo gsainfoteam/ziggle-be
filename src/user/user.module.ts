@@ -1,23 +1,27 @@
-import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { AnonymousStrategy } from './guard/anonymous.strategy';
-import { IdPGuard } from './guard/idp.guard';
-import { IdPStrategy } from './guard/idp.strategy';
-import { IdpOptionalStrategy } from './guard/idpOptional.strategy';
-import { UserController } from './user.controller';
 import { UserService } from './user.service';
+import { UserController } from './user.controller';
+import { HttpModule } from '@nestjs/axios';
+import { IdpModule } from 'src/idp/idp.module';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { UserRepository } from './user.repository';
+import { IdPGuard, IdPOptionalGuard } from './guard/idp.guard';
+import { IdPStrategy } from './guard/idp.strategy';
+import { AnonymousStrategy } from './guard/anonymous.strategy';
 
 @Module({
-  imports: [HttpModule, PrismaModule],
+  imports: [HttpModule, IdpModule, ConfigModule, PrismaModule],
   providers: [
     UserService,
+    UserRepository,
     IdPGuard,
+    IdPOptionalGuard,
     IdPStrategy,
-    IdpOptionalStrategy,
+    IdPOptionalGuard,
     AnonymousStrategy,
   ],
   controllers: [UserController],
-  exports: [IdPGuard, UserService],
+  exports: [UserService, IdPOptionalGuard, IdPGuard],
 })
 export class UserModule {}

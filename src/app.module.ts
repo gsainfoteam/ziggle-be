@@ -1,27 +1,15 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { UserModule } from './user/user.module';
-import { NoticeModule } from './notice/notice.module';
-import { TagModule } from './tag/tag.module';
 import { AppController } from './app.controller';
-import { ImageModule } from './image/image.module';
-import { ScheduleModule } from '@nestjs/schedule';
+import { FileModule } from './file/file.module';
+import { UserModule } from './user/user.module';
+import { IdpModule } from './idp/idp.module';
+import { TagModule } from './tag/tag.module';
+import { NoticeModule } from './notice/notice.module';
 import { DocumentModule } from './document/document.module';
+import { ImageModule } from './image/image.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath:
-        process.env.NODE_ENV === 'production' ? 'prod.env' : 'dev.env',
-    }),
-    UserModule,
-    NoticeModule,
-    TagModule,
-    ImageModule,
-    ScheduleModule.forRoot(),
-    DocumentModule,
-  ],
+  imports: [FileModule, UserModule, IdpModule, TagModule, NoticeModule, DocumentModule, ImageModule],
   controllers: [AppController],
 })
 export class AppModule {}

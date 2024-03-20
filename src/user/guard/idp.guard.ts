@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class IdPGuard extends AuthGuard('gistory-idp') {}
+export class IdPGuard extends AuthGuard('idp') {}
 
 @Injectable()
 export class IdPOptionalGuard extends AuthGuard([
-  'gistory-idp-optional',
+  'idp-optional',
   'anonymous',
 ]) {}

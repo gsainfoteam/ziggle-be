@@ -1,123 +1,80 @@
-import {
-  DeleteObjectCommand,
-  PutObjectCommand,
-  PutObjectTaggingCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger } from '@nestjs/common';
+import path from 'path';
+import { FileService } from 'src/file/file.service';
 import sharp from 'sharp';
 
 @Injectable()
 export class ImageService {
   private readonly logger = new Logger(ImageService.name);
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly fileService: FileService) {}
 
+  /**
+   * this method uploads multiple images to the S3 bucket
+   * @param files Express.Multer.File[]
+   * @returns string[]
+   */
   async uploadImages(files: Express.Multer.File[]): Promise<string[]> {
-    if (!files) {
-      throw new BadRequestException('No images sent');
-    }
+    this.logger.log('uploadImages called');
     return Promise.all(files.map((file) => this.uploadImage(file)));
   }
 
-  async validateImages(imageKeys: string[]): Promise<void> {
-    if (!imageKeys) {
-      throw new BadRequestException('No images sent');
-    }
-
-    await Promise.all(
-      imageKeys.map((imageKey) => this.validateUploadedImage(imageKey)),
-    );
+  /**
+   * this method validate multiple images in the S3 bucket
+   * @param key string[]
+   */
+  async validateImages(key: string[]): Promise<void> {
+    this.logger.log('validateImages called');
+    await Promise.all(key.map((k) => this.validateImage(k)));
   }
 
-  async deleteImages(imageKeys: string[]): Promise<void> {
-    if (!imageKeys) {
-      return;
-    }
-
-    await Promise.all(imageKeys.map((imageKey) => this.deleteImage(imageKey)));
+  /**
+   * this method deletes multiple images in the S3 bucket
+   * @param key string[]
+   */
+  async deleteImages(key: string[]): Promise<void> {
+    this.logger.log('deleteImages called');
+    await Promise.all(key.map((k) => this.deleteImage(k)));
   }
 
+  /**
+   * this method uploads multiple images to the S3 bucket
+   * @param files Express.Multer.File
+   * @returns string
+   */
   private async uploadImage(file: Express.Multer.File): Promise<string> {
-    const s3 = new S3Client({
-      region: this.configService.get<string>('AWS_S3_REGION'),
-    });
-    const key = `${new Date().toISOString()}-${Math.random()
-      .toString(36)
-      .substring(2)}.webp`;
-
-    const command = new PutObjectCommand({
-      Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
-      Key: key,
-      Body: await this.convertToWebp(file),
-      Tagging: 'expiration=true',
-      Metadata: {
-        originalName: encodeURIComponent(file.originalname),
-      },
-    });
-
-    try {
-      await s3.send(command);
-      return key;
-    } catch (error) {
-      this.logger.error('error uploading image');
-      this.logger.debug(error);
-      throw new InternalServerErrorException("Couldn't upload image");
-    }
+    this.logger.log('uploadImage called');
+    const key = `${new Date().toISOString()}-${Math.random().toString(36).substring(2)}.${path.extname(file.originalname)}`;
+    return this.fileService.uploadFile(await this.convertToWebp(file), key);
   }
 
-  private async validateUploadedImage(imageKey: string): Promise<void> {
-    const s3 = new S3Client({
-      region: this.configService.get<string>('AWS_S3_REGION'),
-    });
-    const command = new PutObjectTaggingCommand({
-      Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
-      Key: imageKey,
-      Tagging: {
-        TagSet: [
-          {
-            Key: 'expiration',
-            Value: 'false',
-          },
-        ],
-      },
-    });
-
-    try {
-      await s3.send(command);
-    } catch (error) {
-      this.logger.error('error validating image');
-      this.logger.debug(error);
-      throw new NotFoundException(`Image with key "${imageKey}" not found`);
-    }
+  /**
+   * this method validate an image in the S3 bucket
+   * @param key string
+   */
+  private async validateImage(key: string): Promise<void> {
+    this.logger.log('validateUploadedImage called');
+    await this.fileService.validateFile(key);
   }
 
-  private async deleteImage(imageKey: string): Promise<void> {
-    const s3 = new S3Client({
-      region: this.configService.get<string>('AWS_S3_REGION'),
-    });
-
-    const command = new DeleteObjectCommand({
-      Bucket: this.configService.get<string>('AWS_S3_BUCKET_NAME'),
-      Key: imageKey,
-    });
-
-    try {
-      await s3.send(command);
-    } catch (e) {
-      this.logger.error('error deleting image');
-      this.logger.debug(e);
-      throw new InternalServerErrorException("Couldn't delete image");
-    }
+  /**
+   * this method deletes an image in the S3 bucket
+   * @param key string
+   */
+  private async deleteImage(key: string): Promise<void> {
+    this.logger.log('deleteImage called');
+    await this.fileService.deleteFile(key);
   }
 
-  private async convertToWebp(file: Express.Multer.File): Promise<Buffer> {
-    return sharp(file.buffer).webp().toBuffer();
+  /**
+   * this method convert the image to webp format
+   * @param file Express.Multer.File
+   * @returns Express.Multer.File
+   */
+  private async convertToWebp(
+    file: Express.Multer.File,
+  ): Promise<Express.Multer.File> {
+    this.logger.log('convertToWebp called');
+    file.buffer = await sharp(file.buffer).webp().toBuffer();
+    return file;
   }
 }

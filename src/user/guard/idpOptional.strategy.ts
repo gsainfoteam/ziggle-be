@@ -2,45 +2,39 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-http-bearer';
 import { UserService } from '../user.service';
-import { UserInfo } from '../type/userInfo.type';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { IdpService } from 'src/idp/idp.service';
 import { User } from '@prisma/client';
+import { UserInfo } from 'src/idp/types/userInfo.type';
 
 @Injectable()
-export class IdpOptionalStrategy extends PassportStrategy(
+export class IdPOptionalStrategy extends PassportStrategy(
   Strategy,
-  'gistory-idp-optional',
+  'idp-optional',
 ) {
   constructor(
     private readonly userService: UserService,
-    private readonly prismaService: PrismaService,
+    private readonly idpService: IdpService,
   ) {
     super();
   }
 
-  async validate(
-    token: string,
-  ): Promise<{ ziggle: User; idp: UserInfo } | void> {
-    const userInfo = await this.userService
-      .getUserInfoFromIdP(token)
-      .catch(() => undefined);
-
-    if (!userInfo) {
-      return;
-    }
-
-    const user = await this.prismaService.user.findUnique({
-      where: { uuid: userInfo.user_uuid },
+  async validate(token: string): Promise<{
+    ziggle: User;
+    idp: UserInfo;
+  } | void> {
+    const idp = await this.idpService.getUserInfo(token).catch(() => {
+      return undefined;
     });
-    if (!user) {
-      return;
-    }
-    if (user.name !== userInfo.user_name) {
-      await this.prismaService.user.update({
-        where: { uuid: userInfo.user_uuid },
-        data: { name: userInfo.user_name },
+    if (!idp) return undefined;
+    const ziggle = await this.userService
+      .findUserOrCreate({
+        uuid: idp.user_uuid,
+        name: idp.user_name,
+      })
+      .catch(() => {
+        undefined;
       });
-    }
-    return { ziggle: user, idp: userInfo };
+    if (!ziggle) return undefined;
+    return { ziggle, idp };
   }
 }
