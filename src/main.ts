@@ -2,9 +2,23 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
+import expressBasicAuth from 'express-basic-auth';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // swagger auth config
+  const configService = app.get(ConfigService);
+  app.use(
+    ['/api'],
+    expressBasicAuth({
+      challenge: true,
+      users: {
+        [configService.getOrThrow<string>('SWAGGER_USER')]:
+          configService.getOrThrow<string>('SWAGGER_PASSWORD'),
+      },
+    }),
+  );
   // set CORS config
   const whitelist = [
     /https:\/\/.*ziggle.gistory.me/,
