@@ -1,6 +1,25 @@
-import { Controller } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Post } from '@nestjs/common';
+import {
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { CrawlService } from './crawl.service';
+import { CreateCrawlDto } from './dto/req/createCrawl.dto';
 
 @ApiTags('crawl')
 @Controller('crawl')
-export class CrawlController {}
+export class CrawlController {
+  constructor(private readonly crawlService: CrawlService) {}
+
+  @ApiOperation({ summary: 'Create a crawl' })
+  @ApiOkResponse({ description: 'Crawl created' })
+  @ApiForbiddenResponse({ description: 'Invalid password' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @Post()
+  async createCrawl(@Body() body: CreateCrawlDto): Promise<void> {
+    return this.crawlService.createCrawl(body);
+  }
+}
