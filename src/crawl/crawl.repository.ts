@@ -3,10 +3,10 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { Crawl } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCrawlDto } from './dto/req/createCrawl.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Crawl } from '@prisma/client';
 
 @Injectable()
 export class CrawlRepository {
