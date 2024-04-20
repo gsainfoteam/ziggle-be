@@ -6,20 +6,17 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCrawlDto } from './dto/req/createCrawl.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { Crawl } from '@prisma/client';
+import { Crawl, User } from '@prisma/client';
 
 @Injectable()
 export class CrawlRepository {
   private readonly logger = new Logger(CrawlRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
-  async createCrawl({
-    title,
-    body,
-    type,
-    url,
-    authorId,
-  }: CreateCrawlDto): Promise<Crawl> {
+  async createCrawl(
+    { title, body, type, url }: CreateCrawlDto,
+    user: User,
+  ): Promise<Crawl> {
     this.logger.log('createCrawl');
     return this.prismaService.crawl
       .create({
@@ -30,7 +27,9 @@ export class CrawlRepository {
           url,
           notice: {
             create: {
-              authorId,
+              author: {
+                connect: user,
+              },
             },
           },
         },

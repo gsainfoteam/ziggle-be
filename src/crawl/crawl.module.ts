@@ -4,9 +4,10 @@ import { CrawlController } from './crawl.controller';
 import { CrawlRepository } from './crawl.repository';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [PrismaModule, ConfigModule],
+  imports: [PrismaModule, ConfigModule, UserModule],
   providers: [CrawlService, CrawlRepository],
   controllers: [CrawlController],
 })

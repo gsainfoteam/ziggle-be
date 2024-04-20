@@ -29,7 +29,7 @@ export class CreateCrawlDto {
   @IsString()
   @IsUUID()
   @IsNotEmpty()
-  authorId: string;
+  authorName: string;
 
   @IsString()
   @IsNotEmpty()

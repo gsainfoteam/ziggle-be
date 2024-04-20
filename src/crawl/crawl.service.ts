@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { CrawlRepository } from './crawl.repository';
 import { CreateCrawlDto } from './dto/req/createCrawl.dto';
 import { ConfigService } from '@nestjs/config';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class CrawlService {
@@ -9,6 +10,7 @@ export class CrawlService {
   constructor(
     private readonly crawlRepository: CrawlRepository,
     private readonly configService: ConfigService,
+    private readonly userService: UserService,
   ) {}
 
   async createCrawl(dto: CreateCrawlDto): Promise<void> {
@@ -17,6 +19,9 @@ export class CrawlService {
       this.logger.debug('Invalid password');
       throw new ForbiddenException('Invalid password');
     }
-    await this.crawlRepository.createCrawl(dto);
+    const user = await this.userService.findOrCreateTempUser({
+      name: dto.authorName,
+    });
+    await this.crawlRepository.createCrawl(dto, user);
   }
 }

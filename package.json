@@ -40,7 +40,8 @@
     "passport-http-bearer": "^1.0.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "sharp": "^0.33.2"
+    "sharp": "^0.33.2",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -56,6 +57,7 @@
     "@types/passport-anonymous": "^1.0.5",
     "@types/passport-http-bearer": "^1.0.41",
     "@types/supertest": "^6.0.0",
+    "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.42.0",
