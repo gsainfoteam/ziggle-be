@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class GeneralNoticeListDto {
   @ApiProperty()
-  totol: number;
+  total: number;
 
   @ApiProperty()
   list: GeneralNoticeDto[];

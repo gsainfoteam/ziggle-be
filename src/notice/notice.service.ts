@@ -45,7 +45,7 @@ export class NoticeService {
       ),
     );
     return {
-      totol: await this.noticeRepository.getTotalCount(
+      total: await this.noticeRepository.getTotalCount(
         getAllNoticeQueryDto,
         userUuid,
       ),
