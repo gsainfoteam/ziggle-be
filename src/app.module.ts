@@ -7,9 +7,19 @@ import { TagModule } from './tag/tag.module';
 import { NoticeModule } from './notice/notice.module';
 import { DocumentModule } from './document/document.module';
 import { ImageModule } from './image/image.module';
+import { CrawlModule } from './crawl/crawl.module';
 
 @Module({
-  imports: [FileModule, UserModule, IdpModule, TagModule, NoticeModule, DocumentModule, ImageModule],
+  imports: [
+    FileModule,
+    UserModule,
+    IdpModule,
+    TagModule,
+    NoticeModule,
+    DocumentModule,
+    ImageModule,
+    CrawlModule,
+  ],
   controllers: [AppController],
 })
 export class AppModule {}

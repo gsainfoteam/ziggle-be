@@ -101,4 +101,13 @@ export class UserService {
     this.logger.log('findUserOrCreate called');
     return this.userRepository.findUserOrCreate(user);
   }
+
+  async findOrCreateTempUser(user: Pick<User, 'name'>): Promise<User> {
+    this.logger.log('findOrCreateTempUser called');
+    const findedUser = await this.userRepository.findUserByName(user);
+    if (findedUser) {
+      return findedUser;
+    }
+    return this.userRepository.createTempUser(user);
+  }
 }
