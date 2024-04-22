@@ -1,12 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class GeneralNoticeListDto {
-  @ApiProperty()
-  total: number;
-
-  @ApiProperty()
-  list: GeneralNoticeDto[];
-}
 export class AuthorDto {
   @ApiProperty()
   uuid: string;
@@ -67,4 +60,15 @@ export class GeneralReactionDto {
 
   @ApiProperty()
   isReacted: boolean;
+}
+
+export class GeneralNoticeListDto {
+  @ApiProperty()
+  total: number;
+
+  @ApiProperty({
+    type: [GeneralNoticeDto],
+    isArray: true,
+  })
+  list: GeneralNoticeDto[];
 }
