@@ -15,6 +15,9 @@ export class GeneralNoticeDto {
   title: string;
 
   @ApiProperty()
+  groupName: string;
+
+  @ApiProperty()
   author: AuthorDto;
 
   @ApiProperty()

@@ -29,6 +29,12 @@ model User {
   @@map("user")
 }
 
+model Group {
+  name String @id
+
+  Notice Notice[]
+}
+
 model File {
   uuid      String   @id @default(uuid())
   order     Int      @default(0)
@@ -101,6 +107,8 @@ model Notice {
   cralws    Crawl[]
   tags      Tag[]
   reactions Reaction[]
+  group     Group?     @relation(fields: [groupName], references: [name])
+  groupName String?    @map("group_name")
 
   @@map("notice")
 }
