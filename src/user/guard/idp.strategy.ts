@@ -24,8 +24,8 @@ export class IdPStrategy extends PassportStrategy(Strategy, 'idp') {
     });
     const ziggle = await this.userService
       .findUserOrCreate({
-        uuid: idp.user_uuid,
-        name: idp.user_name,
+        uuid: idp.uuid,
+        name: idp.name,
       })
       .catch(() => {
         throw new UnauthorizedException();

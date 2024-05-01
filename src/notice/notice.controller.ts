@@ -11,6 +11,7 @@ import {
   UseGuards,
   UsePipes,
   ValidationPipe,
+  Headers,
 } from '@nestjs/common';
 import {
   ApiInternalServerErrorResponse,
@@ -108,8 +109,10 @@ export class NoticeController {
   async createNotice(
     @GetUser() user: User,
     @Body() createNoticeDto: CreateNoticeDto,
+    @Headers('Authorization') header: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    return this.noticeService.createNotice(createNoticeDto, user.uuid);
+    const token = header.slice(7);
+    return this.noticeService.createNotice(createNoticeDto, user.uuid, token);
   }
 
   @ApiOperation({

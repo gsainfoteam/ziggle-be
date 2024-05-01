@@ -31,16 +31,16 @@ export class UserService {
       type === 'flutter'
         ? this.configService.getOrThrow<string>('FLUTTER_REDIRECT_URI')
         : type === 'local'
-          ? this.configService.getOrThrow<string>('LOCAL_REDIRECT_URI')
-          : this.configService.getOrThrow<string>('WEB_REDIRECT_URI');
+        ? this.configService.getOrThrow<string>('LOCAL_REDIRECT_URI')
+        : this.configService.getOrThrow<string>('WEB_REDIRECT_URI');
     const tokens = await this.idpService.getAccessTokenFromIdP(
       code,
       redirectUri,
     );
     const userInfo = await this.idpService.getUserInfo(tokens.access_token);
     const user = await this.userRepository.findUserOrCreate({
-      uuid: userInfo.user_uuid,
-      name: userInfo.user_name,
+      uuid: userInfo.uuid,
+      name: userInfo.name,
     });
     this.logger.log('login finished');
     return {
@@ -60,8 +60,8 @@ export class UserService {
     const tokens = await this.idpService.refreshToken(refreshToken);
     const userData = await this.idpService.getUserInfo(tokens.access_token);
     const user = await this.userRepository.findUserOrCreate({
-      uuid: userData.user_uuid,
-      name: userData.user_name,
+      uuid: userData.uuid,
+      name: userData.name,
     });
     this.logger.log('refresh finished');
     return {

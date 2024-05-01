@@ -99,7 +99,7 @@ model Notice {
   publishedAt     DateTime? @map("published_at")
   deletedAt       DateTime? @map("deleted_at")
 
-  authorId  String     @map("author_id")
+  authorId  String     @map("author_id") @db.Uuid
   reminders User[]     @relation("Reminder")
   author    User       @relation(fields: [authorId], references: [uuid])
   files     File[]
@@ -120,7 +120,7 @@ model Reaction {
 
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id])
-  userId   String @map("user_uuid")
+  userId   String @map("user_uuid") @db.Uuid
   user     User   @relation(fields: [userId], references: [uuid])
 
   @@id([emoji, noticeId, userId])

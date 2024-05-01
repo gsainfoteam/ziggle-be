@@ -19,6 +19,7 @@ import { ForeignContentDto } from './dto/req/foreignContent.dto';
 import { ReactionDto } from './dto/req/reaction.dto';
 import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
 import { FileService } from 'src/file/file.service';
+import { GroupService } from 'src/group/group.service';
 
 @Injectable()
 export class NoticeService {
@@ -29,6 +30,7 @@ export class NoticeService {
     private readonly fileService: FileService,
     private readonly noticeRepository: NoticeRepository,
     private readonly noticeMapper: NoticeMapper,
+    private readonly groupService: GroupService,
   ) {}
 
   async getNoticeList(
@@ -74,7 +76,19 @@ export class NoticeService {
   async createNotice(
     createNoticeDto: CreateNoticeDto,
     userUuid: string,
+    token: string,
   ): Promise<ExpandedGeneralNoticeDto> {
+    if (createNoticeDto.groupName !== undefined) {
+      const getGroupResult = await this.groupService.getGroupFromVapor(
+        createNoticeDto.groupName,
+        token,
+      );
+
+      if (!getGroupResult) {
+        throw new ForbiddenException();
+      }
+    }
+
     if (createNoticeDto.images.length) {
       await this.imageService.validateImages(createNoticeDto.images);
     }

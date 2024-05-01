@@ -29,6 +29,7 @@ export class NoticeMapper {
       reactions,
       currentDeadline,
       reminders,
+      groupName,
     }: NoticeFullContent,
     langFromDto?: string,
     userUuid?: string,
@@ -84,6 +85,7 @@ export class NoticeMapper {
         count: reactions.length,
         isReacted: reactions.some(({ userId }) => userId === userUuid),
       })),
+      groupName,
     };
   }
 

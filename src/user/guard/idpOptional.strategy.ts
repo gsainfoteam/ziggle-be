@@ -28,8 +28,8 @@ export class IdPOptionalStrategy extends PassportStrategy(
     if (!idp) return undefined;
     const ziggle = await this.userService
       .findUserOrCreate({
-        uuid: idp.user_uuid,
-        name: idp.user_name,
+        uuid: idp.uuid,
+        name: idp.name,
       })
       .catch(() => {
         undefined;
