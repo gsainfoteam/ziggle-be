@@ -81,8 +81,9 @@ export class UserController {
   ): Promise<JwtToken> {
     const refreshToken = req.cookies['refresh_token'];
     if (!refreshToken) throw new UnauthorizedException();
-    const { refresh_token, ...token } =
-      await this.userService.refresh(refreshToken);
+    const { refresh_token, ...token } = await this.userService.refresh(
+      refreshToken,
+    );
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       sameSite: 'none',

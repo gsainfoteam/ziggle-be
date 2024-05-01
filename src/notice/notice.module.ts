@@ -9,6 +9,7 @@ import { NoticeMapper } from './notice.mapper';
 import { ImageModule } from 'src/image/image.module';
 import { DocumentModule } from 'src/document/document.module';
 import { FileModule } from 'src/file/file.module';
+import { GroupModule } from 'src/group/group.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { FileModule } from 'src/file/file.module';
     ImageModule,
     DocumentModule,
     FileModule,
+    GroupModule,
   ],
   controllers: [NoticeController],
   providers: [NoticeService, NoticeRepository, NoticeMapper],

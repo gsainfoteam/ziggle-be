@@ -41,12 +41,12 @@ export class NoticeRepository {
         ...(orderBy === 'deadline'
           ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
           : orderBy === 'hot'
-            ? {
-                createdAt: {
-                  gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
-                },
-              }
-            : {}),
+          ? {
+              createdAt: {
+                gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+              },
+            }
+          : {}),
         ...(search
           ? {
               OR: [
@@ -92,12 +92,12 @@ export class NoticeRepository {
           ...(orderBy === 'deadline'
             ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
             : orderBy === 'hot'
-              ? {
-                  createdAt: {
-                    gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
-                  },
-                }
-              : {}),
+            ? {
+                createdAt: {
+                  gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+                },
+              }
+            : {}),
           deletedAt: null,
           authorId: my === 'own' ? userUuid : undefined,
           reminders:
@@ -147,6 +147,7 @@ export class NoticeRepository {
               deletedAt: null,
             },
           },
+          group: true,
         },
       })
       .catch((error) => {
@@ -190,6 +191,7 @@ export class NoticeRepository {
               deletedAt: null,
             },
           },
+          group: true,
         },
       })
       .catch((error) => {
@@ -247,6 +249,7 @@ export class NoticeRepository {
               deletedAt: null,
             },
           },
+          group: true,
         },
       })
       .catch((error) => {
@@ -273,7 +276,15 @@ export class NoticeRepository {
    * @returns NoticeFullContent
    */
   async createNotice(
-    { title, body, deadline, tags, images, documents }: CreateNoticeDto,
+    {
+      title,
+      body,
+      deadline,
+      tags,
+      images,
+      documents,
+      groupName,
+    }: CreateNoticeDto,
     userUuid: string,
     createdAt?: Date,
   ): Promise<NoticeFullContent> {
@@ -323,6 +334,10 @@ export class NoticeRepository {
               })),
             ],
           },
+          group:
+            groupName === undefined
+              ? undefined
+              : { connect: { name: groupName } },
         },
         include: {
           tags: true,
@@ -345,6 +360,7 @@ export class NoticeRepository {
               deletedAt: null,
             },
           },
+          group: true,
         },
       })
       .catch((error) => {

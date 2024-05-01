@@ -6,12 +6,19 @@ CREATE TYPE "CrawlType" AS ENUM ('ACADEMIC');
 
 -- CreateTable
 CREATE TABLE "user" (
-    "uuid" TEXT NOT NULL,
+    "uuid" UUID NOT NULL,
     "name" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "consent" BOOLEAN NOT NULL,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("uuid")
+);
+
+-- CreateTable
+CREATE TABLE "Group" (
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "Group_pkey" PRIMARY KEY ("name")
 );
 
 -- CreateTable
@@ -68,8 +75,10 @@ CREATE TABLE "notice" (
     "current_deadline" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "published_at" TIMESTAMP(3),
     "deleted_at" TIMESTAMP(3),
-    "author_id" TEXT NOT NULL,
+    "author_id" UUID NOT NULL,
+    "group_name" TEXT,
 
     CONSTRAINT "notice_pkey" PRIMARY KEY ("id")
 );
@@ -80,15 +89,15 @@ CREATE TABLE "reaction" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3),
     "notice_id" INTEGER NOT NULL,
-    "user_id" TEXT NOT NULL,
+    "user_uuid" UUID NOT NULL,
 
-    CONSTRAINT "reaction_pkey" PRIMARY KEY ("emoji","notice_id","user_id")
+    CONSTRAINT "reaction_pkey" PRIMARY KEY ("emoji","notice_id","user_uuid")
 );
 
 -- CreateTable
 CREATE TABLE "_Reminder" (
     "A" INTEGER NOT NULL,
-    "B" TEXT NOT NULL
+    "B" UUID NOT NULL
 );
 
 -- CreateTable
@@ -125,10 +134,13 @@ ALTER TABLE "crawl" ADD CONSTRAINT "crawl_notice_id_fkey" FOREIGN KEY ("notice_i
 ALTER TABLE "notice" ADD CONSTRAINT "notice_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "user"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "notice" ADD CONSTRAINT "notice_group_name_fkey" FOREIGN KEY ("group_name") REFERENCES "Group"("name") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "reaction" ADD CONSTRAINT "reaction_notice_id_fkey" FOREIGN KEY ("notice_id") REFERENCES "notice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "reaction" ADD CONSTRAINT "reaction_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "reaction" ADD CONSTRAINT "reaction_user_uuid_fkey" FOREIGN KEY ("user_uuid") REFERENCES "user"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_Reminder" ADD CONSTRAINT "_Reminder_A_fkey" FOREIGN KEY ("A") REFERENCES "notice"("id") ON DELETE CASCADE ON UPDATE CASCADE;

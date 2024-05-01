@@ -8,6 +8,7 @@ import { NoticeModule } from './notice/notice.module';
 import { DocumentModule } from './document/document.module';
 import { ImageModule } from './image/image.module';
 import { CrawlModule } from './crawl/crawl.module';
+import { GroupModule } from './group/group.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CrawlModule } from './crawl/crawl.module';
     DocumentModule,
     ImageModule,
     CrawlModule,
+    GroupModule,
   ],
   controllers: [AppController],
 })
