@@ -41,12 +41,12 @@ export class NoticeRepository {
         ...(orderBy === 'deadline'
           ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
           : orderBy === 'hot'
-          ? {
-              createdAt: {
-                gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
-              },
-            }
-          : {}),
+            ? {
+                createdAt: {
+                  gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+                },
+              }
+            : {}),
         ...(search
           ? {
               OR: [
@@ -92,12 +92,12 @@ export class NoticeRepository {
           ...(orderBy === 'deadline'
             ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
             : orderBy === 'hot'
-            ? {
-                createdAt: {
-                  gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
-                },
-              }
-            : {}),
+              ? {
+                  createdAt: {
+                    gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+                  },
+                }
+              : {}),
           deletedAt: null,
           authorId: my === 'own' ? userUuid : undefined,
           reminders:
@@ -296,6 +296,19 @@ export class NoticeRepository {
         },
       },
     });
+
+    if (groupName !== undefined) {
+      await this.prismaService.group.upsert({
+        where: {
+          name: groupName,
+        },
+        update: {},
+        create: {
+          name: groupName,
+        },
+      });
+    }
+
     return this.prismaService.notice
       .create({
         data: {
@@ -366,6 +379,7 @@ export class NoticeRepository {
       .catch((error) => {
         if (error instanceof PrismaClientKnownRequestError) {
           if (error.code === 'P2025') {
+            console.log(error);
             this.logger.debug(`User uuid not found`);
             throw new NotFoundException(`User uuid not found`);
           }
