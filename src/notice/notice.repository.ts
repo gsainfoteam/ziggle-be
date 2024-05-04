@@ -715,4 +715,33 @@ export class NoticeRepository {
         throw new InternalServerErrorException('Unknown Error');
       });
   }
+
+  async updateUserRecord(id: number, userUuid: string): Promise<void> {
+    await this.prismaService.userRecord.upsert({
+      where: {
+        userUuid_noticeId: {
+          userUuid,
+          noticeId: id,
+        },
+      },
+      update: {
+        views: {
+          increment: 1,
+        },
+        updatedAt: new Date(),
+      },
+      create: {
+        user: {
+          connect: {
+            uuid: userUuid,
+          },
+        },
+        notice: {
+          connect: {
+            id,
+          },
+        },
+      },
+    });
+  }
 }
