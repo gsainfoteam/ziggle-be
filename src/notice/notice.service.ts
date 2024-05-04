@@ -63,6 +63,8 @@ export class NoticeService {
     let notice: NoticeFullContent;
     if (getNoticeDto.isViewed) {
       notice = await this.noticeRepository.getNoticeWithView(id);
+      if (userUuid !== undefined)
+        await this.noticeRepository.updateUserRecord(id, userUuid);
     } else {
       notice = await this.noticeRepository.getNotice(id);
     }

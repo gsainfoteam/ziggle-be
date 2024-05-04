@@ -30,11 +30,25 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   consent   Boolean
 
-  remindedNotices Notice[]   @relation("Reminder")
+  remindedNotices Notice[]     @relation("Reminder")
   writedNotices   Notice[]
   reactions       Reaction[]
+  UserRecord      UserRecord[]
 
   @@map("user")
+}
+
+model UserRecord {
+  views     Int      @default(1)
+  updatedAt DateTime @default(now()) @map("updated_at")
+  userUuid  String   @map("user_uuid") @db.Uuid
+  noticeId  Int      @map("notice_id")
+
+  user   User   @relation(fields: [userUuid], references: [uuid])
+  notice Notice @relation(fields: [noticeId], references: [id])
+
+  @@id([userUuid, noticeId])
+  @@map("user_record")
 }
 
 model Group {
@@ -108,16 +122,17 @@ model Notice {
   publishedAt     DateTime? @map("published_at")
   deletedAt       DateTime? @map("deleted_at")
 
-  authorId  String     @map("author_id") @db.Uuid
-  reminders User[]     @relation("Reminder")
-  author    User       @relation(fields: [authorId], references: [uuid])
-  files     File[]
-  contents  Content[]
-  cralws    Crawl[]
-  tags      Tag[]
-  reactions Reaction[]
-  group     Group?     @relation(fields: [groupName], references: [name])
-  groupName String?    @map("group_name")
+  authorId   String       @map("author_id") @db.Uuid
+  reminders  User[]       @relation("Reminder")
+  author     User         @relation(fields: [authorId], references: [uuid])
+  files      File[]
+  contents   Content[]
+  cralws     Crawl[]
+  tags       Tag[]
+  reactions  Reaction[]
+  group      Group?       @relation(fields: [groupName], references: [name])
+  groupName  String?      @map("group_name")
+  UserRecord UserRecord[]
 
   @@map("notice")
 }
