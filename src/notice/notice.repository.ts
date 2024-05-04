@@ -27,13 +27,14 @@ export class NoticeRepository {
    * @returns the total count of the notices
    */
   async getTotalCount(
-    { search, tags, orderBy, my }: GetAllNoticeQueryDto,
+    { search, tags, orderBy, my, category }: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<number> {
     this.logger.log(`getTotalCount`);
     return await this.prismaService.notice.count({
       where: {
         deletedAt: null,
+        category,
         authorId: my === 'own' ? userUuid : undefined,
         reminders:
           my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
@@ -75,7 +76,15 @@ export class NoticeRepository {
    * @returns the list of notices
    */
   async getNoticeList(
-    { offset = 0, limit = 10, search, tags, orderBy, my }: GetAllNoticeQueryDto,
+    {
+      offset = 0,
+      limit = 10,
+      search,
+      tags,
+      orderBy,
+      my,
+      category,
+    }: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<NoticeFullContent[]> {
     this.logger.log(`getNoticeList`);
@@ -120,6 +129,7 @@ export class NoticeRepository {
                 ],
               }
             : {}),
+          category,
         },
         include: {
           tags: true,

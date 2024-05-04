@@ -1,4 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Category } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -47,7 +48,7 @@ export class GetAllNoticeQueryDto {
   @IsOptional()
   search?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '이런',
     description: '공지태그의 이름',
     required: false,
@@ -66,6 +67,16 @@ export class GetAllNoticeQueryDto {
   @IsEnum(['deadline', 'hot', 'recent'])
   @IsOptional()
   orderBy?: 'recent' | 'deadline' | 'hot';
+
+  @ApiProperty({
+    example: 'ETC',
+    description: '카테고리',
+    required: false,
+  })
+  @IsString()
+  @IsEnum(Category)
+  @IsOptional()
+  category?: Category;
 
   @ApiProperty({
     example: 'own',

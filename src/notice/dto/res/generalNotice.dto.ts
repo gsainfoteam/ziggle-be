@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Category } from '@prisma/client';
 
 export class AuthorDto {
   @ApiProperty()
@@ -40,6 +41,9 @@ export class GeneralNoticeDto {
 
   @ApiProperty()
   isReminded: boolean;
+
+  @ApiProperty()
+  category: Category;
 
   @ApiProperty()
   deadline: Date | null;
