@@ -4,6 +4,9 @@ CREATE TYPE "FileType" AS ENUM ('IMAGE', 'DOCUMENT');
 -- CreateEnum
 CREATE TYPE "CrawlType" AS ENUM ('ACADEMIC');
 
+-- CreateEnum
+CREATE TYPE "Category" AS ENUM ('ACADEMIC', 'RECRUIT', 'EVENT', 'CLUB', 'ETC');
+
 -- CreateTable
 CREATE TABLE "user" (
     "uuid" UUID NOT NULL,
@@ -15,10 +18,20 @@ CREATE TABLE "user" (
 );
 
 -- CreateTable
-CREATE TABLE "Group" (
+CREATE TABLE "user_record" (
+    "views" INTEGER NOT NULL DEFAULT 1,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "user_uuid" UUID NOT NULL,
+    "notice_id" INTEGER NOT NULL,
+
+    CONSTRAINT "user_record_pkey" PRIMARY KEY ("user_uuid","notice_id")
+);
+
+-- CreateTable
+CREATE TABLE "group" (
     "name" TEXT NOT NULL,
 
-    CONSTRAINT "Group_pkey" PRIMARY KEY ("name")
+    CONSTRAINT "group_pkey" PRIMARY KEY ("name")
 );
 
 -- CreateTable
@@ -72,6 +85,7 @@ CREATE TABLE "tag" (
 CREATE TABLE "notice" (
     "id" SERIAL NOT NULL,
     "views" INTEGER NOT NULL DEFAULT 0,
+    "category" "Category" NOT NULL DEFAULT 'ETC',
     "current_deadline" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -122,6 +136,12 @@ CREATE UNIQUE INDEX "_NoticeToTag_AB_unique" ON "_NoticeToTag"("A", "B");
 CREATE INDEX "_NoticeToTag_B_index" ON "_NoticeToTag"("B");
 
 -- AddForeignKey
+ALTER TABLE "user_record" ADD CONSTRAINT "user_record_user_uuid_fkey" FOREIGN KEY ("user_uuid") REFERENCES "user"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_record" ADD CONSTRAINT "user_record_notice_id_fkey" FOREIGN KEY ("notice_id") REFERENCES "notice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "file" ADD CONSTRAINT "file_notice_id_fkey" FOREIGN KEY ("notice_id") REFERENCES "notice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -134,7 +154,7 @@ ALTER TABLE "crawl" ADD CONSTRAINT "crawl_notice_id_fkey" FOREIGN KEY ("notice_i
 ALTER TABLE "notice" ADD CONSTRAINT "notice_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "user"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "notice" ADD CONSTRAINT "notice_group_name_fkey" FOREIGN KEY ("group_name") REFERENCES "Group"("name") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "notice" ADD CONSTRAINT "notice_group_name_fkey" FOREIGN KEY ("group_name") REFERENCES "group"("name") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "reaction" ADD CONSTRAINT "reaction_notice_id_fkey" FOREIGN KEY ("notice_id") REFERENCES "notice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
