@@ -55,6 +55,8 @@ model Group {
   name String @id
 
   Notice Notice[]
+
+  @@map("group")
 }
 
 model File {
