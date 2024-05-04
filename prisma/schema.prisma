@@ -16,6 +16,14 @@ enum CrawlType {
   ACADEMIC
 }
 
+enum Category {
+  ACADEMIC
+  RECRUIT
+  EVENT
+  CLUB
+  ETC
+}
+
 model User {
   uuid      String   @id @db.Uuid
   name      String
@@ -93,6 +101,7 @@ model Notice {
   id Int @id @default(autoincrement())
 
   views           Int       @default(0)
+  category        Category  @default(ETC)
   currentDeadline DateTime? @map("current_deadline")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @default(now()) @map("updated_at")
