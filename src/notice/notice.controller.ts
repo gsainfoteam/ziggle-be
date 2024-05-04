@@ -31,6 +31,7 @@ import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
 import { ReactionDto } from './dto/req/reaction.dto';
 import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
+import { GetNoticeDto } from './dto/req/getNotice.dto';
 
 @ApiTags('notice')
 @Controller('notice')
@@ -88,7 +89,7 @@ export class NoticeController {
   @UseGuards(IdPOptionalGuard)
   async getNotice(
     @Param('id', ParseIntPipe) id: number,
-    @Query() query: GetAllNoticeQueryDto,
+    @Query() query: GetNoticeDto,
     @GetUser() user?: User,
   ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.getNotice(id, query, user?.uuid);

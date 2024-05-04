@@ -27,7 +27,7 @@ export class NoticeRepository {
    * @returns the total count of the notices
    */
   async getTotalCount(
-    { search, tags, orderBy, my, category }: GetAllNoticeQueryDto,
+    { search, tags, orderBy, my, category, lang }: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<number> {
     this.logger.log(`getTotalCount`);
@@ -48,6 +48,7 @@ export class NoticeRepository {
                 },
               }
             : {}),
+        ...(lang ? { contents: { some: { lang } } } : {}),
         ...(search
           ? {
               OR: [
@@ -83,6 +84,7 @@ export class NoticeRepository {
       tags,
       orderBy,
       my,
+      lang,
       category,
     }: GetAllNoticeQueryDto,
     userUuid?: string,
@@ -112,6 +114,7 @@ export class NoticeRepository {
           reminders:
             my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
           tags: tags && { some: { name: { in: tags } } },
+          ...(lang ? { contents: { some: { lang } } } : {}),
           ...(search
             ? {
                 OR: [
