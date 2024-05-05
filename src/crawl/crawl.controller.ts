@@ -1,4 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import {
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
@@ -19,6 +25,7 @@ export class CrawlController {
   @ApiForbiddenResponse({ description: 'Invalid password' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Post()
+  @UsePipes(ValidationPipe)
   async createCrawl(@Body() body: CreateCrawlDto): Promise<void> {
     return this.crawlService.createCrawl(body);
   }
