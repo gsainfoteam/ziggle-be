@@ -27,6 +27,7 @@ export class CrawlRepository {
           url,
           notice: {
             create: {
+              category: 'ACADEMIC',
               author: {
                 connect: user,
               },
