@@ -2,9 +2,9 @@ import {
   Body,
   Controller,
   Get,
-  Param,
   Patch,
   Post,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -32,8 +32,8 @@ export class CrawlController {
   @ApiForbiddenResponse({ description: 'Invalid password' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Get()
-  async getCrawlData(@Param() param: GetCrawlDto): Promise<Crawl> {
-    return this.crawlService.getCrawlData(param);
+  async getCrawlData(@Query() query: GetCrawlDto): Promise<Crawl> {
+    return this.crawlService.getCrawlData(query);
   }
 
   @ApiOperation({ summary: 'Create a crawl' })
