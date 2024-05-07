@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import expressBasicAuth from 'express-basic-auth';
+import { json } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -38,6 +39,8 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
     credentials: true,
   });
+  // set json limit
+  app.use(json({ limit: '5mb' }));
   // set cookie config
   app.use(cookieParser());
   // set swagger config
