@@ -25,7 +25,6 @@ import { IdPGuard } from 'src/user/guard/idp.guard';
 @ApiTags('tag')
 @Controller('tag')
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseGuards(IdPGuard)
 export class TagController {
   constructor(private readonly tagService: TagService) {}
 
@@ -60,6 +59,7 @@ export class TagController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @UseGuards(IdPGuard)
   @Post()
   async create(@Body() body: CreateTagDto) {
     return this.tagService.createTag(body);
