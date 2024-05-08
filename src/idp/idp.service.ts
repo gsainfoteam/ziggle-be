@@ -54,12 +54,13 @@ export class IdpService {
           },
         )
         .pipe(
-          catchError((err) => {
+          catchError((err: AxiosError) => {
             if (err instanceof AxiosError && err.response?.status === 401) {
               this.logger.debug('user invalid code');
               throw new UnauthorizedException();
             }
             this.logger.error(err);
+            this.logger.error(err.response?.data);
             throw new InternalServerErrorException();
           }),
         ),

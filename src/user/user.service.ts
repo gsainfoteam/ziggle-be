@@ -31,8 +31,8 @@ export class UserService {
       type === 'flutter'
         ? this.configService.getOrThrow<string>('FLUTTER_REDIRECT_URI')
         : type === 'local'
-        ? this.configService.getOrThrow<string>('LOCAL_REDIRECT_URI')
-        : this.configService.getOrThrow<string>('WEB_REDIRECT_URI');
+          ? this.configService.getOrThrow<string>('LOCAL_REDIRECT_URI')
+          : this.configService.getOrThrow<string>('WEB_REDIRECT_URI');
     const tokens = await this.idpService.getAccessTokenFromIdP(
       code,
       redirectUri,
