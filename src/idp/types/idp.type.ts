@@ -7,9 +7,9 @@ export type IdpUserInfoRes = {
   uuid: string;
   email: string;
   name: string;
-  studentId: string;
-  phoneNumber: string;
-  createdAt: string;
-  updatedAt: string;
-  accessLevel: string;
+  student_id: string;
+  phone_number: string;
+  created_at: string;
+  updated_at: string;
+  access_level: string;
 };

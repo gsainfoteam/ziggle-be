@@ -137,14 +137,14 @@ export class IdpService {
         ),
     );
     this.logger.log('getUserInfo success');
-    const { name, email, phoneNumber, studentId, uuid } = userInfoResponse.data;
-    return {
+    const {
       name,
       email,
-      phoneNumber,
-      studentNumber: studentId,
+      phone_number: phoneNumber,
+      student_id: studentNumber,
       uuid,
-    };
+    } = userInfoResponse.data;
+    return { name, email, phoneNumber, studentNumber, uuid };
   }
 
   /**
