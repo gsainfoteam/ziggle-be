@@ -5,7 +5,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { IdpJwtResponse } from './types/idp.type';
+import { IdpJwtResponse, IdpUserInfoRes } from './types/idp.type';
 import { catchError, firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
@@ -120,7 +120,7 @@ export class IdpService {
     const url = this.idpUrl + '/userinfo';
     const userInfoResponse = await firstValueFrom(
       this.httpService
-        .get(url, {
+        .get<IdpUserInfoRes>(url, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -137,7 +137,14 @@ export class IdpService {
         ),
     );
     this.logger.log('getUserInfo success');
-    return userInfoResponse.data;
+    const { name, email, phoneNumber, studentId, uuid } = userInfoResponse.data;
+    return {
+      name,
+      email,
+      phoneNumber,
+      studentNumber: studentId,
+      uuid,
+    };
   }
 
   /**
