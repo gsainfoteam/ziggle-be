@@ -155,15 +155,15 @@ model Reaction {
 }
 
 model FcmToken {
-  fcmTokenId   String   @id
-  createdAt    DateTime @default(now())
-  lastCheckAt  DateTime @updatedAt
-  successCount Int      @default(0)
-  failCount    Int      @default(0)
+  fcmTokenId   String   @id @map("fcm_token_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  lastCheckAt  DateTime @updatedAt @map("last_check_at")
+  successCount Int      @default(0) @map("success_count")
+  failCount    Int      @default(0) @map("fail_count")
 
   errors String?
 
-  userUuid String @db.Uuid
+  userUuid String @map("user_uuid") @db.Uuid
   User     User   @relation(fields: [userUuid], references: [uuid])
   Logs     Log[]
 
@@ -173,9 +173,9 @@ model FcmToken {
 model Log {
   id        Int      @id @default(autoincrement())
   content   Json
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
-  fcmTokenId String
+  fcmTokenId String   @map("fcm_token_id")
   FcmToken   FcmToken @relation(fields: [fcmTokenId], references: [fcmTokenId])
 
   @@map("log")
