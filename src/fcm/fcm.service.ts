@@ -16,7 +16,9 @@ export class FcmService {
       credential: cert({
         projectId: this.configService.getOrThrow('FCM_PROJECT_ID'),
         clientEmail: this.configService.getOrThrow('FCM_CLIENT_EMAIL'),
-        privateKey: this.configService.getOrThrow('FCM_PRIVATE_KEY'),
+        privateKey: this.configService
+          .getOrThrow('FCM_PRIVATE_KEY')
+          .replace(/\\n/g, '\n'),
       }),
     });
   }
