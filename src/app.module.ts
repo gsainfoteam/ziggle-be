@@ -9,6 +9,7 @@ import { DocumentModule } from './document/document.module';
 import { ImageModule } from './image/image.module';
 import { CrawlModule } from './crawl/crawl.module';
 import { GroupModule } from './group/group.module';
+import { FcmModule } from './fcm/fcm.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { GroupModule } from './group/group.module';
     ImageModule,
     CrawlModule,
     GroupModule,
+    FcmModule,
   ],
   controllers: [AppController],
 })
