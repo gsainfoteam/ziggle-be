@@ -27,6 +27,22 @@ export class FcmService {
     notification: Notification,
     tokens: string[],
     data?: Record<string, string>,
+  ) {
+    await Promise.all(
+      tokens
+        .reduce((acc, token, index) => {
+          if (index % 500 === 0) return [[token], ...acc];
+          const [first, ...array] = acc;
+          return [[...first, token], ...array];
+        }, [])
+        .map((subTokens) => this._postMessage(notification, subTokens, data)),
+    );
+  }
+
+  async _postMessage(
+    notification: Notification,
+    tokens: string[],
+    data?: Record<string, string>,
   ): Promise<void> {
     this.logger.log(`Sending message to ${tokens.length} tokens`);
     // send message to each token

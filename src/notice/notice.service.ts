@@ -20,6 +20,8 @@ import { ReactionDto } from './dto/req/reaction.dto';
 import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
 import { FileService } from 'src/file/file.service';
 import { GroupService } from 'src/group/group.service';
+import { FcmService } from 'src/fcm/fcm.service';
+import { FcmRepository } from 'src/fcm/fcm.repository';
 
 @Injectable()
 export class NoticeService {
@@ -31,6 +33,8 @@ export class NoticeService {
     private readonly noticeRepository: NoticeRepository,
     private readonly noticeMapper: NoticeMapper,
     private readonly groupService: GroupService,
+    private readonly fcmService: FcmService,
+    private readonly fcmRepository: FcmRepository,
   ) {}
 
   async getNoticeList(
@@ -101,6 +105,20 @@ export class NoticeService {
     const notice = await this.noticeRepository.createNotice(
       createNoticeDto,
       userUuid,
+    );
+
+    const notification = {
+      title: createNoticeDto.title,
+      body: createNoticeDto.body,
+      imageUrl: createNoticeDto.images[0],
+    };
+
+    await this.fcmService.postMessage(
+      notification,
+      (await this.fcmRepository.getAllFcmTokens()).map(
+        ({ fcmTokenId }) => fcmTokenId,
+      ),
+      { path: `/notice/${notice.id}` },
     );
 
     return this.getNotice(notice.id, { isViewed: false });
