@@ -25,18 +25,40 @@ export class FcmService {
 
   async postMessage(
     notification: Notification,
-    tokens: string[],
+    targetUser: 'all' | 'allowAlarm',
+
     data?: Record<string, string>,
   ) {
-    await Promise.all(
-      tokens
-        .reduce((acc, token, index) => {
-          if (index % 500 === 0) return [[token], ...acc];
-          const [first, ...array] = acc;
-          return [[...first, token], ...array];
-        }, [])
-        .map((subTokens) => this._postMessage(notification, subTokens, data)),
-    );
+    if (targetUser === 'all') {
+      const tokens = (await this.fcmRepository.getAllFcmTokens()).map(
+        ({ fcmTokenId }) => fcmTokenId,
+      );
+
+      await Promise.all(
+        tokens
+          .reduce((acc, token, index) => {
+            if (index % 500 === 0) return [[token], ...acc];
+            const [first, ...array] = acc;
+            return [[...first, token], ...array];
+          }, [])
+          .map((subTokens) => this._postMessage(notification, subTokens, data)),
+      );
+    } else {
+      //TODO 이 부분은 알림을 허용한 user에게만 알림이 가도록 수정해야 함.
+      //(getAllFcmTokens 함수를 다른 함수로 대체해야 한다.)
+      const tokens = (await this.fcmRepository.getAllFcmTokens()).map(
+        ({ fcmTokenId }) => fcmTokenId,
+      );
+      await Promise.all(
+        tokens
+          .reduce((acc, token, index) => {
+            if (index % 500 === 0) return [[token], ...acc];
+            const [first, ...array] = acc;
+            return [[...first, token], ...array];
+          }, [])
+          .map((subTokens) => this._postMessage(notification, subTokens, data)),
+      );
+    }
   }
 
   async _postMessage(

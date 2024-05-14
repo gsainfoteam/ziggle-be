@@ -10,6 +10,7 @@ import { ImageModule } from 'src/image/image.module';
 import { DocumentModule } from 'src/document/document.module';
 import { FileModule } from 'src/file/file.module';
 import { GroupModule } from 'src/group/group.module';
+import { FcmModule } from 'src/fcm/fcm.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { GroupModule } from 'src/group/group.module';
     DocumentModule,
     FileModule,
     GroupModule,
+    FcmModule,
   ],
   controllers: [NoticeController],
   providers: [NoticeService, NoticeRepository, NoticeMapper],
