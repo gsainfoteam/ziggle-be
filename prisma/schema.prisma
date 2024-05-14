@@ -163,8 +163,8 @@ model FcmToken {
 
   errors String?
 
-  userUuid String @map("user_uuid") @db.Uuid
-  User     User   @relation(fields: [userUuid], references: [uuid])
+  userUuid String? @map("user_uuid") @db.Uuid
+  User     User?   @relation(fields: [userUuid], references: [uuid])
   Logs     Log[]
 
   @@map("fcm_token")
