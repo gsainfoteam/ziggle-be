@@ -11,7 +11,6 @@ import {
   UseGuards,
   UsePipes,
   ValidationPipe,
-  Headers,
 } from '@nestjs/common';
 import {
   ApiInternalServerErrorResponse,
@@ -32,6 +31,7 @@ import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
 import { ReactionDto } from './dto/req/reaction.dto';
 import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
+import { GetToken } from 'src/user/decorator/get-token.decorator';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -110,10 +110,9 @@ export class NoticeController {
   @UseGuards(IdPGuard)
   async createNotice(
     @GetUser() user: User,
+    @GetToken() token: string,
     @Body() createNoticeDto: CreateNoticeDto,
-    @Headers('Authorization') header: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    const token = header.slice(7);
     return this.noticeService.createNotice(createNoticeDto, user.uuid, token);
   }
 

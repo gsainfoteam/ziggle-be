@@ -18,6 +18,7 @@ export class IdPStrategy extends PassportStrategy(Strategy, 'idp') {
   async validate(token: string): Promise<{
     ziggle: User;
     idp: UserInfo;
+    token: string;
   }> {
     const idp = await this.idpService.getUserInfo(token).catch(() => {
       throw new UnauthorizedException();
@@ -30,6 +31,6 @@ export class IdPStrategy extends PassportStrategy(Strategy, 'idp') {
       .catch(() => {
         throw new UnauthorizedException();
       });
-    return { ziggle, idp };
+    return { ziggle, idp, token };
   }
 }

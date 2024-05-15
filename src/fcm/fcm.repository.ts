@@ -13,7 +13,6 @@ export class FcmRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async updateFcmtokensSuccess(fcmtokens: string[]): Promise<void> {
-    this.logger.log(`Updating FCM token: ${fcmtokens}`);
     await this.prismaService.fcmToken.updateMany({
       where: {
         fcmTokenId: { in: fcmtokens },
@@ -25,7 +24,6 @@ export class FcmRepository {
   }
 
   async updateFcmtokensFail(fcmtokens: string[]): Promise<void> {
-    this.logger.log(`Updating FCM token: ${fcmtokens}`);
     await this.prismaService.fcmToken.updateMany({
       where: {
         fcmTokenId: { in: fcmtokens },
@@ -37,7 +35,6 @@ export class FcmRepository {
   }
 
   async createLogs(content: Content, fcmTokenIds: string[]): Promise<void> {
-    this.logger.log(`Creating logs for FCM token: ${fcmTokenIds}`);
     const jsonContent = content as unknown as Prisma.JsonObject;
     await this.prismaService.log.createMany({
       data: fcmTokenIds.map((fcmTokenId) => ({
