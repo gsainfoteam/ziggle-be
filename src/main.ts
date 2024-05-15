@@ -8,8 +8,8 @@ import { json } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // swagger auth config
   const configService = app.get(ConfigService);
+  // swagger auth config
   app.use(
     ['/api'],
     expressBasicAuth({
@@ -57,8 +57,8 @@ async function bootstrap() {
         bearerFormat: 'token',
         flows: {
           authorizationCode: {
-            authorizationUrl: 'https://stg.idp.gistory.me/authorize',
-            tokenUrl: 'https://api.stg.idp.gistory.me/oauth/token',
+            authorizationUrl: configService.getOrThrow('SWAGGER_AUTH_URL'),
+            tokenUrl: configService.getOrThrow('SWAGGER_TOKEN_URL'),
             scopes: {
               openid: 'openid',
               email: 'email',
@@ -73,7 +73,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
-      oauth2RedirectUrl: `${process.env.CURRENT_URL}/api/oauth2-redirect.html`,
+      oauth2RedirectUrl: `${configService.getOrThrow('API_URL')}/api/oauth2-redirect.html`,
     },
   });
   // start server
