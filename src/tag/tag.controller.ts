@@ -12,6 +12,7 @@ import { TagService } from './tag.service';
 import {
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
+  ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -23,6 +24,7 @@ import { TagResDto } from './dto/res/TagRes.dto';
 import { IdPGuard } from 'src/user/guard/idp.guard';
 
 @ApiTags('tag')
+@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
 @Controller('tag')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class TagController {

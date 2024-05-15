@@ -49,9 +49,33 @@ async function bootstrap() {
     .setDescription('Ziggle API')
     .setVersion('1.0')
     .addTag('Ziggle')
+    .addOAuth2(
+      {
+        type: 'oauth2',
+        scheme: 'bearer',
+        in: 'header',
+        bearerFormat: 'token',
+        flows: {
+          authorizationCode: {
+            authorizationUrl: 'https://stg.idp.gistory.me/authorize',
+            tokenUrl: 'https://api.stg.idp.gistory.me/oauth/token',
+            scopes: {
+              openid: 'openid',
+              email: 'email',
+              profile: ' profile',
+            },
+          },
+        },
+      },
+      'oauth2',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: {
+      oauth2RedirectUrl: `${process.env.CURRENT_URL}/api/oauth2-redirect.html`,
+    },
+  });
   // start server
   await app.listen(3000);
 }
