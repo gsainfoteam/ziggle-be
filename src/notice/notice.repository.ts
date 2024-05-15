@@ -39,15 +39,13 @@ export class NoticeRepository {
         reminders:
           my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
         tags: tags && { some: { name: { in: tags } } },
-        ...(orderBy === 'deadline'
-          ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
-          : orderBy === 'hot'
-            ? {
-                createdAt: {
-                  gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
-                },
-              }
-            : {}),
+        ...(orderBy === 'hot'
+          ? {
+              createdAt: {
+                gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+              },
+            }
+          : {}),
         ...(search
           ? {
               OR: [
@@ -98,15 +96,13 @@ export class NoticeRepository {
           createdAt: orderBy === 'recent' ? 'desc' : undefined,
         },
         where: {
-          ...(orderBy === 'deadline'
-            ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
-            : orderBy === 'hot'
-              ? {
-                  createdAt: {
-                    gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
-                  },
-                }
-              : {}),
+          ...(orderBy === 'hot'
+            ? {
+                createdAt: {
+                  gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+                },
+              }
+            : {}),
           deletedAt: null,
           authorId: my === 'own' ? userUuid : undefined,
           reminders:
