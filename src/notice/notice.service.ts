@@ -21,6 +21,7 @@ import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
 import { FileService } from 'src/file/file.service';
 import { GroupService } from 'src/group/group.service';
 import { FcmService } from 'src/fcm/fcm.service';
+import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 
 @Injectable()
 export class NoticeService {
@@ -111,7 +112,7 @@ export class NoticeService {
       imageUrl: createNoticeDto.images[0],
     };
 
-    await this.fcmService.postMessage(notification, 'all', {
+    await this.fcmService.postMessage(notification, FcmTargetUser.All, {
       path: `/notice/${notice.id}`,
     });
 

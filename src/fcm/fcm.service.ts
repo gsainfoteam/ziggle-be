@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { App, cert, initializeApp } from 'firebase-admin/app';
 import { Notification, getMessaging } from 'firebase-admin/messaging';
 import { FcmRepository } from './fcm.repository';
+import { FcmTargetUser } from './types/fcmTargetUser.type';
 
 @Injectable()
 export class FcmService {
@@ -25,40 +26,32 @@ export class FcmService {
 
   async postMessage(
     notification: Notification,
-    targetUser: 'all' | 'allowAlarm',
-
+    targetUser: FcmTargetUser,
     data?: Record<string, string>,
   ) {
-    if (targetUser === 'all') {
-      const tokens = (await this.fcmRepository.getAllFcmTokens()).map(
-        ({ fcmTokenId }) => fcmTokenId,
-      );
+    let tokens;
 
-      await Promise.all(
-        tokens
-          .reduce((acc, token, index) => {
-            if (index % 500 === 0) return [[token], ...acc];
-            const [first, ...array] = acc;
-            return [[...first, token], ...array];
-          }, [])
-          .map((subTokens) => this._postMessage(notification, subTokens, data)),
+    if (targetUser === FcmTargetUser.All) {
+      tokens = (await this.fcmRepository.getAllFcmTokens()).map(
+        ({ fcmTokenId }) => fcmTokenId,
       );
     } else {
       //TODO 이 부분은 알림을 허용한 user에게만 알림이 가도록 수정해야 함.
       //(getAllFcmTokens 함수를 다른 함수로 대체해야 한다.)
-      const tokens = (await this.fcmRepository.getAllFcmTokens()).map(
+      tokens = (await this.fcmRepository.getAllFcmTokens()).map(
         ({ fcmTokenId }) => fcmTokenId,
       );
-      await Promise.all(
-        tokens
-          .reduce((acc, token, index) => {
-            if (index % 500 === 0) return [[token], ...acc];
-            const [first, ...array] = acc;
-            return [[...first, token], ...array];
-          }, [])
-          .map((subTokens) => this._postMessage(notification, subTokens, data)),
-      );
     }
+
+    await Promise.all(
+      tokens
+        .reduce((acc, token, index) => {
+          if (index % 500 === 0) return [[token], ...acc];
+          const [first, ...array] = acc;
+          return [[...first, token], ...array];
+        }, [])
+        .map((subTokens) => this._postMessage(notification, subTokens, data)),
+    );
   }
 
   async _postMessage(
