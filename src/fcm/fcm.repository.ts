@@ -1,7 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Content } from './types/content.type';
-import { Prisma } from '@prisma/client';
+import { FcmToken, Prisma } from '@prisma/client';
 
 @Injectable()
 export class FcmRepository {
@@ -42,5 +46,13 @@ export class FcmRepository {
       })),
     });
     return;
+  }
+
+  async getAllFcmTokens(): Promise<FcmToken[]> {
+    return this.prismaService.fcmToken.findMany().catch((err) => {
+      this.logger.error('getAllFcmTokens');
+      this.logger.debug(err);
+      throw new InternalServerErrorException('Database error');
+    });
   }
 }

@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { Tag } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
@@ -33,7 +34,14 @@ export class TagRepository {
         where: { name },
       })
       .catch((err) => {
-        this.logger.error(err);
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            this.logger.debug(`tag with name ${name} not found`);
+            throw new NotFoundException(`tag with name ${name} not found`);
+          }
+        }
+        this.logger.error('findTag error');
+        this.logger.debug(err);
         throw new InternalServerErrorException();
       })
       .then((tag) => {
