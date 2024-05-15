@@ -18,6 +18,7 @@ import { UserService } from './user.service';
 import {
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
+  ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -32,6 +33,7 @@ import { GetIdPUser } from './decorator/get-idp-user.decorator';
 import { UserInfo } from 'src/idp/types/userInfo.type';
 
 @ApiTags('user')
+@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
 @Controller('user')
 @UsePipes(ValidationPipe)
 export class UserController {

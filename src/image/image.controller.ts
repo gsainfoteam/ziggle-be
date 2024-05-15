@@ -13,11 +13,13 @@ import {
   ApiConsumes,
   ApiInternalServerErrorResponse,
   ApiOperation,
+  ApiOAuth2,
 } from '@nestjs/swagger';
 import { ImageService } from './image.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('image')
+@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
 @Controller('image')
 @UsePipes(ValidationPipe)
 export class ImageController {

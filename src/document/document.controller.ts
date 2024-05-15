@@ -10,6 +10,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiInternalServerErrorResponse,
+  ApiOAuth2,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -18,6 +19,7 @@ import { DocumentService } from './document.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('document')
+@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
 @Controller('document')
 @UsePipes(ValidationPipe)
 export class DocumentController {

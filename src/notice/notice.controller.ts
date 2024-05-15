@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiInternalServerErrorResponse,
+  ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -33,6 +34,7 @@ import { ReactionDto } from './dto/req/reaction.dto';
 import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
 
 @ApiTags('notice')
+@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class NoticeController {
