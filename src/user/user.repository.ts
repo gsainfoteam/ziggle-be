@@ -8,6 +8,7 @@ import { User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { v4 as uuid } from 'uuid';
+import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 
 @Injectable()
 export class UserRepository {
@@ -144,5 +145,33 @@ export class UserRepository {
         this.logger.error(err);
         throw new InternalServerErrorException();
       });
+  }
+
+  async setFcmToken(
+    userUuid: string | undefined,
+    { fcmToken }: setFcmTokenReq,
+  ) {
+    this.logger.log('setFcmToken called');
+    await this.prismaService.fcmToken
+      .upsert({
+        where: { fcmTokenId: fcmToken },
+        update: {
+          userUuid: userUuid ?? null,
+        },
+        create: {
+          fcmTokenId: fcmToken,
+          userUuid: userUuid ?? null,
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          this.logger.error(err.message);
+          //TODO 여러 error case 생각해보기(일단 500 return 하도록 함)
+          throw new InternalServerErrorException();
+        }
+        this.logger.error(err);
+        throw new InternalServerErrorException();
+      });
+    return { message: 'success', fcmToken: fcmToken };
   }
 }

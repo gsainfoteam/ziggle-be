@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { UserRepository } from './user.repository';
 import { JwtTokenType } from './types/jwtToken.type';
 import { User } from '@prisma/client';
+import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -109,5 +110,10 @@ export class UserService {
       return findedUser;
     }
     return this.userRepository.createTempUser(user);
+  }
+
+  async setFcmToken(userUuid: string, fcmToken: setFcmTokenReq) {
+    this.logger.log('setFcmToken is called');
+    return this.userRepository.setFcmToken(userUuid, fcmToken);
   }
 }

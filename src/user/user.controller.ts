@@ -31,6 +31,8 @@ import { GetUser } from './decorator/get-user.decorator';
 import { UserInfoRes } from './dto/res/userInfoRes.dto';
 import { GetIdPUser } from './decorator/get-idp-user.decorator';
 import { UserInfo } from 'src/idp/types/userInfo.type';
+import { setFcmTokenRes } from './dto/res/setFcmTokenRes.dto';
+import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 
 @ApiTags('user')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -136,5 +138,17 @@ export class UserController {
   @UseGuards(IdPGuard)
   async getUserInfo(@GetIdPUser() user: UserInfo): Promise<UserInfoRes> {
     return user;
+  }
+
+  @ApiOperation({
+    summary: 'create or update FCM token',
+    description: 'create or update FCM token',
+  })
+  @ApiOkResponse({ type: setFcmTokenRes, description: 'Return FCM token' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @Post('fcm')
+  async setFcmToken(@GetUser() user: User, @Body() fcmToken: setFcmTokenReq) {
+    return this.userService.setFcmToken(user?.uuid, fcmToken);
   }
 }
