@@ -25,7 +25,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { LogoutDto } from './dto/req/logout.dto';
-import { IdPGuard } from './guard/idp.guard';
+import { IdPGuard, IdPOptionalGuard } from './guard/idp.guard';
 import { User } from '@prisma/client';
 import { GetUser } from './decorator/get-user.decorator';
 import { UserInfoRes } from './dto/res/userInfoRes.dto';
@@ -148,6 +148,7 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post('fcm')
+  @UseGuards(IdPOptionalGuard)
   async setFcmToken(@GetUser() user: User, @Body() fcmToken: setFcmTokenReq) {
     return this.userService.setFcmToken(user?.uuid, fcmToken);
   }
