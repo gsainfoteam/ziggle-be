@@ -17,7 +17,7 @@ export class FileService {
   private readonly s3Client: S3Client;
   constructor(private readonly configService: ConfigService) {
     this.s3Client = new S3Client({
-      region: configService.get('AWS_REGION'),
+      region: configService.get('AWS_S3_REGION'),
     });
   }
 
