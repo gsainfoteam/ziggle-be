@@ -30,7 +30,10 @@ import { ExpandedGeneralNoticeDto } from './dto/res/expandedGeneralNotice.dto';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
 import { ReactionDto } from './dto/req/reaction.dto';
-import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
+import {
+  UpdateNoticeDto,
+  UpdateNoticeQueryDto,
+} from './dto/req/updateNotice.dto';
 import { GetToken } from 'src/user/decorator/get-token.decorator';
 
 @ApiTags('notice')
@@ -184,9 +187,10 @@ export class NoticeController {
   async updateNotice(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
+    @Query() query: UpdateNoticeQueryDto,
     @Body() body: UpdateNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
-    return this.noticeService.updateNotice(body, id, user.uuid);
+    return this.noticeService.updateNotice(body, query, id, user.uuid);
   }
 
   @ApiOperation({
