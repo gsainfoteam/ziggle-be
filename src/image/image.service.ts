@@ -74,7 +74,8 @@ export class ImageService {
     file: Express.Multer.File,
   ): Promise<Express.Multer.File> {
     this.logger.log('convertToWebp called');
-    file.buffer = await sharp(file.buffer).webp().toBuffer();
+    file.buffer = await sharp(file.buffer).rotate().webp().toBuffer();
+    this.logger.log('convertToWebp finished');
     return file;
   }
 }
