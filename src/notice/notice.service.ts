@@ -17,7 +17,10 @@ import { DocumentService } from 'src/document/document.service';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
 import { ReactionDto } from './dto/req/reaction.dto';
-import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
+import {
+  UpdateNoticeDto,
+  UpdateNoticeQueryDto,
+} from './dto/req/updateNotice.dto';
 import { FileService } from 'src/file/file.service';
 import { GroupService } from 'src/group/group.service';
 import { FcmService } from 'src/fcm/fcm.service';
@@ -174,6 +177,7 @@ export class NoticeService {
 
   async updateNotice(
     body: UpdateNoticeDto,
+    query: UpdateNoticeQueryDto,
     id: number,
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
@@ -184,7 +188,7 @@ export class NoticeService {
     if (noitce.createdAt.getTime() + 1000 * 60 * 30 < new Date().getTime()) {
       throw new ForbiddenException();
     }
-    await this.noticeRepository.updateNotice(body, id, userUuid);
+    await this.noticeRepository.updateNotice(body, query, id, userUuid);
 
     return this.getNotice(id, { isViewed: false });
   }

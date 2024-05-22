@@ -29,3 +29,23 @@ export class UpdateNoticeDto {
   @IsOptional()
   deadline?: Date;
 }
+
+export class UpdateNoticeQueryDto {
+  @ApiProperty({
+    example: 1,
+    description: 'Content IDX, Default: 1',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  idx?: number;
+
+  @ApiProperty({
+    example: 'ko',
+    description: 'Language, Default: ko',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  lang?: string;
+}

@@ -30,7 +30,10 @@ import { ExpandedGeneralNoticeDto } from './dto/res/expandedGeneralNotice.dto';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
 import { ReactionDto } from './dto/req/reaction.dto';
-import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
+import {
+  UpdateNoticeDto,
+  UpdateNoticeQueryDto,
+} from './dto/req/updateNotice.dto';
 import { GetToken } from 'src/user/decorator/get-token.decorator';
 
 @ApiTags('notice')
@@ -53,23 +56,6 @@ export class NoticeController {
   @Get()
   @UseGuards(IdPOptionalGuard)
   async getNoticeList(
-    @Query() query: GetAllNoticeQueryDto,
-    @GetUser() user?: User,
-  ): Promise<GeneralNoticeListDto> {
-    return this.noticeService.getNoticeList(query, user?.uuid);
-  }
-
-  @ApiOperation({
-    summary: 'Get all notice list',
-    description: 'Get all notice list',
-  })
-  @ApiOkResponse({
-    type: GeneralNoticeListDto,
-    description: 'Return all notice list',
-  })
-  @Get('all')
-  @UseGuards(IdPOptionalGuard)
-  async getAllNoticeList(
     @Query() query: GetAllNoticeQueryDto,
     @GetUser() user?: User,
   ): Promise<GeneralNoticeListDto> {
@@ -201,9 +187,10 @@ export class NoticeController {
   async updateNotice(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
+    @Query() query: UpdateNoticeQueryDto,
     @Body() body: UpdateNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
-    return this.noticeService.updateNotice(body, id, user.uuid);
+    return this.noticeService.updateNotice(body, query, id, user.uuid);
   }
 
   @ApiOperation({

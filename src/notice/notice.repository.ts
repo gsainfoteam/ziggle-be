@@ -13,7 +13,10 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
-import { UpdateNoticeDto } from './dto/req/updateNotice.dto';
+import {
+  UpdateNoticeDto,
+  UpdateNoticeQueryDto,
+} from './dto/req/updateNotice.dto';
 
 @Injectable()
 export class NoticeRepository {
@@ -651,6 +654,7 @@ export class NoticeRepository {
 
   async updateNotice(
     { body, deadline }: UpdateNoticeDto,
+    { idx = 1, lang = 'ko' }: UpdateNoticeQueryDto,
     id: number,
     userUuid: string,
   ): Promise<void> {
@@ -662,8 +666,8 @@ export class NoticeRepository {
             update: {
               where: {
                 id_lang_noticeId: {
-                  lang: 'ko',
-                  id: 1,
+                  lang,
+                  id: idx,
                   noticeId: id,
                 },
               },
