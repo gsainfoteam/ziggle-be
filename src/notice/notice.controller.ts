@@ -60,23 +60,6 @@ export class NoticeController {
   }
 
   @ApiOperation({
-    summary: 'Get all notice list',
-    description: 'Get all notice list',
-  })
-  @ApiOkResponse({
-    type: GeneralNoticeListDto,
-    description: 'Return all notice list',
-  })
-  @Get('all')
-  @UseGuards(IdPOptionalGuard)
-  async getAllNoticeList(
-    @Query() query: GetAllNoticeQueryDto,
-    @GetUser() user?: User,
-  ): Promise<GeneralNoticeListDto> {
-    return this.noticeService.getNoticeList(query, user?.uuid);
-  }
-
-  @ApiOperation({
     summary: 'Get notice',
     description: 'Get notice',
   })
