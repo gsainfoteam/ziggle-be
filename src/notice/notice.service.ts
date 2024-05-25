@@ -162,7 +162,7 @@ export class NoticeService {
   ): Promise<ExpandedGeneralNoticeDto> {
     await this.noticeRepository.addReminder(id, userUuid);
 
-    return this.getNotice(id, { isViewed: false });
+    return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
   async addNoticeReaction(
@@ -172,7 +172,7 @@ export class NoticeService {
   ): Promise<ExpandedGeneralNoticeDto> {
     await this.noticeRepository.addReaction(emoji, id, userUuid);
 
-    return this.getNotice(id, { isViewed: false });
+    return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
   async updateNotice(
@@ -199,7 +199,7 @@ export class NoticeService {
   ): Promise<ExpandedGeneralNoticeDto> {
     await this.noticeRepository.removeReminder(id, userUuid);
 
-    return this.getNotice(id, { isViewed: false });
+    return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
   async removeNoticeReaction(
@@ -209,7 +209,7 @@ export class NoticeService {
   ): Promise<ExpandedGeneralNoticeDto> {
     await this.noticeRepository.removeReaction(emoji, id, userUuid);
 
-    return this.getNotice(id, { isViewed: false });
+    return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {
