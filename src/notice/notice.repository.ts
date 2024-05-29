@@ -49,6 +49,9 @@ export class NoticeRepository {
               },
             }
           : {}),
+        ...(orderBy === 'deadline'
+          ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
+          : {}),
         ...(search
           ? {
               OR: [
