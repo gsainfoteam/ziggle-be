@@ -56,6 +56,16 @@ export class NoticeRepository {
           ? {
               OR: [
                 {
+                  cralws: {
+                    some: {
+                      OR: [
+                        { title: { contains: search } },
+                        { body: { contains: search } },
+                      ],
+                    },
+                  },
+                },
+                {
                   contents: {
                     some: {
                       OR: [
@@ -120,6 +130,16 @@ export class NoticeRepository {
           ...(search
             ? {
                 OR: [
+                  {
+                    cralws: {
+                      some: {
+                        OR: [
+                          { title: { contains: search } },
+                          { body: { contains: search } },
+                        ],
+                      },
+                    },
+                  },
                   {
                     contents: {
                       some: {
