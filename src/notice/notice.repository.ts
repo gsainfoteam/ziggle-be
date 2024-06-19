@@ -293,6 +293,7 @@ export class NoticeRepository {
       images,
       documents,
       groupName,
+      category,
     }: CreateNoticeDto,
     userUuid: string,
     createdAt?: Date,
@@ -356,6 +357,7 @@ export class NoticeRepository {
               })),
             ],
           },
+          category,
           group:
             groupName === undefined
               ? undefined
