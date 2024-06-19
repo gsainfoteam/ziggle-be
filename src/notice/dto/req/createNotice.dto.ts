@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Category } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsDate,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -47,6 +49,15 @@ export class CreateNoticeDto {
   @IsNumber({}, { each: true })
   @IsOptional()
   tags: number[] = [];
+
+  @ApiProperty({
+    description: '공지 그룹의 id',
+    type: Category,
+    required: false,
+  })
+  @IsEnum(Category)
+  @IsOptional()
+  category?: Category;
 
   @ApiProperty({
     example: 'wow.png',
