@@ -52,8 +52,8 @@ export class CreateNoticeDto {
 
   @ApiProperty({
     description: '공지 그룹의 id',
-    type: Category,
     required: false,
+    enum: Category,
   })
   @IsEnum(Category)
   @IsOptional()
