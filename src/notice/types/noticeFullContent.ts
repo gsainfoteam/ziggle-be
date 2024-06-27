@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 export type NoticeFullContent = Prisma.NoticeGetPayload<{
   include: {
     contents: true;
-    cralws: true;
+    crawls: true;
     tags: true;
     author: {
       select: {

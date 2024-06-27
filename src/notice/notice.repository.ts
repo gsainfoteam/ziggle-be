@@ -56,7 +56,7 @@ export class NoticeRepository {
           ? {
               OR: [
                 {
-                  cralws: {
+                  crawls: {
                     some: {
                       OR: [
                         { title: { contains: search } },
@@ -131,7 +131,7 @@ export class NoticeRepository {
             ? {
                 OR: [
                   {
-                    cralws: {
+                    crawls: {
                       some: {
                         OR: [
                           { title: { contains: search } },
@@ -163,7 +163,7 @@ export class NoticeRepository {
               id: 1,
             },
           },
-          cralws: true,
+          crawls: true,
           reminders: true,
           author: {
             select: {
@@ -212,7 +212,7 @@ export class NoticeRepository {
               id: 'asc',
             },
           },
-          cralws: true,
+          crawls: true,
           reminders: true,
           author: {
             select: {
@@ -270,7 +270,7 @@ export class NoticeRepository {
               id: 'asc',
             },
           },
-          cralws: true,
+          crawls: true,
           reminders: true,
           author: {
             select: {
@@ -396,7 +396,7 @@ export class NoticeRepository {
               id: 'asc',
             },
           },
-          cralws: true,
+          crawls: true,
           reminders: true,
           author: {
             select: {

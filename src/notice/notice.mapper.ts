@@ -23,7 +23,7 @@ export class NoticeMapper {
       tags,
       views,
       contents,
-      cralws,
+      crawls,
       author,
       files,
       reactions,
@@ -47,11 +47,11 @@ export class NoticeMapper {
       contents[0];
     return {
       id,
-      ...(cralws.length > 0
+      ...(crawls.length > 0
         ? {
-            title: cralws[0].title,
+            title: crawls[0].title,
             langs: ['ko'],
-            content: cralws[cralws.length - 1].body,
+            content: crawls[crawls.length - 1].body,
             deadline: null,
           }
         : {
