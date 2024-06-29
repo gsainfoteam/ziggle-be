@@ -1,5 +1,8 @@
 Project Ziggle {
     database_type: 'postgresql'
+    note: '''
+    # Ziggle
+    '''
 }
 
 Enum FileType {
