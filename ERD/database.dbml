@@ -11,73 +11,121 @@ Enum CrawlType {
     ACADEMIC
 }
 
-Table User {
+Enum Category {
+    ACADEMIC
+    RECRUIT
+    EVENT
+    CLUB
+    ETC
+}
+
+Table user {
     uuid varchar [pk]
     name varchar
     createdAt timestamp
     consent boolean
 }
 
-Table File {
-    uuid varchar [pk]
-    name varchar
-    createdAt timestamp
-    url varchar
-    type FileType
-    notice integer [ref: > Notice.id]
+Table user_record {
+    views integer [default: 1]
+    updated_at timestamp
+    user_uuid varchar [ref: > user.uuid]
+    notice_id integer [ref: > notice.id]
+
+    Indexes {
+        (user_uuid, notice_id) [pk]
+    }
 }
 
-Table Content {
+Table group {
+    name varchar [pk]
+}
+
+Table file {
+    uuid varchar [pk]
+    order integer [default: 0]
+    name varchar
+    created_at timestamp
+    url varchar
+    type FileType
+    notice_id integer [ref: > notice.id]
+}
+
+Table content {
     id integer [pk, increment]
 
     lang varchar
-    title varchar
+    title varchar [null]
     body text
-    deadline timestamp
+    deadline timestamp [null]
     createdAt timestamp
 
-    notice integer [ref: > Notice.id]
+    notice_id integer [ref: > notice.id]
 }
 
-Table Notice {
-    id integer [pk, increment]
-
-    views integer
-    currentDeadline date
-    createdAt timestamp
-    deletedAt timestamp
-
-    author varchar [ref: > User.uuid]
-    reminders varchar [ref: <> User.uuid]
-    tags integer [ref: <> Tag.id]
-}
-
-Table Crawl {
+Table crawl {
     id integer [pk, increment]
 
     title varchar
     body longtext
     type CrawlType
-    crawledAt timestamp
+    crawled_at timestamp
 
     url varchar
 
-    notice integer [ref: > Notice.id]
+    notice_id integer [ref: > notice.id]
 }
 
-Table Tag {
+Table notice {
     id integer [pk, increment]
-    name varchar
+
+    views integer
+    category Category
+    current_deadline date
+    created_at timestamp
+    updated_at timestamp
+    published_at timestamp
+    deleted_at timestamp
+
+    author_id varchar [ref: > user.uuid]
+    reminders varchar [ref: <> user.uuid]
+    tags integer [ref: <> tag.id]
+    group_name varchar [ref: > group.name]
 }
 
-Table Reaction {
+Table tag {
+    id integer [pk, increment]
+    name varchar [unique]
+}
+
+Table reaction {
     emoji varchar
     createdAt timestamp
     deletedAt timestamp
-    notice integer [ref: > Notice.id]
-    user varchar [ref: > User.uuid]
+    notice_id integer [ref: > notice.id]
+    user_uuid varchar [ref: > user.uuid]
 
     Indexes {
-        (notice, user, emoji) [unique]
+        (notice_id, user_uuid, emoji) [unique]
     }
+}
+
+Table fcm_token {
+    fcm_token_id varchar [pk]
+    created_at timestamp
+    last_check_at timestamp
+    success_count integer
+    fail_count integer
+
+    errors varchar
+
+    user_uuid varchar [ref: > user.uuid]
+}
+
+Table log {
+    id integer [pk, increment]
+    content json
+    created_at timestamp
+
+    fcm_token_id varchar [ref: > fcm_token.fcm_token_id]
 }
