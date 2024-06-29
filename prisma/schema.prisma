@@ -130,7 +130,7 @@ model Notice {
   author     User         @relation(fields: [authorId], references: [uuid])
   files      File[]
   contents   Content[]
-  cralws     Crawl[]
+  crawls     Crawl[]
   tags       Tag[]
   reactions  Reaction[]
   group      Group?       @relation(fields: [groupName], references: [name])
