@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -48,11 +49,19 @@ export class NoticeService {
     const notices = (
       await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
     ).map((notice) =>
-      this.noticeMapper.NoticeFullContentToGeneralNoticeList(
-        notice,
-        getAllNoticeQueryDto.lang,
-        userUuid,
-      ),
+      this.noticeMapper
+        .NoticeFullContentToGeneralNoticeList(
+          notice,
+          getAllNoticeQueryDto.lang,
+          userUuid,
+        )
+        .catch((error) => {
+          this.loggger.debug(`Notice ${notice.id} is not valid`);
+          this.loggger.error(error);
+          throw new InternalServerErrorException(
+            `Notice ${notice.id} is not valid`,
+          );
+        }),
     );
     return {
       total: await this.noticeRepository.getTotalCount(
@@ -76,11 +85,19 @@ export class NoticeService {
     } else {
       notice = await this.noticeRepository.getNotice(id);
     }
-    return this.noticeMapper.NoticeFullContentToExpandedGeneralNoticeList(
-      notice,
-      getNoticeDto.lang,
-      userUuid,
-    );
+    return this.noticeMapper
+      .NoticeFullContentToExpandedGeneralNoticeList(
+        notice,
+        getNoticeDto.lang,
+        userUuid,
+      )
+      .catch((error) => {
+        this.loggger.debug(`Notice ${notice.id} is not valid`);
+        this.loggger.error(error);
+        throw new InternalServerErrorException(
+          `Notice ${notice.id} is not valid`,
+        );
+      });
   }
 
   async createNotice(
