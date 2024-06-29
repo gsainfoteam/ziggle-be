@@ -107,7 +107,10 @@ export class NoticeMapper {
     );
     return {
       content: htmlToText(content, {
-        selectors: [{ selector: 'a', options: { ignoreHref: true } }],
+        selectors: [
+          { selector: 'a', options: { ignoreHref: true } },
+          { selector: 'img', format: 'skip' },
+        ],
       }).slice(0, 1000),
       ...result,
     };
