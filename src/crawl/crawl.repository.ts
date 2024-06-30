@@ -53,10 +53,10 @@ export class CrawlRepository {
           body,
           type,
           url,
-          deadline,
           notice: {
             create: {
               category: 'ACADEMIC',
+              currentDeadline: deadline,
               author: {
                 connect: user,
               },

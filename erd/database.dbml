@@ -73,7 +73,6 @@ Table crawl {
     body longtext
     type CrawlType
     crawled_at timestamp
-    deadline timestamp
 
     url varchar
 

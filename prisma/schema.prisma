@@ -97,7 +97,6 @@ model Crawl {
   type      CrawlType
   url       String    @db.VarChar(300)
   crawledAt DateTime  @default(now()) @map("crawled_at")
-  deadline  DateTime?
 
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id])
