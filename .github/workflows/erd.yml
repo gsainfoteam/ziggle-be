@@ -1,0 +1,27 @@
+name: DBDOCS
+
+on:
+  push:
+    paths:
+      - 'erd/database.dbml'
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build ERD
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dbdocs
+        run: sudo npm install -g dbdocs
+
+      - name: Check dbdocs
+        run: dbdocs --version
+
+      - name: Build and Update ERD
+        run: dbdocs build ./erd/database.dbml
+        env:
+          DBDOCS_TOKEN: ${{ secrets.DBDOCS_TOKEN }}

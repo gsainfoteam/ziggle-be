@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -25,6 +26,8 @@ import { FileService } from 'src/file/file.service';
 import { GroupService } from 'src/group/group.service';
 import { FcmService } from 'src/fcm/fcm.service';
 import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
+import { htmlToText } from 'html-to-text';
+import { Notification } from 'firebase-admin/messaging';
 
 @Injectable()
 export class NoticeService {
@@ -46,11 +49,19 @@ export class NoticeService {
     const notices = (
       await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
     ).map((notice) =>
-      this.noticeMapper.NoticeFullContentToGeneralNoticeList(
-        notice,
-        getAllNoticeQueryDto.lang,
-        userUuid,
-      ),
+      this.noticeMapper
+        .NoticeFullContentToGeneralNoticeList(
+          notice,
+          getAllNoticeQueryDto.lang,
+          userUuid,
+        )
+        .catch((error) => {
+          this.loggger.debug(`Notice ${notice.id} is not valid`);
+          this.loggger.error(error);
+          throw new InternalServerErrorException(
+            `Notice ${notice.id} is not valid`,
+          );
+        }),
     );
     return {
       total: await this.noticeRepository.getTotalCount(
@@ -74,11 +85,19 @@ export class NoticeService {
     } else {
       notice = await this.noticeRepository.getNotice(id);
     }
-    return this.noticeMapper.NoticeFullContentToExpandedGeneralNoticeList(
-      notice,
-      getNoticeDto.lang,
-      userUuid,
-    );
+    return this.noticeMapper
+      .NoticeFullContentToExpandedGeneralNoticeList(
+        notice,
+        getNoticeDto.lang,
+        userUuid,
+      )
+      .catch((error) => {
+        this.loggger.debug(`Notice ${notice.id} is not valid`);
+        this.loggger.error(error);
+        throw new InternalServerErrorException(
+          `Notice ${notice.id} is not valid`,
+        );
+      });
   }
 
   async createNotice(
@@ -104,22 +123,28 @@ export class NoticeService {
       await this.documentService.validateDocuments(createNoticeDto.documents);
     }
 
-    const notice = await this.noticeRepository.createNotice(
+    const createdNotice = await this.noticeRepository.createNotice(
       createNoticeDto,
       userUuid,
     );
 
+    const notice = await this.getNotice(createdNotice.id, { isViewed: false });
+
     const notification = {
-      title: createNoticeDto.title,
-      body: createNoticeDto.body,
-      imageUrl: createNoticeDto.images[0],
+      title: notice.title,
+      body: notice.content,
+      imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
     };
 
-    await this.fcmService.postMessage(notification, FcmTargetUser.All, {
-      path: `/notice/${notice.id}`,
-    });
+    await this.fcmService.postMessage(
+      this.convertNotificationBodyToString(notification),
+      FcmTargetUser.All,
+      {
+        path: `/notice/${createdNotice.id}`,
+      },
+    );
 
-    return this.getNotice(notice.id, { isViewed: false });
+    return notice;
   }
 
   async addNoticeAdditional(
@@ -219,5 +244,21 @@ export class NoticeService {
     }
     await this.fileService.deleteFiles(notice.files.map(({ url }) => url));
     await this.noticeRepository.deleteNotice(id, userUuid);
+  }
+
+  convertNotificationBodyToString(notification: Notification) {
+    return {
+      ...notification,
+      body: notification.body
+        ? htmlToText(notification.body, {
+            selectors: [
+              { selector: 'a', options: { ignoreHref: true } },
+              { selector: 'img', format: 'skip' },
+            ],
+          })
+            .slice(0, 1000)
+            .replaceAll(/\s+/gm, ' ')
+        : undefined,
+    };
   }
 }

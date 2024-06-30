@@ -2,6 +2,9 @@ name: Update Kubernetes Cluster (Dev)
 
 on:
   push:
+    paths:
+      - src/**
+      - prisma/**
     branches:
       - master
 
