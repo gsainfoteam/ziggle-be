@@ -10,6 +10,7 @@ import { ImageModule } from './image/image.module';
 import { CrawlModule } from './crawl/crawl.module';
 import { GroupModule } from './group/group.module';
 import { FcmModule } from './fcm/fcm.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { FcmModule } from './fcm/fcm.module';
     CrawlModule,
     GroupModule,
     FcmModule,
+    AiModule,
   ],
   controllers: [AppController],
 })
