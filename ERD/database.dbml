@@ -61,6 +61,7 @@ Table Crawl {
     crawledAt timestamp
 
     url varchar
+    deadline DateTime
 
     notice integer [ref: > Notice.id]
 }

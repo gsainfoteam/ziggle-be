@@ -1,5 +1,12 @@
 import { CrawlType } from '@prisma/client';
-import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  IsDate,
+} from 'class-validator';
 
 export class CreateCrawlDto {
   @IsString()
@@ -27,4 +34,9 @@ export class CreateCrawlDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+
+  @IsDate()
+  @IsNotEmpty()
+  @Type(() => Date)
+  createdAt: Date;
 }

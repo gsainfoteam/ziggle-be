@@ -97,6 +97,7 @@ model Crawl {
   type      CrawlType
   url       String    @db.VarChar(300)
   crawledAt DateTime  @default(now()) @map("crawled_at")
+  deadline  DateTime?
 
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id])
@@ -130,7 +131,7 @@ model Notice {
   author     User         @relation(fields: [authorId], references: [uuid])
   files      File[]
   contents   Content[]
-  cralws     Crawl[]
+  crawls     Crawl[]
   tags       Tag[]
   reactions  Reaction[]
   group      Group?       @relation(fields: [groupName], references: [name])
