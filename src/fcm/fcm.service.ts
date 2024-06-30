@@ -4,12 +4,15 @@ import { App, cert, initializeApp } from 'firebase-admin/app';
 import { Notification, getMessaging } from 'firebase-admin/messaging';
 import { FcmRepository } from './fcm.repository';
 import { FcmTargetUser } from './types/fcmTargetUser.type';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class FcmService {
   private readonly app: App;
   private readonly logger = new Logger(FcmService.name);
   constructor(
+    @InjectQueue('fcm') private readonly fcmQueue: Queue,
     private readonly configService: ConfigService,
     private readonly fcmRepository: FcmRepository,
   ) {
@@ -22,6 +25,27 @@ export class FcmService {
           .replace(/\\n/g, '\n'),
       }),
     });
+  }
+
+  async postMessageWithDelay(
+    name: string,
+    notification: Notification,
+    targetUser: FcmTargetUser,
+    data?: Record<string, string>,
+  ): Promise<void> {
+    await this.fcmQueue.add(
+      { notification, targetUser, data },
+      {
+        delay: this.configService.getOrThrow<number>('FCM_DELAY'),
+        removeOnComplete: true,
+        removeOnFail: true,
+        jobId: name,
+      },
+    );
+  }
+
+  async deleteMessage(name: string): Promise<void> {
+    await this.fcmQueue.removeJobs(name);
   }
 
   async postMessage(
