@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { Crawl } from '@prisma/client';
 import { GetCrawlDto } from './dto/req/getCrawl.dto';
+import { AiService } from 'src/ai/ai.service';
 
 @Injectable()
 export class CrawlService {
@@ -18,6 +19,7 @@ export class CrawlService {
     private readonly crawlRepository: CrawlRepository,
     private readonly configService: ConfigService,
     private readonly userService: UserService,
+    private readonly aiService: AiService,
   ) {}
 
   async getCrawlData(dto: GetCrawlDto): Promise<Crawl> {
@@ -42,7 +44,11 @@ export class CrawlService {
     const user = await this.userService.findOrCreateTempUser({
       name: dto.authorName,
     });
-    await this.crawlRepository.createCrawl(dto, user);
+    const deadline = await this.aiService.detectDeadline(
+      dto.body,
+      dto.createdAt,
+    );
+    await this.crawlRepository.createCrawl(dto, deadline, user);
   }
 
   async updateCrawl(dto: CreateCrawlDto): Promise<void> {

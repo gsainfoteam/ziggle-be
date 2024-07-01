@@ -4,7 +4,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { DeadlineDetectionService } from 'src/ai/deadline-detection';
 import { CreateCrawlDto } from './dto/req/createCrawl.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Crawl, User } from '@prisma/client';
@@ -13,10 +12,7 @@ import { GetCrawlDto } from './dto/req/getCrawl.dto';
 @Injectable()
 export class CrawlRepository {
   private readonly logger = new Logger(CrawlRepository.name);
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly deadlineDetectionService: DeadlineDetectionService,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async getCrawlData({ url }: GetCrawlDto): Promise<Crawl | null> {
     this.logger.log('getCrawlData');
@@ -38,14 +34,10 @@ export class CrawlRepository {
 
   async createCrawl(
     { title, body, type, url, createdAt }: CreateCrawlDto,
+    deadline: Date | null,
     user: User,
   ): Promise<Crawl> {
     this.logger.log('createCrawl');
-    const deadline = await this.deadlineDetectionService.detectDeadline(
-      body,
-      createdAt,
-    );
-
     return this.prismaService.crawl
       .create({
         data: {
@@ -53,6 +45,7 @@ export class CrawlRepository {
           body,
           type,
           url,
+          crawledAt: createdAt,
           notice: {
             create: {
               category: 'ACADEMIC',
