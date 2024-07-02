@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { FcmRepository } from './fcm.repository';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { BullModule } from '@nestjs/bull';
+import { FcmConsumer } from './fcm.consumer';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { BullModule } from '@nestjs/bull';
     PrismaModule,
     BullModule.registerQueue({ name: 'fcm' }),
   ],
-  providers: [FcmService, FcmRepository],
+  providers: [FcmService, FcmRepository, FcmConsumer],
   exports: [FcmService],
 })
 export class FcmModule {}
