@@ -416,7 +416,6 @@ export class NoticeRepository {
       .catch((error) => {
         if (error instanceof PrismaClientKnownRequestError) {
           if (error.code === 'P2025') {
-            console.log(error);
             this.logger.debug(`User uuid not found`);
             throw new NotFoundException(`User uuid not found`);
           }
