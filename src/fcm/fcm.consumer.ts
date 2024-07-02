@@ -1,7 +1,8 @@
-import { Process, Processor } from '@nestjs/bull';
+import { OnQueueCompleted, Process, Processor } from '@nestjs/bull';
 import { FcmService } from './fcm.service';
 import { QueueDataType } from './types/queue.type';
 import { Logger } from '@nestjs/common';
+import { Job } from 'bull';
 
 @Processor('fcm')
 export class FcmConsumer {
@@ -13,5 +14,10 @@ export class FcmConsumer {
     this.logger.debug('Start processing fcm message');
     const { targetUser, notification, data } = job.data;
     await this.fcmService.postMessage(notification, targetUser, data);
+  }
+
+  @OnQueueCompleted()
+  async onCompleted(job: Job) {
+    this.logger.log(`Job ${job.id} completed`);
   }
 }
