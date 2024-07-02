@@ -136,7 +136,8 @@ export class NoticeService {
       imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
     };
 
-    await this.fcmService.postMessage(
+    await this.fcmService.postMessageWithDelay(
+      String(notice.id),
       this.convertNotificationBodyToString(notification),
       FcmTargetUser.All,
       {
