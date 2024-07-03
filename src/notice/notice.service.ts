@@ -239,6 +239,7 @@ export class NoticeService {
   }
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {
+    await this.fcmService.deleteMessage(String(id));
     const notice = await this.noticeRepository.getNotice(id);
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException();

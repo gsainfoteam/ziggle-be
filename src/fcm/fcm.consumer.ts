@@ -1,4 +1,9 @@
-import { OnQueueCompleted, Process, Processor } from '@nestjs/bull';
+import {
+  OnQueueCompleted,
+  OnQueueRemoved,
+  Process,
+  Processor,
+} from '@nestjs/bull';
 import { FcmService } from './fcm.service';
 import { QueueDataType } from './types/queue.type';
 import { Logger } from '@nestjs/common';
@@ -18,6 +23,11 @@ export class FcmConsumer {
 
   @OnQueueCompleted()
   async onCompleted(job: Job) {
-    this.logger.log(`Job ${job.id} completed`);
+    this.logger.debug(`Job ${job.id} completed`);
+  }
+
+  @OnQueueRemoved()
+  async onRemoved(job: Job) {
+    this.logger.debug(`Job ${job.id} removed`);
   }
 }

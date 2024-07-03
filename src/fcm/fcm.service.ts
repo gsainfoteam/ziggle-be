@@ -33,6 +33,7 @@ export class FcmService {
     targetUser: FcmTargetUser,
     data?: Record<string, string>,
   ): Promise<void> {
+    this.logger.log(`Adding message to queue with name ${name}`);
     await this.fcmQueue.add(
       { notification, targetUser, data },
       {
