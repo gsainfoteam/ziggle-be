@@ -8,7 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import dayjs from 'dayjs';
 import { NoticeFullContent } from './types/noticeFullContent';
-import { FileType } from '@prisma/client';
+import { FileType, Notice } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
@@ -307,7 +307,8 @@ export class NoticeRepository {
    * this method is used to create the notice
    * @param param0 create notice dto
    * @param userUuid user's uuid
-   * @param createdAt created time
+   * @param createdAt created time (optional)
+   * @param publishedAt published time (optional) the time that will be sent fcm message.
    * @returns NoticeFullContent
    */
   async createNotice(
@@ -323,6 +324,7 @@ export class NoticeRepository {
     }: CreateNoticeDto,
     userUuid: string,
     createdAt?: Date,
+    publishedAt?: Date,
   ): Promise<NoticeFullContent> {
     this.logger.log(`createNotice`);
     const findTags = await this.prismaService.tag.findMany({
@@ -388,6 +390,7 @@ export class NoticeRepository {
             groupName === undefined
               ? undefined
               : { connect: { name: groupName } },
+          publishedAt,
         },
         include: {
           tags: true,
@@ -427,6 +430,17 @@ export class NoticeRepository {
         this.logger.debug(error);
         throw new InternalServerErrorException('Unknown Error');
       });
+  }
+
+  async updatePublishedAt(id: number): Promise<Notice> {
+    return this.prismaService.notice.update({
+      where: {
+        id,
+      },
+      data: {
+        publishedAt: new Date(),
+      },
+    });
   }
 
   async addAdditionalNotice(

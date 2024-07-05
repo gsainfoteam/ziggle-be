@@ -28,10 +28,12 @@ import { FcmService } from 'src/fcm/fcm.service';
 import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 import { htmlToText } from 'html-to-text';
 import { Notification } from 'firebase-admin/messaging';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NoticeService {
   private readonly loggger = new Logger(NoticeService.name);
+  private fcmDelay: number;
   constructor(
     private readonly imageService: ImageService,
     private readonly documentService: DocumentService,
@@ -40,7 +42,10 @@ export class NoticeService {
     private readonly noticeMapper: NoticeMapper,
     private readonly groupService: GroupService,
     private readonly fcmService: FcmService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.fcmDelay = Number(this.configService.getOrThrow<number>('FCM_DELAY'));
+  }
 
   async getNoticeList(
     getAllNoticeQueryDto: GetAllNoticeQueryDto,
@@ -123,9 +128,13 @@ export class NoticeService {
       await this.documentService.validateDocuments(createNoticeDto.documents);
     }
 
+    const publishedAt = new Date(new Date().getTime() + this.fcmDelay);
+
     const createdNotice = await this.noticeRepository.createNotice(
       createNoticeDto,
       userUuid,
+      undefined,
+      publishedAt,
     );
 
     const notice = await this.getNotice(createdNotice.id, { isViewed: false });
@@ -146,6 +155,33 @@ export class NoticeService {
     );
 
     return notice;
+  }
+
+  async sendNotice(id: number, userUuid: string): Promise<void> {
+    this.loggger.log(`Send notice ${id}`);
+    const notice = await this.getNotice(id, { isViewed: false });
+    if (notice.author.uuid !== userUuid) {
+      throw new ForbiddenException('not author of the notice');
+    }
+    if (notice.publishedAt === null || notice.publishedAt < new Date()) {
+      throw new ForbiddenException('a message already sent');
+    }
+    this.loggger.log(`Notice time ${notice.publishedAt} is not sent yet`);
+
+    const notification = {
+      title: notice.title,
+      body: notice.content,
+      imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
+    };
+
+    await this.fcmService.deleteMessage(String(notice.id));
+    await this.fcmService.postMessage(
+      this.convertNotificationBodyToString(notification),
+      FcmTargetUser.All,
+      {
+        path: `/notice/${id}`,
+      },
+    );
   }
 
   async addNoticeAdditional(

@@ -51,6 +51,9 @@ export class GeneralNoticeDto {
   @ApiProperty()
   currentDeadline: Date | null;
 
+  @ApiProperty()
+  publishedAt: Date | null;
+
   @ApiPropertyOptional()
   imageUrls?: string[];
 

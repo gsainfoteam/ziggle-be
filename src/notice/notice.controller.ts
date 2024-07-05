@@ -103,6 +103,22 @@ export class NoticeController {
   }
 
   @ApiOperation({
+    summary: 'Send notice alarm',
+    description: 'Send notice alarm',
+  })
+  @ApiOkResponse({ description: 'Return notice' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @Post(':id/alarm')
+  @UseGuards(IdPGuard)
+  async sendNotice(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<void> {
+    return this.noticeService.sendNotice(id, user.uuid);
+  }
+
+  @ApiOperation({
     summary: 'Add additional notice',
     description: 'Add additional notice',
   })
