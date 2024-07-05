@@ -33,7 +33,8 @@ export class CrawlRepository {
   }
 
   async createCrawl(
-    { title, body, type, url }: CreateCrawlDto,
+    { title, body, type, url, createdAt }: CreateCrawlDto,
+    deadline: Date | null,
     user: User,
   ): Promise<Crawl> {
     this.logger.log('createCrawl');
@@ -44,9 +45,11 @@ export class CrawlRepository {
           body,
           type,
           url,
+          crawledAt: createdAt,
           notice: {
             create: {
               category: 'ACADEMIC',
+              currentDeadline: deadline,
               author: {
                 connect: user,
               },

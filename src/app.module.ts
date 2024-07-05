@@ -12,6 +12,7 @@ import { GroupModule } from './group/group.module';
 import { FcmModule } from './fcm/fcm.module';
 import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         },
       }),
     }),
+    AiModule,
   ],
   controllers: [AppController],
 })

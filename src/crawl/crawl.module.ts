@@ -5,9 +5,10 @@ import { CrawlRepository } from './crawl.repository';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from 'src/user/user.module';
+import { AiModule } from 'src/ai/ai.module';
 
 @Module({
-  imports: [PrismaModule, ConfigModule, UserModule],
+  imports: [PrismaModule, ConfigModule, UserModule, AiModule],
   providers: [CrawlService, CrawlRepository],
   controllers: [CrawlController],
 })
