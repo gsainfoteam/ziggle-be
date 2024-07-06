@@ -28,24 +28,24 @@ export class FcmService {
   }
 
   async postMessageWithDelay(
-    name: string,
+    jobId: string,
     notification: Notification,
     targetUser: FcmTargetUser,
     data?: Record<string, string>,
   ): Promise<void> {
-    this.logger.log(`Adding message to queue with name ${name}`);
+    this.logger.log(`Adding message to queue with jobId ${jobId}`);
     await this.fcmQueue.add(
       { notification, targetUser, data },
       {
         delay: this.configService.getOrThrow<number>('FCM_DELAY'),
         removeOnComplete: true,
         removeOnFail: true,
-        jobId: name,
+        jobId,
       },
     );
   }
 
-  async deleteMessage(name: string): Promise<void> {
+  async deleteMessageJobIdPattern(name: string): Promise<void> {
     await this.fcmQueue.removeJobs(name);
   }
 

@@ -128,13 +128,11 @@ export class NoticeService {
       await this.documentService.validateDocuments(createNoticeDto.documents);
     }
 
-    const publishedAt = new Date(new Date().getTime() + this.fcmDelay);
-
     const createdNotice = await this.noticeRepository.createNotice(
       createNoticeDto,
       userUuid,
       undefined,
-      publishedAt,
+      new Date(new Date().getTime() + this.fcmDelay),
     );
 
     const notice = await this.getNotice(createdNotice.id, { isViewed: false });
@@ -146,7 +144,7 @@ export class NoticeService {
     };
 
     await this.fcmService.postMessageWithDelay(
-      String(notice.id),
+      notice.id.toString(),
       this.convertNotificationBodyToString(notification),
       FcmTargetUser.All,
       {
@@ -174,7 +172,7 @@ export class NoticeService {
       imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
     };
 
-    await this.fcmService.deleteMessage(String(notice.id));
+    await this.fcmService.deleteMessageJobIdPattern(String(notice.id));
     await this.fcmService.postMessage(
       this.convertNotificationBodyToString(notification),
       FcmTargetUser.All,
@@ -182,6 +180,7 @@ export class NoticeService {
         path: `/notice/${id}`,
       },
     );
+    await this.noticeRepository.updatePublishedAt(id);
   }
 
   async addNoticeAdditional(
@@ -275,7 +274,7 @@ export class NoticeService {
   }
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {
-    await this.fcmService.deleteMessage(String(id));
+    await this.fcmService.deleteMessageJobIdPattern(String(id));
     const notice = await this.noticeRepository.getNotice(id);
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException();
