@@ -180,7 +180,7 @@ export class NoticeService {
         path: `/notice/${id}`,
       },
     );
-    await this.noticeRepository.updatePublishedAt(id);
+    await this.noticeRepository.updatePublishedAt(id, new Date());
   }
 
   async addNoticeAdditional(

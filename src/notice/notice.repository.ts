@@ -432,13 +432,13 @@ export class NoticeRepository {
       });
   }
 
-  async updatePublishedAt(id: number): Promise<Notice> {
+  async updatePublishedAt(id: number, publishedAt: Date): Promise<Notice> {
     return this.prismaService.notice.update({
       where: {
         id,
       },
       data: {
-        publishedAt: new Date(),
+        publishedAt,
       },
     });
   }

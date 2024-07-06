@@ -16,9 +16,6 @@ import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
     FileModule,
     UserModule,
     IdpModule,
