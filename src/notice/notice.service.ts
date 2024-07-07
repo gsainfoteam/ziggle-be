@@ -172,7 +172,7 @@ export class NoticeService {
       imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
     };
 
-    await this.fcmService.deleteMessageJobIdPattern(String(notice.id));
+    await this.fcmService.deleteMessageJobIdPattern(notice.id.toString());
     await this.fcmService.postMessage(
       this.convertNotificationBodyToString(notification),
       FcmTargetUser.All,
@@ -274,7 +274,7 @@ export class NoticeService {
   }
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {
-    await this.fcmService.deleteMessageJobIdPattern(String(id));
+    await this.fcmService.deleteMessageJobIdPattern(id.toString());
     const notice = await this.noticeRepository.getNotice(id);
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException();
