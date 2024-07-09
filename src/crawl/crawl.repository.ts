@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateCrawlDto } from './dto/req/createCrawl.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Crawl, User } from '@prisma/client';
