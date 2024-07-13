@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CrawlRepository } from './crawl.repository';
-import { CreateCrawlDto } from './dto/req/createCrawl.dto';
-import { PrismaService } from '../prisma/prisma.service';
+import { CrawlRepository } from '../../src/crawl/crawl.repository';
+import { CreateCrawlDto } from '../../src/crawl/dto/req/createCrawl.dto';
+import { PrismaService } from '../../src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { Crawl } from '@prisma/client';
 
