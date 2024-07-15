@@ -24,7 +24,7 @@ export class CrawlRepository {
       })
       .catch((error) => {
         if (error instanceof PrismaClientKnownRequestError) {
-          this.logger.error(error.message);
+          this.logger.error(error);
           throw new InternalServerErrorException('database error');
         }
         this.logger.error(error);
@@ -59,7 +59,7 @@ export class CrawlRepository {
       })
       .catch((error) => {
         if (error instanceof PrismaClientKnownRequestError) {
-          this.logger.error(error.message);
+          this.logger.error(error);
           throw new InternalServerErrorException('database error');
         }
         this.logger.error(error);
@@ -85,7 +85,7 @@ export class CrawlRepository {
       })
       .catch((error) => {
         if (error instanceof PrismaClientKnownRequestError) {
-          this.logger.error(error.message);
+          this.logger.error(error);
           throw new InternalServerErrorException('database error');
         }
         this.logger.error(error);
