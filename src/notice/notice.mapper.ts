@@ -31,6 +31,7 @@ export class NoticeMapper {
       reminders,
       category,
       groupName,
+      publishedAt,
     }: NoticeFullContent,
     langFromDto?: string,
     userUuid?: string,
@@ -87,6 +88,7 @@ export class NoticeMapper {
         count: reactions.length,
         isReacted: reactions.some(({ userId }) => userId === userUuid),
       })),
+      publishedAt,
       groupName,
     };
   }

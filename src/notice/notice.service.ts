@@ -28,10 +28,12 @@ import { FcmService } from 'src/fcm/fcm.service';
 import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 import { htmlToText } from 'html-to-text';
 import { Notification } from 'firebase-admin/messaging';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NoticeService {
   private readonly loggger = new Logger(NoticeService.name);
+  private fcmDelay: number;
   constructor(
     private readonly imageService: ImageService,
     private readonly documentService: DocumentService,
@@ -40,7 +42,10 @@ export class NoticeService {
     private readonly noticeMapper: NoticeMapper,
     private readonly groupService: GroupService,
     private readonly fcmService: FcmService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.fcmDelay = Number(this.configService.getOrThrow<number>('FCM_DELAY'));
+  }
 
   async getNoticeList(
     getAllNoticeQueryDto: GetAllNoticeQueryDto,
@@ -126,6 +131,8 @@ export class NoticeService {
     const createdNotice = await this.noticeRepository.createNotice(
       createNoticeDto,
       userUuid,
+      undefined,
+      new Date(new Date().getTime() + this.fcmDelay),
     );
 
     const notice = await this.getNotice(createdNotice.id, { isViewed: false });
@@ -136,7 +143,8 @@ export class NoticeService {
       imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
     };
 
-    await this.fcmService.postMessage(
+    await this.fcmService.postMessageWithDelay(
+      notice.id.toString(),
       this.convertNotificationBodyToString(notification),
       FcmTargetUser.All,
       {
@@ -145,6 +153,34 @@ export class NoticeService {
     );
 
     return notice;
+  }
+
+  async sendNotice(id: number, userUuid: string): Promise<void> {
+    this.loggger.log(`Send notice ${id}`);
+    const notice = await this.getNotice(id, { isViewed: false });
+    if (notice.author.uuid !== userUuid) {
+      throw new ForbiddenException('not author of the notice');
+    }
+    if (notice.publishedAt === null || notice.publishedAt < new Date()) {
+      throw new ForbiddenException('a message already sent');
+    }
+    this.loggger.log(`Notice time ${notice.publishedAt} is not sent yet`);
+
+    const notification = {
+      title: notice.title,
+      body: notice.content,
+      imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
+    };
+
+    await this.fcmService.deleteMessageJobIdPattern(notice.id.toString());
+    await this.fcmService.postMessage(
+      this.convertNotificationBodyToString(notification),
+      FcmTargetUser.All,
+      {
+        path: `/notice/${id}`,
+      },
+    );
+    await this.noticeRepository.updatePublishedAt(id, new Date());
   }
 
   async addNoticeAdditional(
@@ -238,6 +274,7 @@ export class NoticeService {
   }
 
   async deleteNotice(id: number, userUuid: string): Promise<void> {
+    await this.fcmService.deleteMessageJobIdPattern(id.toString());
     const notice = await this.noticeRepository.getNotice(id);
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException();
