@@ -167,7 +167,7 @@ export class NoticeService {
     this.loggger.log(`Notice time ${notice.publishedAt} is not sent yet`);
 
     const notification = {
-      title: notice.title,
+      title: '[긴급] ' + notice.title,
       body: notice.content,
       imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
     };
