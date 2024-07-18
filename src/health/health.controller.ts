@@ -30,7 +30,7 @@ export class HealthController {
       () =>
         this.http.pingCheck(
           'infoteam-idp',
-          this.configService.getOrThrow('IDP_URL'),
+          this.configService.getOrThrow('IDP_BASE_URL'),
         ),
       () =>
         this.microservice.pingCheck('redis', {
