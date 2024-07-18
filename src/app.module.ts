@@ -13,6 +13,7 @@ import { FcmModule } from './fcm/fcm.module';
 import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AiModule } from './ai/ai.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AiModule } from './ai/ai.module';
       }),
     }),
     AiModule,
+    HealthModule,
   ],
   controllers: [AppController],
 })
