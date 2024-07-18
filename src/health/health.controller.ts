@@ -40,7 +40,7 @@ export class HealthController {
             port: this.configService.getOrThrow('REDIS_PORT'),
           },
         }),
-      () => this.prismaHealth.pingCheck('prisma', this.prismaService),
+      () => this.prismaHealth.pingCheck('database', this.prismaService),
     ]);
   }
 }

@@ -5,7 +5,11 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [TerminusModule, PrismaModule, ConfigModule],
+  imports: [
+    TerminusModule.forRoot({ errorLogStyle: 'pretty' }),
+    PrismaModule,
+    ConfigModule,
+  ],
   controllers: [HealthController],
 })
 export class HealthModule {}
