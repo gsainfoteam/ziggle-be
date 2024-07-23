@@ -4,6 +4,7 @@ import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 import { CrawlController } from 'src/crawl/crawl.controller';
 import { CrawlService } from 'src/crawl/crawl.service';
 import { CreateCrawlDto } from 'src/crawl/dto/req/createCrawl.dto';
+import { GetCrawlDto } from 'src/crawl/dto/req/getCrawl.dto';
 
 describe('CrawlController', () => {
   let crawlController: CrawlController;
@@ -33,7 +34,12 @@ describe('CrawlController', () => {
     expect(crawlService).toBeDefined();
   });
 
-  const inputCrawlDto: CreateCrawlDto = {
+  const getCrawlDto: GetCrawlDto = {
+    url: 'https://ziggle.gistory.me',
+    password: 'test password',
+  };
+
+  const createCrawlDto: CreateCrawlDto = {
     title: 'crawl title',
     body: 'crawl body',
     type: 'ACADEMIC',
@@ -57,7 +63,7 @@ describe('CrawlController', () => {
     it('should return crawl data', async () => {
       crawlService.getCrawlData.mockResolvedValue(crawlResult);
 
-      expect(await crawlController.getCrawlData(inputCrawlDto)).toEqual(
+      expect(await crawlController.getCrawlData(getCrawlDto)).toEqual(
         crawlResult,
       );
     });
@@ -65,7 +71,7 @@ describe('CrawlController', () => {
     it('should throw error when crawlService.getCrawlData throw error', async () => {
       crawlService.getCrawlData.mockRejectedValue(new Error());
 
-      await expect(crawlController.getCrawlData(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlController.getCrawlData(getCrawlDto)).rejects.toThrow(
         Error,
       );
     });
@@ -73,15 +79,15 @@ describe('CrawlController', () => {
 
   describe('about createCrawl', () => {
     it('should call crawlService.createCrawl', async () => {
-      await crawlController.createCrawl(inputCrawlDto);
+      await crawlController.createCrawl(createCrawlDto);
 
-      expect(crawlService.createCrawl).toHaveBeenCalledWith(inputCrawlDto);
+      expect(crawlService.createCrawl).toHaveBeenCalledWith(createCrawlDto);
     });
 
     it('should throw error when crawlService.createCrawl throw error', async () => {
       crawlService.createCrawl.mockRejectedValue(new Error());
 
-      await expect(crawlController.createCrawl(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlController.createCrawl(createCrawlDto)).rejects.toThrow(
         Error,
       );
     });
@@ -89,15 +95,15 @@ describe('CrawlController', () => {
 
   describe('about updateCrawl', () => {
     it('should call crawlService.updateCrawl', async () => {
-      await crawlController.updateCrawl(inputCrawlDto);
+      await crawlController.updateCrawl(createCrawlDto);
 
-      expect(crawlService.updateCrawl).toHaveBeenCalledWith(inputCrawlDto);
+      expect(crawlService.updateCrawl).toHaveBeenCalledWith(createCrawlDto);
     });
 
     it('should throw error when crawlService.updateCrawl throw error', async () => {
       crawlService.updateCrawl.mockRejectedValue(new Error());
 
-      await expect(crawlController.updateCrawl(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlController.updateCrawl(createCrawlDto)).rejects.toThrow(
         Error,
       );
     });

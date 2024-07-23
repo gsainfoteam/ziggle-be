@@ -7,6 +7,7 @@ import { AiService } from 'src/ai/ai.service';
 import { CrawlRepository } from 'src/crawl/crawl.repository';
 import { CrawlService } from 'src/crawl/crawl.service';
 import { CreateCrawlDto } from 'src/crawl/dto/req/createCrawl.dto';
+import { GetCrawlDto } from 'src/crawl/dto/req/getCrawl.dto';
 import { UserService } from 'src/user/user.service';
 
 describe('CrawlService', () => {
@@ -62,7 +63,12 @@ describe('CrawlService', () => {
     expect(crawlRepository).toBeDefined();
   });
 
-  const inputCrawlDto: CreateCrawlDto = {
+  const getCrawlDto: GetCrawlDto = {
+    url: 'https://ziggle.gistory.me',
+    password: 'test password',
+  };
+
+  const createCrawlDto: CreateCrawlDto = {
     title: 'crawl title',
     body: 'crawl body',
     type: 'ACADEMIC',
@@ -93,7 +99,7 @@ describe('CrawlService', () => {
 
   describe('about getCrawlData', () => {
     it('should throw ForbiddenException when password is not valid', async () => {
-      await expect(crawlService.getCrawlData(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlService.getCrawlData(getCrawlDto)).rejects.toThrow(
         new ForbiddenException('Invalid password'),
       );
     });
@@ -102,35 +108,35 @@ describe('CrawlService', () => {
       configService.get.mockReturnValue('test password');
       crawlRepository.getCrawlData.mockResolvedValue(crawlResult);
 
-      await crawlService.getCrawlData(inputCrawlDto);
+      await crawlService.getCrawlData(getCrawlDto);
 
-      expect(crawlRepository.getCrawlData).toHaveBeenCalledWith(inputCrawlDto);
+      expect(crawlRepository.getCrawlData).toHaveBeenCalledWith(getCrawlDto);
     });
 
     it('should return crawl result', async () => {
       configService.get.mockReturnValue('test password');
       crawlRepository.getCrawlData.mockResolvedValue(crawlResult);
 
-      const result = await crawlService.getCrawlData(inputCrawlDto);
+      const result = await crawlService.getCrawlData(getCrawlDto);
 
       expect(result).toEqual(crawlResult);
-      expect(crawlRepository.getCrawlData).toHaveBeenCalledWith(inputCrawlDto);
+      expect(crawlRepository.getCrawlData).toHaveBeenCalledWith(getCrawlDto);
     });
 
     it('should throw NotFoundException when crawl not found', async () => {
       configService.get.mockReturnValue('test password');
       crawlRepository.getCrawlData.mockResolvedValue(null);
 
-      await expect(crawlService.getCrawlData(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlService.getCrawlData(getCrawlDto)).rejects.toThrow(
         new NotFoundException('Crawl not found'),
       );
-      expect(crawlRepository.getCrawlData).toHaveBeenCalledWith(inputCrawlDto);
+      expect(crawlRepository.getCrawlData).toHaveBeenCalledWith(getCrawlDto);
     });
   });
 
   describe('about createCrawl', () => {
     it('should throw ForbiddenException when password is not valid', async () => {
-      await expect(crawlService.createCrawl(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlService.createCrawl(createCrawlDto)).rejects.toThrow(
         new ForbiddenException('Invalid password'),
       );
     });
@@ -140,17 +146,17 @@ describe('CrawlService', () => {
       userService.findOrCreateTempUser.mockResolvedValue(user);
       aiService.detectDeadline.mockResolvedValue(deadline);
 
-      await crawlService.createCrawl(inputCrawlDto);
+      await crawlService.createCrawl(createCrawlDto);
 
       expect(userService.findOrCreateTempUser).toHaveBeenCalledWith({
-        name: inputCrawlDto.authorName,
+        name: createCrawlDto.authorName,
       });
       expect(aiService.detectDeadline).toHaveBeenCalledWith(
-        inputCrawlDto.body,
-        inputCrawlDto.createdAt,
+        createCrawlDto.body,
+        createCrawlDto.createdAt,
       );
       expect(crawlRepository.createCrawl).toHaveBeenCalledWith(
-        inputCrawlDto,
+        createCrawlDto,
         deadline,
         user,
       );
@@ -160,7 +166,7 @@ describe('CrawlService', () => {
       configService.get.mockReturnValue('test password');
       userService.findOrCreateTempUser.mockRejectedValue(new Error());
 
-      await expect(crawlService.createCrawl(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlService.createCrawl(createCrawlDto)).rejects.toThrow(
         Error,
       );
     });
@@ -170,7 +176,7 @@ describe('CrawlService', () => {
       userService.findOrCreateTempUser.mockResolvedValue(user);
       aiService.detectDeadline.mockRejectedValue(Error());
 
-      await expect(crawlService.createCrawl(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlService.createCrawl(createCrawlDto)).rejects.toThrow(
         Error,
       );
     });
@@ -181,7 +187,7 @@ describe('CrawlService', () => {
       aiService.detectDeadline.mockResolvedValue(deadline);
       crawlRepository.createCrawl.mockRejectedValue(Error());
 
-      await expect(crawlService.createCrawl(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlService.createCrawl(createCrawlDto)).rejects.toThrow(
         Error,
       );
     });
@@ -191,14 +197,14 @@ describe('CrawlService', () => {
     it('should call crawlRepository.getCrawlData, crawlRepository.updateCrawl', async () => {
       crawlRepository.getCrawlData.mockResolvedValue(crawlResult);
 
-      await crawlService.updateCrawl(inputCrawlDto);
+      await crawlService.updateCrawl(createCrawlDto);
 
       expect(crawlRepository.getCrawlData).toHaveBeenCalledWith({
-        url: inputCrawlDto.url,
-        password: inputCrawlDto.password,
+        url: getCrawlDto.url,
+        password: getCrawlDto.password,
       });
       expect(crawlRepository.updateCrawl).toHaveBeenCalledWith(
-        inputCrawlDto,
+        createCrawlDto,
         crawlResult.id,
       );
     });
@@ -206,19 +212,19 @@ describe('CrawlService', () => {
     it('should throw NotFoundException when crawl not found', async () => {
       crawlRepository.getCrawlData.mockResolvedValue(null);
 
-      await expect(crawlService.updateCrawl(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlService.updateCrawl(createCrawlDto)).rejects.toThrow(
         new NotFoundException('Crawl not found'),
       );
       expect(crawlRepository.getCrawlData).toHaveBeenCalledWith({
-        url: inputCrawlDto.url,
-        password: inputCrawlDto.password,
+        url: getCrawlDto.url,
+        password: getCrawlDto.password,
       });
     });
 
     it('should throw error when crawlRepository.getCrawlData throws error', async () => {
       crawlRepository.getCrawlData.mockRejectedValue(new Error());
 
-      await expect(crawlService.updateCrawl(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlService.updateCrawl(createCrawlDto)).rejects.toThrow(
         Error,
       );
     });
@@ -227,7 +233,7 @@ describe('CrawlService', () => {
       crawlRepository.getCrawlData.mockResolvedValue(crawlResult);
       crawlRepository.updateCrawl.mockRejectedValue(Error());
 
-      await expect(crawlService.updateCrawl(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlService.updateCrawl(createCrawlDto)).rejects.toThrow(
         Error,
       );
     });

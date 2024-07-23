@@ -7,6 +7,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
+import { GetCrawlDto } from 'src/crawl/dto/req/getCrawl.dto';
 
 describe('CrawlRepository', () => {
   let crawlRepository: CrawlRepository;
@@ -43,8 +44,12 @@ describe('CrawlRepository', () => {
     expect(configService).toBeDefined();
   });
 
-  // get, create, update 함수에서 공통으로 쓰이는 input dto
-  const inputCrawlDto: CreateCrawlDto = {
+  const getCrawlDto: GetCrawlDto = {
+    url: 'https://ziggle.gistory.me',
+    password: '12345678',
+  };
+
+  const createCrawlDto: CreateCrawlDto = {
     title: 'crawl title',
     body: 'crawl body',
     type: 'ACADEMIC',
@@ -81,16 +86,16 @@ describe('CrawlRepository', () => {
         .mockResolvedValue(crawlResult);
 
       expect(
-        await crawlRepository.createCrawl(inputCrawlDto, deadline, user),
+        await crawlRepository.createCrawl(createCrawlDto, deadline, user),
       ).toEqual(crawlResult);
 
       expect(createSpy).toHaveBeenCalledWith({
         data: {
-          title: inputCrawlDto.title,
-          body: inputCrawlDto.body,
-          type: inputCrawlDto.type,
-          url: inputCrawlDto.url,
-          crawledAt: inputCrawlDto.createdAt,
+          title: createCrawlDto.title,
+          body: createCrawlDto.body,
+          type: createCrawlDto.type,
+          url: createCrawlDto.url,
+          crawledAt: createCrawlDto.createdAt,
           notice: {
             create: {
               category: 'ACADEMIC',
@@ -118,15 +123,15 @@ describe('CrawlRepository', () => {
         .mockRejectedValue(prismaError);
 
       await expect(
-        crawlRepository.createCrawl(inputCrawlDto, deadline, user),
+        crawlRepository.createCrawl(createCrawlDto, deadline, user),
       ).rejects.toThrow(InternalServerErrorException);
       expect(createSpyForPrismaError).toHaveBeenCalledWith({
         data: {
-          title: inputCrawlDto.title,
-          body: inputCrawlDto.body,
-          type: inputCrawlDto.type,
-          url: inputCrawlDto.url,
-          crawledAt: inputCrawlDto.createdAt,
+          title: createCrawlDto.title,
+          body: createCrawlDto.body,
+          type: createCrawlDto.type,
+          url: createCrawlDto.url,
+          crawledAt: createCrawlDto.createdAt,
           notice: {
             create: {
               category: 'ACADEMIC',
@@ -146,15 +151,15 @@ describe('CrawlRepository', () => {
         .mockRejectedValue(new Error('Test general error'));
 
       await expect(
-        crawlRepository.createCrawl(inputCrawlDto, deadline, user),
+        crawlRepository.createCrawl(createCrawlDto, deadline, user),
       ).rejects.toThrow(InternalServerErrorException);
       expect(createSpyForGeneralError).toHaveBeenCalledWith({
         data: {
-          title: inputCrawlDto.title,
-          body: inputCrawlDto.body,
-          type: inputCrawlDto.type,
-          url: inputCrawlDto.url,
-          crawledAt: inputCrawlDto.createdAt,
+          title: createCrawlDto.title,
+          body: createCrawlDto.body,
+          type: createCrawlDto.type,
+          url: createCrawlDto.url,
+          crawledAt: createCrawlDto.createdAt,
           notice: {
             create: {
               category: 'ACADEMIC',
@@ -175,12 +180,12 @@ describe('CrawlRepository', () => {
         .spyOn(prismaService.crawl, 'findFirst')
         .mockResolvedValue(crawlResult);
 
-      expect(await crawlRepository.getCrawlData(inputCrawlDto)).toEqual(
+      expect(await crawlRepository.getCrawlData(getCrawlDto)).toEqual(
         crawlResult,
       );
       expect(findFirstSpy).toHaveBeenCalledWith({
         where: {
-          url: inputCrawlDto.url,
+          url: getCrawlDto.url,
         },
       });
     });
@@ -198,27 +203,27 @@ describe('CrawlRepository', () => {
         .spyOn(prismaService.crawl, 'findFirst')
         .mockRejectedValue(prismaError);
 
-      await expect(crawlRepository.getCrawlData(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlRepository.getCrawlData(getCrawlDto)).rejects.toThrow(
         InternalServerErrorException,
       );
       expect(findFirstSpyForPrismaError).toHaveBeenCalledWith({
         where: {
-          url: inputCrawlDto.url,
+          url: getCrawlDto.url,
         },
       });
     });
 
     it('should throw General Exception for return a crawl', async () => {
-      const createSpyForGeneralError = jest
+      const findFirstSpyForPrismaError = jest
         .spyOn(prismaService.crawl, 'findFirst')
         .mockRejectedValue(new Error('Test general error'));
 
-      await expect(crawlRepository.getCrawlData(inputCrawlDto)).rejects.toThrow(
+      await expect(crawlRepository.getCrawlData(getCrawlDto)).rejects.toThrow(
         InternalServerErrorException,
       );
-      expect(createSpyForGeneralError).toHaveBeenCalledWith({
+      expect(findFirstSpyForPrismaError).toHaveBeenCalledWith({
         where: {
-          url: inputCrawlDto.url,
+          url: getCrawlDto.url,
         },
       });
     });
@@ -230,7 +235,7 @@ describe('CrawlRepository', () => {
         .spyOn(prismaService.crawl, 'update')
         .mockResolvedValue(crawlResult);
 
-      expect(await crawlRepository.updateCrawl(inputCrawlDto, 1)).toEqual(
+      expect(await crawlRepository.updateCrawl(createCrawlDto, 1)).toEqual(
         crawlResult,
       );
       expect(updateSpy).toHaveBeenCalledWith({
@@ -238,9 +243,9 @@ describe('CrawlRepository', () => {
           id: 1,
         },
         data: {
-          title: inputCrawlDto.title,
-          body: inputCrawlDto.body,
-          type: inputCrawlDto.type,
+          title: createCrawlDto.title,
+          body: createCrawlDto.body,
+          type: createCrawlDto.type,
         },
       });
     });
@@ -259,16 +264,16 @@ describe('CrawlRepository', () => {
         .mockRejectedValue(prismaError);
 
       await expect(
-        crawlRepository.updateCrawl(inputCrawlDto, 1),
+        crawlRepository.updateCrawl(createCrawlDto, 1),
       ).rejects.toThrow(InternalServerErrorException);
       expect(updateSpyForPrismaError).toHaveBeenCalledWith({
         where: {
           id: 1,
         },
         data: {
-          title: inputCrawlDto.title,
-          body: inputCrawlDto.body,
-          type: inputCrawlDto.type,
+          title: createCrawlDto.title,
+          body: createCrawlDto.body,
+          type: createCrawlDto.type,
         },
       });
     });
@@ -279,16 +284,16 @@ describe('CrawlRepository', () => {
         .mockRejectedValue(new Error('Test general error'));
 
       await expect(
-        crawlRepository.updateCrawl(inputCrawlDto, 1),
+        crawlRepository.updateCrawl(createCrawlDto, 1),
       ).rejects.toThrow(InternalServerErrorException);
       expect(updateSpyForGeneralError).toHaveBeenCalledWith({
         where: {
           id: 1,
         },
         data: {
-          title: inputCrawlDto.title,
-          body: inputCrawlDto.body,
-          type: inputCrawlDto.type,
+          title: createCrawlDto.title,
+          body: createCrawlDto.body,
+          type: createCrawlDto.type,
         },
       });
     });
