@@ -6,7 +6,7 @@ on:
       - src/**
       - prisma/**
     branches:
-      - master
+      - main
 
 jobs:
   build:
