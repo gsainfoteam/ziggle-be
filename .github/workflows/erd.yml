@@ -5,7 +5,7 @@ on:
     paths:
       - 'erd/database.dbml'
     branches:
-      - master
+      - main
 
 jobs:
   build:
