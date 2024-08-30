@@ -53,8 +53,12 @@ export class CrawlRepository {
               author: {
                 connect: user,
               },
+              publishedAt: new Date(),
             },
           },
+        },
+        include: {
+          notice: true,
         },
       })
       .catch((error) => {
