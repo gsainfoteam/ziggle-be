@@ -189,6 +189,25 @@ export class NoticeController {
   }
 
   @ApiOperation({
+    summary: 'Add notice reminder',
+    description: 'Add notice reminder',
+  })
+  @ApiOkResponse({
+    type: ExpandedGeneralNoticeDto,
+    description: 'Return Notice',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @Post(':id/reminder')
+  @UseGuards(IdPGuard)
+  async addNoticeReminder(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.noticeService.addNoticeReminder(id, user.uuid);
+  }
+
+  @ApiOperation({
     summary: 'modify notice content',
     description: 'modify notice content',
   })
