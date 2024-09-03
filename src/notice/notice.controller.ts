@@ -104,7 +104,7 @@ export class NoticeController {
 
   @ApiOperation({
     summary: 'Send notice alarm',
-    description: 'Send notice alarm',
+    description: 'Send notice alarm when new notice is created',
   })
   @ApiOkResponse({ description: 'Return notice' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -119,8 +119,8 @@ export class NoticeController {
   }
 
   @ApiOperation({
-    summary: 'Add additional notice',
-    description: 'Add additional notice',
+    summary: 'Write additional notice',
+    description: 'Write additional notice',
   })
   @ApiOkResponse({
     type: ExpandedGeneralNoticeDto,
@@ -143,8 +143,8 @@ export class NoticeController {
   }
 
   @ApiOperation({
-    summary: 'Add notice reminder',
-    description: 'Add notice reminder',
+    summary: 'Write foreign content',
+    description: 'Write notice contents for foreigners',
   })
   @ApiOkResponse({
     type: ExpandedGeneralNoticeDto,
@@ -169,8 +169,8 @@ export class NoticeController {
   }
 
   @ApiOperation({
-    summary: 'Add notice reminder',
-    description: 'Add notice reminder',
+    summary: 'Add reaction',
+    description: 'Add reaction to the notice',
   })
   @ApiOkResponse({
     type: ExpandedGeneralNoticeDto,
