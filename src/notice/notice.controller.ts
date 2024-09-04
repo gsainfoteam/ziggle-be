@@ -210,25 +210,6 @@ export class NoticeController {
   }
 
   @ApiOperation({
-    summary: 'Delete notice reminder',
-    description: 'Delete notice reminder',
-  })
-  @ApiOkResponse({
-    type: ExpandedGeneralNoticeDto,
-    description: 'Return notice',
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @Delete(':id/reminder')
-  @UseGuards(IdPGuard)
-  async deleteNoticeReminder(
-    @GetUser() user: User,
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<ExpandedGeneralNoticeDto> {
-    return this.noticeService.removeNoticeReminder(id, user.uuid);
-  }
-
-  @ApiOperation({
     summary: 'Delete notice reaction',
     description: 'Delete notice reaction',
   })

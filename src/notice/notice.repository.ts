@@ -541,54 +541,6 @@ export class NoticeRepository {
       });
   }
 
-  async addReminder(id: number, userUuid: string): Promise<void> {
-    await this.prismaService.notice
-      .update({
-        where: { id, deletedAt: null },
-        data: {
-          reminders: {
-            connect: {
-              uuid: userUuid,
-            },
-          },
-        },
-      })
-      .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
-          this.logger.error('addReminder error');
-          this.logger.debug(error);
-          throw new InternalServerErrorException('Database Error');
-        }
-        this.logger.error('addReminder Unknown Error');
-        this.logger.debug(error);
-        throw new InternalServerErrorException('Unknown Error');
-      });
-  }
-
-  async removeReminder(id: number, userUuid: string): Promise<void> {
-    await this.prismaService.notice
-      .update({
-        where: { id, deletedAt: null },
-        data: {
-          reminders: {
-            disconnect: {
-              uuid: userUuid,
-            },
-          },
-        },
-      })
-      .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
-          this.logger.error('removeReminder error');
-          this.logger.debug(error);
-          throw new InternalServerErrorException('Database Error');
-        }
-        this.logger.error('removeReminder Unknown Error');
-        this.logger.debug(error);
-        throw new InternalServerErrorException('Unknown Error');
-      });
-  }
-
   async addReaction(
     emoji: string,
     id: number,
