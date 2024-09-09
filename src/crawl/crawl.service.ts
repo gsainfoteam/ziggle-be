@@ -11,6 +11,8 @@ import { UserService } from 'src/user/user.service';
 import { Crawl } from '@prisma/client';
 import { GetCrawlDto } from './dto/req/getCrawl.dto';
 import { AiService } from 'src/ai/ai.service';
+import { FcmService } from 'src/fcm/fcm.service';
+import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 
 @Injectable()
 export class CrawlService {
@@ -19,6 +21,7 @@ export class CrawlService {
     private readonly crawlRepository: CrawlRepository,
     private readonly configService: ConfigService,
     private readonly userService: UserService,
+    private readonly fcmService: FcmService,
     private readonly aiService: AiService,
   ) {}
 
@@ -48,7 +51,16 @@ export class CrawlService {
       dto.body,
       dto.createdAt,
     );
-    await this.crawlRepository.createCrawl(dto, deadline, user);
+    const crawl = await this.crawlRepository.createCrawl(dto, deadline, user);
+
+    const notification = {
+      title: crawl.title,
+      body: crawl.body,
+    };
+
+    await this.fcmService.postMessage(notification, FcmTargetUser.All, {
+      path: `/notice/${crawl.noticeId}`,
+    });
   }
 
   async updateCrawl(dto: CreateCrawlDto): Promise<void> {
