@@ -14,12 +14,19 @@ import { GroupInfo } from './types/groupinfo.type';
 @Injectable()
 export class GroupService {
   private readonly logger = new Logger(GroupService.name);
-  private groupsUrl: string;
+  private readonly groupsUrl: string;
+  private readonly groupsClientId: string;
+  private readonly groupsClientSecret: string;
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
     this.groupsUrl = this.configService.getOrThrow<string>('GROUPS_URL');
+    this.groupsClientId =
+      this.configService.getOrThrow<string>('GROUPS_CLIENT_ID');
+    this.groupsClientSecret = this.configService.getOrThrow<string>(
+      'GROUPS_CLIENT_SECRET',
+    );
   }
 
   async getExternalTokenFromGroups(accessToken: string): Promise<GroupsToken> {
@@ -34,10 +41,8 @@ export class GroupService {
         },
         {
           auth: {
-            username: this.configService.getOrThrow<string>('GROUPS_CLIENT_ID'),
-            password: this.configService.getOrThrow<string>(
-              'GROUPS_CLIENT_SECRET',
-            ),
+            username: this.groupsClientId,
+            password: this.groupsClientSecret,
           },
         },
       ),
