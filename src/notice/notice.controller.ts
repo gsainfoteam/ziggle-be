@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   ParseIntPipe,
   Patch,
@@ -34,7 +35,6 @@ import {
   UpdateNoticeDto,
   UpdateNoticeQueryDto,
 } from './dto/req/updateNotice.dto';
-import { GetToken } from 'src/user/decorator/get-token.decorator';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -96,10 +96,14 @@ export class NoticeController {
   @UseGuards(IdPGuard)
   async createNotice(
     @GetUser() user: User,
-    @GetToken() token: string,
     @Body() createNoticeDto: CreateNoticeDto,
+    @Headers('Groups-Token') groupToken?: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    return this.noticeService.createNotice(createNoticeDto, user.uuid, token);
+    return this.noticeService.createNotice(
+      createNoticeDto,
+      user.uuid,
+      groupToken,
+    );
   }
 
   @ApiOperation({

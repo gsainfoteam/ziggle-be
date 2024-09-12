@@ -1,9 +1,14 @@
+export enum Authority {
+  WRITE = 'WRITE',
+  DELETE = 'DELETE',
+}
+
 export type GroupRoleInfo = {
   id: number;
   name: string;
   groupUuid: string;
   authorities: string[];
-  externalAuthority: string[];
+  externalAuthority: Authority[];
 };
 
 export type GroupInfo = {
@@ -15,5 +20,5 @@ export type GroupInfo = {
   verifiedAt: string;
   notionPageId: string | null;
   profileImage: string | null;
-  Role: GroupRoleInfo[];
+  role: GroupRoleInfo[];
 };
