@@ -87,11 +87,13 @@ export class UserController {
     if (!refreshToken) throw new UnauthorizedException();
     const { refresh_token, ...token } =
       await this.userService.refresh(refreshToken);
-    res.cookie('refresh_token', refresh_token, {
-      httpOnly: true,
-      sameSite: 'none',
-      secure: true,
-    });
+    if (refresh_token) {
+      res.cookie('refresh_token', refresh_token, {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+      });
+    }
     return { ...token };
   }
 
