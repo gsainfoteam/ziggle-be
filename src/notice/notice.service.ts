@@ -32,7 +32,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NoticeService {
-  private readonly loggger = new Logger(NoticeService.name);
+  private readonly logger = new Logger(NoticeService.name);
   private fcmDelay: number;
   constructor(
     private readonly imageService: ImageService,
@@ -61,8 +61,8 @@ export class NoticeService {
           userUuid,
         )
         .catch((error) => {
-          this.loggger.debug(`Notice ${notice.id} is not valid`);
-          this.loggger.error(error);
+          this.logger.debug(`Notice ${notice.id} is not valid`);
+          this.logger.error(error);
           throw new InternalServerErrorException(
             `Notice ${notice.id} is not valid`,
           );
@@ -97,8 +97,8 @@ export class NoticeService {
         userUuid,
       )
       .catch((error) => {
-        this.loggger.debug(`Notice ${notice.id} is not valid`);
-        this.loggger.error(error);
+        this.logger.debug(`Notice ${notice.id} is not valid`);
+        this.logger.error(error);
         throw new InternalServerErrorException(
           `Notice ${notice.id} is not valid`,
         );
@@ -108,15 +108,20 @@ export class NoticeService {
   async createNotice(
     createNoticeDto: CreateNoticeDto,
     userUuid: string,
-    token: string,
+    groupsToken?: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    if (createNoticeDto.groupName !== undefined) {
-      const getGroupResult = await this.groupService.getGroupFromVapor(
-        createNoticeDto.groupName,
-        token,
-      );
+    if (createNoticeDto.groupName !== undefined && groupsToken !== undefined) {
+      const getGroupResult =
+        await this.groupService.getGroupInfoFromGroups(groupsToken);
 
-      if (!getGroupResult) {
+      if (
+        !getGroupResult ||
+        !getGroupResult.find(
+          (group) =>
+            group.name === createNoticeDto.groupName &&
+            group.role.some((role) => role.authorities.includes('WRITE')),
+        )
+      ) {
         throw new ForbiddenException();
       }
     }
@@ -156,7 +161,7 @@ export class NoticeService {
   }
 
   async sendNotice(id: number, userUuid: string): Promise<void> {
-    this.loggger.log(`Send notice ${id}`);
+    this.logger.log(`Send notice ${id}`);
     const notice = await this.getNotice(id, { isViewed: false });
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException('not author of the notice');
@@ -164,7 +169,7 @@ export class NoticeService {
     if (notice.publishedAt === null || notice.publishedAt < new Date()) {
       throw new ForbiddenException('a message already sent');
     }
-    this.loggger.log(`Notice time ${notice.publishedAt} is not sent yet`);
+    this.logger.log(`Notice time ${notice.publishedAt} is not sent yet`);
 
     const notification = {
       title: '[긴급] ' + notice.title,
@@ -233,11 +238,11 @@ export class NoticeService {
     id: number,
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    const noitce = await this.noticeRepository.getNotice(id);
-    if (noitce.author.uuid !== userUuid) {
+    const notice = await this.noticeRepository.getNotice(id);
+    if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException();
     }
-    if (noitce.createdAt.getTime() + 1000 * 60 * 30 < new Date().getTime()) {
+    if (notice.createdAt.getTime() + 1000 * 60 * 30 < new Date().getTime()) {
       throw new ForbiddenException();
     }
     await this.noticeRepository.updateNotice(body, query, id, userUuid);
