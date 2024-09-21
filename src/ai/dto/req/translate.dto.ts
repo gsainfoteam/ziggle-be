@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsISO31661Alpha2, IsString } from 'class-validator';
+import { IsLocale, IsString } from 'class-validator';
 
 export class TranslateDto {
   @ApiProperty({
@@ -13,6 +13,6 @@ export class TranslateDto {
     description: 'Language to translate',
     example: 'ko',
   })
-  @IsISO31661Alpha2()
+  @IsLocale()
   targetLang: string;
 }
