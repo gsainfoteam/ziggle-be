@@ -7,7 +7,13 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AiService } from './ai.service';
-import { ApiOAuth2, ApiTags } from '@nestjs/swagger';
+import {
+  ApiInternalServerErrorResponse,
+  ApiOAuth2,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { IdPGuard } from 'src/user/guard/idp.guard';
 import { TranslateDto } from './dto/req/translate.dto';
 import { TranslateResDto } from './dto/res/translateRes.dto';
@@ -20,6 +26,14 @@ import { TranslateResDto } from './dto/res/translateRes.dto';
 export class AiController {
   constructor(private readonly aiService: AiService) {}
 
+  @ApiOperation({
+    summary: 'Translate text',
+    description: 'Translate text to target language',
+  })
+  @ApiOkResponse({
+    type: TranslateResDto,
+  })
+  @ApiInternalServerErrorResponse()
   @Post('translate')
   async translate(
     @Body() translateDto: TranslateDto,
