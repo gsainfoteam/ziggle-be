@@ -35,6 +35,7 @@ import {
   UpdateNoticeDto,
   UpdateNoticeQueryDto,
 } from './dto/req/updateNotice.dto';
+import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -137,7 +138,7 @@ export class NoticeController {
   async createAdditionalNotice(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
-    @Body() additionalNoticeDto: CreateNoticeDto,
+    @Body() additionalNoticeDto: AdditionalNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.addNoticeAdditional(
       additionalNoticeDto,
