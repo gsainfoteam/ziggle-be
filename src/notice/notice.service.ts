@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -193,6 +194,11 @@ export class NoticeService {
     id: number,
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
+    const notice = await this.noticeRepository.getNotice(id);
+    if ((notice.currentDeadline === null) === !!additionalNoticeDto.deadline) {
+      throw new BadRequestException("Can't add or remove deadline");
+    }
+
     await this.noticeRepository
       .addAdditionalNotice(additionalNoticeDto, id, userUuid)
       .catch((error) => {

@@ -14,6 +14,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import {
+  ApiHeader,
   ApiInternalServerErrorResponse,
   ApiOAuth2,
   ApiOkResponse,
@@ -93,6 +94,11 @@ export class NoticeController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @ApiHeader({
+    name: 'Groups-Token',
+    description: 'Groups-Token',
+    required: false,
+  })
   @Post()
   @UseGuards(IdPGuard)
   async createNotice(
