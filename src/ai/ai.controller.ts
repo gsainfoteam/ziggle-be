@@ -24,6 +24,9 @@ export class AiController {
   async translate(
     @Body() translateDto: TranslateDto,
   ): Promise<TranslateResDto> {
-    return translateDto;
+    return {
+      text: translateDto.text,
+      lang: translateDto.targetLang,
+    };
   }
 }
