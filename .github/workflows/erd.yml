@@ -3,25 +3,42 @@ name: DBDOCS
 on:
   push:
     paths:
-      - 'erd/database.dbml'
+      - 'prisma/schema.prisma'
     branches:
       - main
 
 jobs:
   build:
-    name: Build ERD
+    name: Generate and Build ERD
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Install dbdocs
-        run: sudo npm install -g dbdocs
+      - name: Install dbdocs and prisma-dbml-generator
+        run: sudo npm install -g dbdocs prisma-dbml-generator
 
       - name: Check dbdocs
         run: dbdocs --version
 
+      - name: Generate dbml
+        run: npx prisma generate
+
       - name: Build and Update ERD
-        run: dbdocs build ./erd/database.dbml
+        run: dbdocs build ./prisma/dbml/schema.dbml
         env:
           DBDOCS_TOKEN: ${{ secrets.DBDOCS_TOKEN }}
+
+      - name: Check if there are any changes
+        id: check_changes
+        run: |
+          git diff --quiet . || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and Push
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub Actions [bot]"
+          git commit -am "Update dbml"
+          git push -u origin main
