@@ -4,7 +4,7 @@ generator client {
 
 generator dbml {
   provider            = "prisma-dbml-generator"
-  projectName         = "Ziggle"
+  projectName         = "ziggle"
   projectDatabaseType = "PostgreSQL"
 }
 
