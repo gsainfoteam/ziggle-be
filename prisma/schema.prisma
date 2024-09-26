@@ -2,12 +2,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-generator dbml {
-  provider            = "prisma-dbml-generator"
-  projectName         = "ziggle"
-  projectDatabaseType = "PostgreSQL"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
