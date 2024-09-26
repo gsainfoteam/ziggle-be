@@ -14,7 +14,9 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{ secrets.DBDOCS_COMMIT_KEY }}
 
       - name: Install dbdocs and prisma-dbml-generator
         run: sudo npm install -g dbdocs prisma-dbml-generator
