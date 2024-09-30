@@ -62,7 +62,7 @@ export class NoticeController {
     @GetUser() user?: User,
   ): Promise<GeneralNoticeListDto> {
     const now = new Date();
-    const result = this.noticeService.getNoticeList(query, user?.uuid);
+    const result = await this.noticeService.getNoticeList(query, user?.uuid);
     console.log('time:', new Date().getTime() - now.getTime());
     return result;
   }
