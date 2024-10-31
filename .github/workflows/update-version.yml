@@ -1,0 +1,30 @@
+name: Update Package Version
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  update:
+    name: Update Package Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          repository: gsainfoteam/icarus-gitops
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          fetch-depth: 0
+
+      - name: Update Package Version
+        run: |
+          VERSION=`echo "${{ github.ref }}" | sed "s/v//"`
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git commit -am "Update package version"
+          git push
