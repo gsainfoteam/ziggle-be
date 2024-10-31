@@ -62,7 +62,7 @@ export class InfoteamIdpService {
               this.logger.debug('Invalid code');
               throw new UnauthorizedException();
             }
-            this.logger.error(error);
+            this.logger.error(error.message);
             throw new InternalServerErrorException();
           }),
         ),
@@ -93,7 +93,7 @@ export class InfoteamIdpService {
               this.logger.debug('Invalid access token');
               throw new UnauthorizedException();
             }
-            this.logger.error(error);
+            this.logger.error(error.message);
             throw new InternalServerErrorException();
           }),
         ),
@@ -142,7 +142,7 @@ export class InfoteamIdpService {
               this.logger.debug('Invalid refresh token');
               throw new UnauthorizedException();
             }
-            this.logger.error(error);
+            this.logger.error(error.message);
             throw new InternalServerErrorException();
           }),
         ),
@@ -182,7 +182,7 @@ export class InfoteamIdpService {
               this.logger.debug('Invalid token');
               throw new UnauthorizedException();
             }
-            this.logger.error(error);
+            this.logger.error(error.message);
             throw new InternalServerErrorException();
           }),
         ),

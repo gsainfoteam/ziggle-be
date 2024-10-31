@@ -6,7 +6,10 @@
     "infoteam",
     "nestjs",
     "openai",
-    "ziggle"
+    "ziggle",
+    "axios",
+    "prisma",
+    "rxjs"
   ],
   "git.branchProtection": ["main"]
 }
