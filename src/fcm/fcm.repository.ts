@@ -3,9 +3,9 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { Content } from './types/content.type';
 import { FcmToken, Prisma } from '@prisma/client';
+import { PrismaService } from '@lib/prisma';
 
 @Injectable()
 export class FcmRepository {

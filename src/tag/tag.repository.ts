@@ -1,3 +1,4 @@
+import { PrismaService } from '@lib/prisma';
 import {
   Injectable,
   InternalServerErrorException,
@@ -6,16 +7,15 @@ import {
 } from '@nestjs/common';
 import { Tag } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TagRepository {
   private readonly logger = new Logger(TagRepository.name);
-  constructor(private readonly prismaservice: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async findAllTags(): Promise<Tag[]> {
     this.logger.log('findAllTags');
-    return this.prismaservice.tag
+    return this.prismaService.tag
       .findMany()
       .catch((err) => {
         this.logger.error(err);
@@ -29,7 +29,7 @@ export class TagRepository {
 
   async findTag({ name }: Pick<Tag, 'name'>): Promise<Tag> {
     this.logger.log('findTag');
-    return this.prismaservice.tag
+    return this.prismaService.tag
       .findUniqueOrThrow({
         where: { name },
       })
@@ -51,7 +51,7 @@ export class TagRepository {
   }
 
   async searchTags({ name }: Pick<Tag, 'name'>): Promise<Tag[]> {
-    return this.prismaservice.tag
+    return this.prismaService.tag
       .findMany({
         where: {
           name: {
@@ -71,7 +71,7 @@ export class TagRepository {
 
   async createTag({ name }: Pick<Tag, 'name'>): Promise<Tag> {
     this.logger.log('createTag');
-    return this.prismaservice.tag
+    return this.prismaService.tag
       .create({
         data: {
           name,
@@ -88,7 +88,7 @@ export class TagRepository {
   }
 
   async deleteTag({ id }: Pick<Tag, 'id'>): Promise<void> {
-    await this.prismaservice.tag.delete({ where: { id } }).catch((err) => {
+    await this.prismaService.tag.delete({ where: { id } }).catch((err) => {
       if (err instanceof PrismaClientKnownRequestError) {
         if (err.code === 'P2025') {
           this.logger.error('Tag not found');

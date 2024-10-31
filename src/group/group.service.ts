@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { GroupsToken } from './types/groupsToken.type';
-import { GroupInfo } from './types/groupinfo.type';
+import { GroupInfo } from './types/groupInfo.type';
 
 @Injectable()
 export class GroupService {

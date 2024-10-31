@@ -1,4 +1,12 @@
 {
-  "cSpell.words": ["gsainfoteam", "infoteam"],
+  "cSpell.words": [
+    "datasources",
+    "dbml",
+    "gsainfoteam",
+    "infoteam",
+    "nestjs",
+    "openai",
+    "ziggle"
+  ],
   "git.branchProtection": ["main"]
 }
