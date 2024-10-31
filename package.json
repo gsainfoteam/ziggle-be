@@ -3,7 +3,7 @@
   "version": "4.0.0",
   "description": "Ziggle Backend",
   "author": "Infoteam",
-  "private": true,
+  "private": false,
   "license": "AGPL-3.0 license",
   "scripts": {
     "build": "nest build",
