@@ -13,18 +13,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          repository: gsainfoteam/icarus-gitops
+          repository: ${{ github.repository }}
           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
           fetch-depth: 0
 
       - name: Update Package Version
         run: |
-          VERSION=`echo "${{ github.ref }}" | sed "s/v//"`
-          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+          VERSION=$(echo "${{ github.ref }}" | sed "s/v//")
+          if ! sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json; then
+            echo "Failed to update package version"
+            exit 1
+          fi
 
       - name: Commit and Push Changes
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git commit -am "Update package version"
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -am "chore: Update package version to $VERSION"
           git push
