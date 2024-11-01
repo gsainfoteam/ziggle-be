@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: ${{ github.repository }}
-          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-key: ${{ secrets.UPDATE_VERSION_SSH_KEY }}
           fetch-depth: 0
 
       - name: Update Package Version

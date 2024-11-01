@@ -1,15 +1,16 @@
 {
   "cSpell.words": [
+    "axios",
     "datasources",
     "dbml",
     "gsainfoteam",
     "infoteam",
     "nestjs",
+    "noreply",
     "openai",
-    "ziggle",
-    "axios",
     "prisma",
-    "rxjs"
+    "rxjs",
+    "ziggle"
   ],
   "git.branchProtection": ["main"]
 }
