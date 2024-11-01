@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DeadlineResponse } from './types/deadlineResponse.type';
-import OpenAI, { InternalServerError } from 'openai';
+import OpenAI from 'openai';
 import {
   ChatCompletionMessageParam,
   ChatCompletionSystemMessageParam,
