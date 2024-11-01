@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import * as deepl from 'deepl-node';
 
 export class TranslateResDto {
   @ApiProperty({
@@ -11,5 +12,5 @@ export class TranslateResDto {
     description: 'Language of the translated text',
     example: 'en',
   })
-  lang: string;
+  lang: deepl.TargetLanguageCode;
 }
