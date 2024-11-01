@@ -3,7 +3,7 @@ export type IdpJwtResponse = {
   refresh_token: string;
 };
 
-export type IdpUserInfoRes = {
+export type IdpUserInfoResponse = {
   uuid: string;
   email: string;
   name: string;

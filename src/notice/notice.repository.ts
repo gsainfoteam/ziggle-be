@@ -4,7 +4,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import dayjs from 'dayjs';
 import { NoticeFullContent } from './types/noticeFullContent';
@@ -17,6 +16,7 @@ import {
   UpdateNoticeDto,
   UpdateNoticeQueryDto,
 } from './dto/req/updateNotice.dto';
+import { PrismaService } from '@lib/prisma';
 
 @Injectable()
 export class NoticeRepository {

@@ -1,9 +1,19 @@
 {
-  "moduleFileExtensions": ["js", "json", "ts"],
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "@lib/prisma/(.*)": "<rootDir>/../libs/prisma/src/$1",
+    "@lib/prisma": "<rootDir>/../libs/prisma/src",
+    "@lib/infoteam-idp/(.*)": "<rootDir>/../libs/infoteam-idp/src/$1",
+    "@lib/infoteam-idp": "<rootDir>/../libs/infoteam-idp/src"
   }
 }

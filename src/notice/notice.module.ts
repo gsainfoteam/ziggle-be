@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { NoticeController } from './notice.controller';
 import { NoticeService } from './notice.service';
-import { PrismaModule } from 'src/prisma/prisma.module';
 import { NoticeRepository } from './notice.repository';
 import { UserModule } from 'src/user/user.module';
 import { ConfigModule } from '@nestjs/config';
@@ -11,6 +10,7 @@ import { DocumentModule } from 'src/document/document.module';
 import { FileModule } from 'src/file/file.module';
 import { GroupModule } from 'src/group/group.module';
 import { FcmModule } from 'src/fcm/fcm.module';
+import { PrismaModule } from '@lib/prisma';
 
 @Module({
   imports: [

@@ -1,16 +1,16 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { LoginDto } from './dto/req/login.dto';
-import { IdpService } from 'src/idp/idp.service';
 import { ConfigService } from '@nestjs/config';
 import { UserRepository } from './user.repository';
 import { JwtTokenType } from './types/jwtToken.type';
 import { User } from '@prisma/client';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
+import { InfoteamIdpService } from '@lib/infoteam-idp';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
   constructor(
-    private readonly idpService: IdpService,
+    private readonly infoteamIdpService: InfoteamIdpService,
     private readonly configService: ConfigService,
     private readonly userRepository: UserRepository,
   ) {}
@@ -18,7 +18,7 @@ export class UserService {
   /**
    * this method is used to infoteam idp login,
    * so we can assume user must have idp account
-   * becuase the sign up is handled by idp
+   * because the sign up is handled by idp
    *
    * @returns accessToken, refreshToken and the information that is  the user consent required
    */
@@ -34,11 +34,13 @@ export class UserService {
         : type === 'local'
           ? this.configService.getOrThrow<string>('LOCAL_REDIRECT_URI')
           : this.configService.getOrThrow<string>('WEB_REDIRECT_URI');
-    const tokens = await this.idpService.getAccessTokenFromIdP(
+    const tokens = await this.infoteamIdpService.getAccessToken(
       code,
       redirectUri,
     );
-    const userInfo = await this.idpService.getUserInfo(tokens.access_token);
+    const userInfo = await this.infoteamIdpService.getUserInfo(
+      tokens.access_token,
+    );
     const user = await this.userRepository.findUserOrCreate({
       uuid: userInfo.uuid,
       name: userInfo.name,
@@ -58,8 +60,10 @@ export class UserService {
    */
   async refresh(refreshToken: string): Promise<JwtTokenType> {
     this.logger.log('refresh called');
-    const tokens = await this.idpService.refreshToken(refreshToken);
-    const userData = await this.idpService.getUserInfo(tokens.access_token);
+    const tokens = await this.infoteamIdpService.refresh(refreshToken);
+    const userData = await this.infoteamIdpService.getUserInfo(
+      tokens.access_token,
+    );
     const user = await this.userRepository.findUserOrCreate({
       uuid: userData.uuid,
       name: userData.name,
@@ -79,8 +83,8 @@ export class UserService {
    */
   async logout(accessToken: string, refreshToken: string): Promise<void> {
     this.logger.log('logout called');
-    await this.idpService.revokeToken(accessToken);
-    await this.idpService.revokeToken(refreshToken);
+    await this.infoteamIdpService.revoke(accessToken);
+    await this.infoteamIdpService.revoke(refreshToken);
   }
 
   /**
@@ -105,9 +109,9 @@ export class UserService {
 
   async findOrCreateTempUser(user: Pick<User, 'name'>): Promise<User> {
     this.logger.log('findOrCreateTempUser called');
-    const findedUser = await this.userRepository.findUserByName(user);
-    if (findedUser) {
-      return findedUser;
+    const foundUser = await this.userRepository.findUserByName(user);
+    if (foundUser) {
+      return foundUser;
     }
     return this.userRepository.createTempUser(user);
   }

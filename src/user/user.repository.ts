@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { v4 as uuid } from 'uuid';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
+import { PrismaService } from '@lib/prisma';
 
 @Injectable()
 export class UserRepository {

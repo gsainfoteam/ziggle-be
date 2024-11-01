@@ -1,5 +1,5 @@
+import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserInfo } from 'src/idp/types/userInfo.type';
 
 export class UserInfoRes implements UserInfo {
   @ApiProperty({

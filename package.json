@@ -1,13 +1,13 @@
 {
   "name": "ziggle-be",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
-  "license": "UNLICENSED",
+  "version": "4.0.0",
+  "description": "Ziggle Backend",
+  "author": "Infoteam",
+  "private": false,
+  "license": "AGPL-3.0 license",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -87,7 +87,9 @@
       "ts"
     ],
     "moduleNameMapper": {
-      "^src/(.*)$": "<rootDir>/src/$1"
+      "^src/(.*)$": "<rootDir>/src/$1",
+      "^@lib/prisma(|/.*)$": "<rootDir>/libs/prisma/src/$1",
+      "^@lib/infoteam-idp(|/.*)$": "<rootDir>/libs/infoteam-idp/src/$1"
     },
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
@@ -98,6 +100,10 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src/",
+      "<rootDir>/libs/"
+    ]
   }
 }
