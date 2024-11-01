@@ -67,7 +67,7 @@ export class InfoteamIdpService {
           }),
         ),
     );
-    this.logger.log('getAccessToken response, Duration time: ->');
+    this.logger.log('getAccessToken response');
     return accessTokenResponse.data;
   }
 
@@ -98,7 +98,7 @@ export class InfoteamIdpService {
           }),
         ),
     );
-    this.logger.log('getUserInfo response, Duration time: ->');
+    this.logger.log('getUserInfo response');
     const {
       uuid,
       name,
@@ -147,7 +147,7 @@ export class InfoteamIdpService {
           }),
         ),
     );
-    this.logger.log('refresh response, Duration time: ->');
+    this.logger.log('refresh response');
     return accessTokenResponse.data;
   }
 
@@ -187,6 +187,6 @@ export class InfoteamIdpService {
           }),
         ),
     );
-    this.logger.log('revoke response, Duration time: ->');
+    this.logger.log('revoke response');
   }
 }

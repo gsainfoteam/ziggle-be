@@ -3,6 +3,7 @@
     "axios",
     "datasources",
     "dbml",
+    "gistory",
     "gsainfoteam",
     "infoteam",
     "nestjs",
