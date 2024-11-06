@@ -36,6 +36,7 @@
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.6",
     "dayjs": "^1.11.10",
+    "deepl-node": "^1.14.0",
     "express-basic-auth": "^1.2.1",
     "firebase-admin": "^12.1.0",
     "html-to-text": "^9.0.5",
