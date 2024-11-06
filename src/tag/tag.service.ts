@@ -2,8 +2,10 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { TagRepository } from './tag.repository';
 import { Tag } from '@prisma/client';
 import { GetTagDto } from './dto/req/getTag.dto';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class TagService {
   private readonly logger = new Logger(TagService.name);
   constructor(private readonly tagRepository: TagRepository) {}

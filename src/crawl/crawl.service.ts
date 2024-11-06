@@ -13,8 +13,10 @@ import { GetCrawlDto } from './dto/req/getCrawl.dto';
 import { AiService } from 'src/ai/ai.service';
 import { FcmService } from 'src/fcm/fcm.service';
 import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class CrawlService {
   private readonly logger = new Logger(CrawlService.name);
   constructor(

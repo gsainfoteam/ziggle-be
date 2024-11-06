@@ -8,8 +8,10 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Crawl, User } from '@prisma/client';
 import { GetCrawlDto } from './dto/req/getCrawl.dto';
 import { PrismaService } from '@lib/prisma';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class CrawlRepository {
   private readonly logger = new Logger(CrawlRepository.name);
   constructor(private readonly prismaService: PrismaService) {}

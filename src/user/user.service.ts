@@ -6,7 +6,9 @@ import { JwtTokenType } from './types/jwtToken.type';
 import { User } from '@prisma/client';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { InfoteamIdpService } from '@lib/infoteam-idp';
+import { Loggable } from '@lib/logger/decorator/loggable';
 @Injectable()
+@Loggable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
   constructor(

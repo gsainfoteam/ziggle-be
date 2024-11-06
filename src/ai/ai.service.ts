@@ -7,7 +7,9 @@ import {
   ChatCompletionSystemMessageParam,
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
+import { Loggable } from '@lib/logger/decorator/loggable';
 @Injectable()
+@Loggable()
 export class AiService {
   private readonly openai: OpenAI;
   constructor(private readonly configService: ConfigService) {

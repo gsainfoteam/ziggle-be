@@ -10,8 +10,10 @@ import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { GroupsToken } from './types/groupsToken.type';
 import { GroupInfo } from './types/groupInfo.type';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class GroupService {
   private readonly logger = new Logger(GroupService.name);
   private readonly groupsUrl: string;

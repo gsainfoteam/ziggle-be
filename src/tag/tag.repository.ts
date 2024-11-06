@@ -1,3 +1,4 @@
+import { Loggable } from '@lib/logger/decorator/loggable';
 import { PrismaService } from '@lib/prisma';
 import {
   Injectable,
@@ -9,6 +10,7 @@ import { Tag } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
+@Loggable()
 export class TagRepository {
   private readonly logger = new Logger(TagRepository.name);
   constructor(private readonly prismaService: PrismaService) {}

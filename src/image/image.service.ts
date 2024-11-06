@@ -2,8 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import path from 'path';
 import { FileService } from 'src/file/file.service';
 import sharp from 'sharp';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class ImageService {
   private readonly logger = new Logger(ImageService.name);
   constructor(private readonly fileService: FileService) {}
