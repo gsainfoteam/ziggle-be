@@ -5,6 +5,7 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -22,11 +23,13 @@ import { GetTagDto } from './dto/req/getTag.dto';
 import { CreateTagDto } from './dto/req/createTag.dto';
 import { TagResDto } from './dto/res/TagRes.dto';
 import { IdPGuard } from 'src/user/guard/idp.guard';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @ApiTags('tag')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
 @Controller('tag')
 @UsePipes(new ValidationPipe({ transform: true }))
+@UseInterceptors(CacheInterceptor)
 export class TagController {
   constructor(private readonly tagService: TagService) {}
 

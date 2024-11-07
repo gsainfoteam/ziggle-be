@@ -10,6 +10,7 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -37,11 +38,13 @@ import {
   UpdateNoticeQueryDto,
 } from './dto/req/updateNotice.dto';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
+@UseInterceptors(CacheInterceptor)
 export class NoticeController {
   constructor(private readonly noticeService: NoticeService) {}
 

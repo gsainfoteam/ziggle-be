@@ -5,6 +5,7 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -20,10 +21,12 @@ import { CrawlService } from './crawl.service';
 import { CreateCrawlDto } from './dto/req/createCrawl.dto';
 import { GetCrawlDto } from './dto/req/getCrawl.dto';
 import { Crawl } from '@prisma/client';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @ApiTags('crawl')
 @Controller('crawl')
 @UsePipes(ValidationPipe)
+@UseInterceptors(CacheInterceptor)
 export class CrawlController {
   constructor(private readonly crawlService: CrawlService) {}
 
