@@ -11,11 +11,13 @@ import {
   ChatCompletionSystemMessageParam,
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
+import { Loggable } from '@lib/logger/decorator/loggable';
 import * as deepl from 'deepl-node';
 import { TranslateResDto } from './dto/res/translateRes.dto';
 import { TranslateDto } from './dto/req/translate.dto';
 
 @Injectable()
+@Loggable()
 export class AiService {
   private readonly logger = new Logger(AiService.name, {
     timestamp: true,
