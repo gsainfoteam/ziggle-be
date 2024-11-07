@@ -30,7 +30,6 @@ export class FileService {
    * @returns string
    */
   async uploadFile(file: Express.Multer.File, key: string): Promise<string> {
-    this.logger.log('uploadFile called');
     const command = new PutObjectCommand({
       Bucket: this.configService.getOrThrow<string>('AWS_S3_BUCKET_NAME'),
       Key: key,
@@ -73,7 +72,6 @@ export class FileService {
    * @param key string
    */
   async deleteFile(key: string): Promise<void> {
-    this.logger.log('deleteFile called key: ' + key);
     const command = new DeleteObjectCommand({
       Bucket: this.configService.getOrThrow('AWS_S3_BUCKET_NAME'),
       Key: key,
@@ -86,7 +84,6 @@ export class FileService {
   }
 
   async deleteFiles(keys: string[]): Promise<void> {
-    this.logger.log('deleteFiles called');
     await Promise.all(keys.map((key) => this.deleteFile(key)));
   }
 }

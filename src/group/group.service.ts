@@ -32,7 +32,6 @@ export class GroupService {
   }
 
   async getExternalTokenFromGroups(accessToken: string): Promise<GroupsToken> {
-    this.logger.log('getGroupFromVapor called');
     const groupResponse = await firstValueFrom(
       this.httpService.post<{
         token: string;
@@ -68,7 +67,6 @@ export class GroupService {
   }
 
   async getGroupInfoFromGroups(groupsToken: string): Promise<GroupInfo[]> {
-    this.logger.log('getGroupInfoFromGroups called');
     const groupResponse = await firstValueFrom(
       this.httpService.get<{ list: GroupInfo[] }>(this.groupsUrl + '/info', {
         headers: {

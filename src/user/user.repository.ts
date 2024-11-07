@@ -21,7 +21,6 @@ export class UserRepository {
     uuid,
     name,
   }: Pick<User, 'uuid' | 'name'>): Promise<User> {
-    this.logger.log('findUserOrCreate called');
     const user = await this.prismaService.user.findUnique({
       where: { uuid },
     });
@@ -43,7 +42,6 @@ export class UserRepository {
     uuid,
     name,
   }: Pick<User, 'uuid' | 'name'>): Promise<User> {
-    this.logger.log('findUserAndUpdate called');
     const user = await this.prismaService.user
       .findUniqueOrThrow({
         where: { uuid },
@@ -89,7 +87,6 @@ export class UserRepository {
   }
 
   async setConsent(user: User): Promise<User> {
-    this.logger.log('setConsent called');
     return this.prismaService.user
       .update({
         where: { uuid: user.uuid },
@@ -114,7 +111,6 @@ export class UserRepository {
   }
 
   async findUserByName({ name }: Pick<User, 'name'>): Promise<User | null> {
-    this.logger.log('findUserByName called');
     return this.prismaService.user
       .findFirst({
         where: { name },
@@ -130,7 +126,6 @@ export class UserRepository {
   }
 
   async createTempUser({ name }: Pick<User, 'name'>): Promise<User> {
-    this.logger.log('createTempUser called');
     return this.prismaService.user
       .create({
         data: {
@@ -153,7 +148,6 @@ export class UserRepository {
     userUuid: string | undefined,
     { fcmToken }: setFcmTokenReq,
   ) {
-    this.logger.log('setFcmToken called');
     await this.prismaService.fcmToken
       .upsert({
         where: { fcmTokenId: fcmToken },

@@ -17,7 +17,6 @@ export class CrawlRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getCrawlData({ url }: GetCrawlDto): Promise<Crawl | null> {
-    this.logger.log('getCrawlData');
     return this.prismaService.crawl
       .findFirst({
         where: {
@@ -39,7 +38,6 @@ export class CrawlRepository {
     deadline: Date | null,
     user: User,
   ): Promise<Crawl> {
-    this.logger.log('createCrawl');
     return this.prismaService.crawl
       .create({
         data: {
@@ -77,7 +75,6 @@ export class CrawlRepository {
     { title, body, type }: CreateCrawlDto,
     id: number,
   ): Promise<Crawl> {
-    this.logger.log('updateCrawl');
     return this.prismaService.crawl
       .update({
         where: {

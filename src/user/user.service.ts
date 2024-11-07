@@ -25,7 +25,6 @@ export class UserService {
    * @returns accessToken, refreshToken and the information that is  the user consent required
    */
   async login({ code, type }: LoginDto): Promise<JwtTokenType> {
-    this.logger.log('login called');
     if (!code || !type) {
       this.logger.debug('invalid code or type');
       throw new BadRequestException();
@@ -47,7 +46,6 @@ export class UserService {
       uuid: userInfo.uuid,
       name: userInfo.name,
     });
-    this.logger.log('login finished');
     return {
       ...tokens,
       consent_required: !user?.consent,
@@ -61,7 +59,6 @@ export class UserService {
    * @returns accessToken, refreshToken and the information that is  the user consent required
    */
   async refresh(refreshToken: string): Promise<JwtTokenType> {
-    this.logger.log('refresh called');
     const tokens = await this.infoteamIdpService.refresh(refreshToken);
     const userData = await this.infoteamIdpService.getUserInfo(
       tokens.access_token,
@@ -70,7 +67,6 @@ export class UserService {
       uuid: userData.uuid,
       name: userData.name,
     });
-    this.logger.log('refresh finished');
     return {
       ...tokens,
       consent_required: !user?.consent,
@@ -84,7 +80,6 @@ export class UserService {
    * @returns void
    */
   async logout(accessToken: string, refreshToken: string): Promise<void> {
-    this.logger.log('logout called');
     await this.infoteamIdpService.revoke(accessToken);
     await this.infoteamIdpService.revoke(refreshToken);
   }
@@ -95,7 +90,6 @@ export class UserService {
    * @returns void
    */
   async setConsent(user: User): Promise<void> {
-    this.logger.log('setConsent called');
     await this.userRepository.setConsent(user);
   }
 
@@ -105,12 +99,10 @@ export class UserService {
    * @returns user
    */
   async findUserOrCreate(user: Pick<User, 'uuid' | 'name'>): Promise<User> {
-    this.logger.log('findUserOrCreate called');
     return this.userRepository.findUserOrCreate(user);
   }
 
   async findOrCreateTempUser(user: Pick<User, 'name'>): Promise<User> {
-    this.logger.log('findOrCreateTempUser called');
     const foundUser = await this.userRepository.findUserByName(user);
     if (foundUser) {
       return foundUser;
@@ -119,7 +111,6 @@ export class UserService {
   }
 
   async setFcmToken(userUuid: string, fcmToken: setFcmTokenReq) {
-    this.logger.log('setFcmToken is called');
     return this.userRepository.setFcmToken(userUuid, fcmToken);
   }
 }

@@ -28,12 +28,19 @@ export class LoggerDecoratorRegister implements OnModuleInit {
               return;
             }
             const logger = new Logger(instance.constructor.name);
-            instance[methodName] = async function (...args: any[]) {
+            instance[methodName] = function (...args: any[]) {
               logger.log(`Before ${methodName}`);
               const now = Date.now();
-              const result = await originalMethod.apply(this, args);
-              logger.log(`After ${methodName} +${Date.now() - now}ms`);
-              return result;
+              const result = originalMethod.apply(this, args);
+              if (result instanceof Promise) {
+                return result.then((resolvedResult) => {
+                  logger.log(`After ${methodName} +${Date.now() - now}ms`);
+                  return resolvedResult;
+                });
+              } else {
+                logger.log(`After ${methodName} +${Date.now() - now}ms`);
+                return result;
+              }
             };
           });
       });

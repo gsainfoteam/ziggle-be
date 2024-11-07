@@ -28,7 +28,6 @@ export class CrawlService {
   ) {}
 
   async getCrawlData(dto: GetCrawlDto): Promise<Crawl> {
-    this.logger.log('getCrawlData');
     if (dto.password !== this.configService.get<string>('CRAWL_PASSWORD')) {
       this.logger.debug('Invalid password');
       throw new ForbiddenException('Invalid password');
@@ -41,7 +40,6 @@ export class CrawlService {
   }
 
   async createCrawl(dto: CreateCrawlDto): Promise<void> {
-    this.logger.log('createCrawl');
     if (dto.password !== this.configService.get<string>('CRAWL_PASSWORD')) {
       this.logger.debug('Invalid password');
       throw new ForbiddenException('Invalid password');

@@ -16,7 +16,6 @@ export class TagRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findAllTags(): Promise<Tag[]> {
-    this.logger.log('findAllTags');
     return this.prismaService.tag
       .findMany()
       .catch((err) => {
@@ -30,7 +29,6 @@ export class TagRepository {
   }
 
   async findTag({ name }: Pick<Tag, 'name'>): Promise<Tag> {
-    this.logger.log('findTag');
     return this.prismaService.tag
       .findUniqueOrThrow({
         where: { name },
@@ -72,7 +70,6 @@ export class TagRepository {
   }
 
   async createTag({ name }: Pick<Tag, 'name'>): Promise<Tag> {
-    this.logger.log('createTag');
     return this.prismaService.tag
       .create({
         data: {

@@ -16,7 +16,6 @@ export class ImageService {
    * @returns string[]
    */
   async uploadImages(files: Express.Multer.File[]): Promise<string[]> {
-    this.logger.log('uploadImages called');
     return Promise.all(files.map((file) => this.uploadImage(file)));
   }
 
@@ -25,7 +24,6 @@ export class ImageService {
    * @param key string[]
    */
   async validateImages(key: string[]): Promise<void> {
-    this.logger.log('validateImages called');
     await Promise.all(key.map((k) => this.validateImage(k)));
   }
 
@@ -34,7 +32,6 @@ export class ImageService {
    * @param key string[]
    */
   async deleteImages(key: string[]): Promise<void> {
-    this.logger.log('deleteImages called');
     await Promise.all(key.map((k) => this.deleteImage(k)));
   }
 
@@ -44,7 +41,6 @@ export class ImageService {
    * @returns string
    */
   private async uploadImage(file: Express.Multer.File): Promise<string> {
-    this.logger.log('uploadImage called');
     const key = `${new Date().toISOString()}-${Math.random().toString(36).substring(2)}.${path.extname(file.originalname)}`;
     return this.fileService.uploadFile(await this.convertToWebp(file), key);
   }
@@ -54,7 +50,6 @@ export class ImageService {
    * @param key string
    */
   private async validateImage(key: string): Promise<void> {
-    this.logger.log('validateUploadedImage called');
     await this.fileService.validateFile(key);
   }
 
@@ -63,7 +58,6 @@ export class ImageService {
    * @param key string
    */
   private async deleteImage(key: string): Promise<void> {
-    this.logger.log('deleteImage called');
     await this.fileService.deleteFile(key);
   }
 
@@ -75,12 +69,10 @@ export class ImageService {
   private async convertToWebp(
     file: Express.Multer.File,
   ): Promise<Express.Multer.File> {
-    this.logger.log('convertToWebp called');
     file.buffer = await sharp(file.buffer)
       .rotate()
       .webp({ effort: 0 })
       .toBuffer();
-    this.logger.log('convertToWebp finished');
     return file;
   }
 }

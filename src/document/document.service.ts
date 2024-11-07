@@ -15,7 +15,6 @@ export class DocumentService {
    * @returns string[]
    */
   async uploadDocuments(files: Express.Multer.File[]): Promise<string[]> {
-    this.logger.log('uploadDocuments called');
     return Promise.all(files.map((file) => this.uploadDocument(file)));
   }
 
@@ -25,7 +24,6 @@ export class DocumentService {
    * @returns void
    */
   async validateDocuments(key: string[]): Promise<void> {
-    this.logger.log('validateDocuments called');
     await Promise.all(key.map((k) => this.validationDocument(k)));
   }
 
@@ -35,7 +33,6 @@ export class DocumentService {
    * @returns void
    */
   async deleteDocuments(key: string[]): Promise<void> {
-    this.logger.log('deleteDocuments called');
     await Promise.all(key.map((k) => this.deleteDocument(k)));
   }
 
@@ -45,7 +42,6 @@ export class DocumentService {
    * @returns string
    */
   private async uploadDocument(file: Express.Multer.File): Promise<string> {
-    this.logger.log('uploadDocument called');
     const key = `${new Date().toISOString()}-${Math.random().toString(36).substring(2)}.${path.extname(file.originalname)}`;
     return this.fileService.uploadFile(file, key);
   }
@@ -56,7 +52,6 @@ export class DocumentService {
    * @returns void
    */
   private async validationDocument(key: string): Promise<void> {
-    this.logger.log('validationDocument called');
     return this.fileService.validateFile(key);
   }
 
@@ -66,7 +61,6 @@ export class DocumentService {
    * @returns void
    */
   private async deleteDocument(key: string): Promise<void> {
-    this.logger.log('deleteDocument called');
     return this.fileService.deleteFile(key);
   }
 }
