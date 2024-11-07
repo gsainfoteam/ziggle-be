@@ -38,12 +38,18 @@ export class FcmRepository {
 
   async createLogs(content: Content, fcmTokenIds: string[]): Promise<void> {
     const jsonContent = content as unknown as Prisma.JsonObject;
-    await this.prismaService.log.createMany({
-      data: fcmTokenIds.map((fcmTokenId) => ({
-        fcmTokenId,
-        content: jsonContent,
-      })),
-    });
+    await this.prismaService.log
+      .createMany({
+        data: fcmTokenIds.map((fcmTokenId) => ({
+          fcmTokenId,
+          content: jsonContent,
+        })),
+      })
+      .catch((err) => {
+        this.logger.error('createLogs');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('Database error');
+      });
     return;
   }
 
