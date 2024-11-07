@@ -36,6 +36,12 @@
       ],
       "@lib/logger/*": [
         "libs/logger/src/*"
+      ],
+      "@lib/redis-cache": [
+        "libs/redis-cache/src"
+      ],
+      "@lib/redis-cache/*": [
+        "libs/redis-cache/src/*"
       ]
     }
   }
