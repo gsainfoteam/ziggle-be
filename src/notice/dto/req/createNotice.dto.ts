@@ -86,14 +86,3 @@ export class CreateNoticeDto {
   @IsOptional()
   groupName?: string;
 }
-
-export class NoticeMetadataDto {
-  @IsString()
-  userUuid: string;
-
-  @IsDate()
-  publishedAt: Date;
-
-  @IsOptional()
-  createdAt?: Date;
-}
