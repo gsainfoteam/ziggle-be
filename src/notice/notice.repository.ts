@@ -320,15 +320,17 @@ export class NoticeRepository {
       groupName,
       category,
     }: CreateNoticeDto,
-    metadata: {
+    {
+      userUuid,
+      publishedAt,
+      createdAt,
+    }: {
       userUuid: string;
       publishedAt: Date;
       createdAt?: Date;
     },
   ): Promise<NoticeFullContent> {
     this.logger.log(`createNotice`);
-
-    const { userUuid, publishedAt, createdAt } = metadata;
 
     const findTags = await this.prismaService.tag.findMany({
       where: {

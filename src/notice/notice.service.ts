@@ -135,16 +135,13 @@ export class NoticeService {
     if (createNoticeDto.documents.length) {
       await this.documentService.validateDocuments(createNoticeDto.documents);
     }
-
-    const metadata = {
-      userUuid,
-      publishedAt: new Date(new Date().getTime() + this.fcmDelay),
-      createdAt: undefined,
-    };
-
     const createdNotice = await this.noticeRepository.createNotice(
       createNoticeDto,
-      metadata,
+      {
+        userUuid,
+        publishedAt: new Date(new Date().getTime() + this.fcmDelay),
+        createdAt: undefined,
+      },
     );
 
     const notice = await this.getNotice(createdNotice.id, { isViewed: false });
