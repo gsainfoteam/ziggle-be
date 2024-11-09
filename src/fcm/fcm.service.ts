@@ -6,8 +6,10 @@ import { FcmRepository } from './fcm.repository';
 import { FcmTargetUser } from './types/fcmTargetUser.type';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class FcmService {
   private readonly app: App;
   private readonly logger = new Logger(FcmService.name);
@@ -33,7 +35,6 @@ export class FcmService {
     targetUser: FcmTargetUser,
     data?: Record<string, string>,
   ): Promise<void> {
-    this.logger.log(`Adding message to queue with jobId ${jobId}`);
     await this.fcmQueue.add(
       { notification, targetUser, data },
       {
@@ -84,7 +85,6 @@ export class FcmService {
     tokens: string[],
     data?: Record<string, string>,
   ): Promise<void> {
-    this.logger.log(`Sending message to ${tokens.length} tokens`);
     // send message to each token
     const result = await getMessaging(this.app).sendEachForMulticast({
       tokens,

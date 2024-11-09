@@ -11,6 +11,7 @@ import { FileModule } from 'src/file/file.module';
 import { GroupModule } from 'src/group/group.module';
 import { FcmModule } from 'src/fcm/fcm.module';
 import { PrismaModule } from '@lib/prisma';
+import { LoggerModule } from '@lib/logger';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { PrismaModule } from '@lib/prisma';
     FileModule,
     GroupModule,
     FcmModule,
+    LoggerModule,
   ],
   controllers: [NoticeController],
   providers: [NoticeService, NoticeRepository, NoticeMapper],

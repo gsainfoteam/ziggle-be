@@ -5,9 +5,10 @@ import { ConfigModule } from '@nestjs/config';
 import { GroupController } from './group.controller';
 import { UserModule } from 'src/user/user.module';
 import { PrismaModule } from '@lib/prisma';
+import { LoggerModule } from '@lib/logger';
 
 @Module({
-  imports: [PrismaModule, HttpModule, ConfigModule, UserModule],
+  imports: [PrismaModule, HttpModule, ConfigModule, UserModule, LoggerModule],
   providers: [GroupService],
   exports: [GroupService],
   controllers: [GroupController],

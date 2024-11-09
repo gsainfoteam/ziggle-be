@@ -30,8 +30,10 @@ import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 import { htmlToText } from 'html-to-text';
 import { Notification } from 'firebase-admin/messaging';
 import { ConfigService } from '@nestjs/config';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class NoticeService {
   private readonly logger = new Logger(NoticeService.name);
   private fcmDelay: number;
@@ -166,7 +168,6 @@ export class NoticeService {
   }
 
   async sendNotice(id: number, userUuid: string): Promise<void> {
-    this.logger.log(`Send notice ${id}`);
     const notice = await this.getNotice(id, { isViewed: false });
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException('not author of the notice');
@@ -174,7 +175,6 @@ export class NoticeService {
     if (notice.publishedAt < new Date()) {
       throw new ForbiddenException('a message already sent');
     }
-    this.logger.log(`Notice time ${notice.publishedAt} is not sent yet`);
 
     const notification = {
       title: '[긴급] ' + notice.title,

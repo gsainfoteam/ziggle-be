@@ -137,6 +137,7 @@ model Notice {
   groupName  String?      @map("group_name")
   UserRecord UserRecord[]
 
+  @@index([deletedAt])
   @@map("notice")
 }
 

@@ -6,8 +6,10 @@ import {
 import { Content } from './types/content.type';
 import { FcmToken, Prisma } from '@prisma/client';
 import { PrismaService } from '@lib/prisma';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class FcmRepository {
   private readonly logger = new Logger(FcmRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
@@ -36,12 +38,18 @@ export class FcmRepository {
 
   async createLogs(content: Content, fcmTokenIds: string[]): Promise<void> {
     const jsonContent = content as unknown as Prisma.JsonObject;
-    await this.prismaService.log.createMany({
-      data: fcmTokenIds.map((fcmTokenId) => ({
-        fcmTokenId,
-        content: jsonContent,
-      })),
-    });
+    await this.prismaService.log
+      .createMany({
+        data: fcmTokenIds.map((fcmTokenId) => ({
+          fcmTokenId,
+          content: jsonContent,
+        })),
+      })
+      .catch((err) => {
+        this.logger.error('createLogs');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('Database error');
+      });
     return;
   }
 

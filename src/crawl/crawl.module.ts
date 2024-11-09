@@ -7,9 +7,17 @@ import { UserModule } from 'src/user/user.module';
 import { AiModule } from 'src/ai/ai.module';
 import { FcmModule } from 'src/fcm/fcm.module';
 import { PrismaModule } from '@lib/prisma';
+import { LoggerModule } from '@lib/logger';
 
 @Module({
-  imports: [PrismaModule, ConfigModule, UserModule, AiModule, FcmModule],
+  imports: [
+    PrismaModule,
+    ConfigModule,
+    UserModule,
+    AiModule,
+    FcmModule,
+    LoggerModule,
+  ],
   providers: [CrawlService, CrawlRepository],
   controllers: [CrawlController],
 })
