@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DeadlineResponse } from './types/deadlineResponse.type';
 import OpenAI from 'openai';
@@ -7,13 +11,26 @@ import {
   ChatCompletionSystemMessageParam,
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
+import { Loggable } from '@lib/logger/decorator/loggable';
+import * as deepl from 'deepl-node';
+import { TranslateResDto } from './dto/res/translateRes.dto';
+import { TranslateDto } from './dto/req/translate.dto';
+
 @Injectable()
+@Loggable()
 export class AiService {
+  private readonly logger = new Logger(AiService.name, {
+    timestamp: true,
+  });
   private readonly openai: OpenAI;
+  private readonly translator: deepl.Translator;
   constructor(private readonly configService: ConfigService) {
     this.openai = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+      apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
     });
+    this.translator = new deepl.Translator(
+      this.configService.getOrThrow<string>('DEEPL_API_KEY'),
+    );
   }
 
   async detectDeadline(body: string, createdAt: Date): Promise<Date | null> {
@@ -63,5 +80,23 @@ export class AiService {
       console.error(error);
       return null;
     }
+  }
+
+  async translate({
+    text,
+    targetLang,
+  }: TranslateDto): Promise<TranslateResDto> {
+    this.logger.log(`translate called`);
+    const result = await this.translator
+      .translateText(text, null, targetLang)
+      .catch((error) => {
+        this.logger.error(`deepl translation error: ${error.message}`);
+        throw new InternalServerErrorException(error.message);
+      });
+    this.logger.log(`translate finished`);
+    return {
+      text: result.text,
+      lang: targetLang,
+    };
   }
 }

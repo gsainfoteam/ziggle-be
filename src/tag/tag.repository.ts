@@ -1,3 +1,4 @@
+import { Loggable } from '@lib/logger/decorator/loggable';
 import { PrismaService } from '@lib/prisma';
 import {
   Injectable,
@@ -9,12 +10,12 @@ import { Tag } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
+@Loggable()
 export class TagRepository {
   private readonly logger = new Logger(TagRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
   async findAllTags(): Promise<Tag[]> {
-    this.logger.log('findAllTags');
     return this.prismaService.tag
       .findMany()
       .catch((err) => {
@@ -28,7 +29,6 @@ export class TagRepository {
   }
 
   async findTag({ name }: Pick<Tag, 'name'>): Promise<Tag> {
-    this.logger.log('findTag');
     return this.prismaService.tag
       .findUniqueOrThrow({
         where: { name },
@@ -70,7 +70,6 @@ export class TagRepository {
   }
 
   async createTag({ name }: Pick<Tag, 'name'>): Promise<Tag> {
-    this.logger.log('createTag');
     return this.prismaService.tag
       .create({
         data: {

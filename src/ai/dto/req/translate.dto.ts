@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsLocale, IsString } from 'class-validator';
+import * as deepl from 'deepl-node';
 
 export class TranslateDto {
   @ApiProperty({
@@ -14,5 +16,11 @@ export class TranslateDto {
     example: 'ko',
   })
   @IsLocale()
-  targetLang: string;
+  @Transform(({ value }) => {
+    if (value === 'en') {
+      return 'en-US';
+    }
+    return value;
+  })
+  targetLang: deepl.TargetLanguageCode;
 }
