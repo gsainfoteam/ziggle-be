@@ -308,7 +308,7 @@ export class NoticeRepository {
    * @param param0 create notice dto
    * @param userUuid user's uuid
    * @param createdAt created time (optional)
-   * @param publishedAt published time (optional) the time that will be sent fcm message.
+   * @param publishedAt published time : the time that will be sent fcm message.
    * @returns NoticeFullContent
    */
   async createNotice(
@@ -323,8 +323,8 @@ export class NoticeRepository {
       category,
     }: CreateNoticeDto,
     userUuid: string,
+    publishedAt: Date,
     createdAt?: Date,
-    publishedAt?: Date,
   ): Promise<NoticeFullContent> {
     this.logger.log(`createNotice`);
     const findTags = await this.prismaService.tag.findMany({

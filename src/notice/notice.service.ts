@@ -137,8 +137,8 @@ export class NoticeService {
     const createdNotice = await this.noticeRepository.createNotice(
       createNoticeDto,
       userUuid,
-      undefined,
       new Date(new Date().getTime() + this.fcmDelay),
+      undefined,
     );
 
     const notice = await this.getNotice(createdNotice.id, { isViewed: false });
@@ -167,7 +167,7 @@ export class NoticeService {
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException('not author of the notice');
     }
-    if (notice.publishedAt === null || notice.publishedAt < new Date()) {
+    if (notice.publishedAt < new Date()) {
       throw new ForbiddenException('a message already sent');
     }
     this.logger.log(`Notice time ${notice.publishedAt} is not sent yet`);
