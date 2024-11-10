@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { IdpService } from './idp.service';
 import { HttpModule } from '@nestjs/axios';
-import { ConfigModule } from '@nestjs/config';
+import { CustomConfigModule } from 'src/config/customConfig.module';
 
 @Module({
-  imports: [HttpModule, ConfigModule],
+  imports: [HttpModule, CustomConfigModule],
   providers: [IdpService],
   exports: [IdpService],
 })

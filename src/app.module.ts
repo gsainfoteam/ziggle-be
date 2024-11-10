@@ -11,8 +11,11 @@ import { CrawlModule } from './crawl/crawl.module';
 import { GroupModule } from './group/group.module';
 import { FcmModule } from './fcm/fcm.module';
 import { BullModule } from '@nestjs/bull';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { AiModule } from './ai/ai.module';
+import { validate } from './env.validation';
+import { CustomConfigService } from './config/customConfig.service';
+import { CustomConfigModule } from './config/customConfig.module';
 
 @Module({
   imports: [
@@ -27,16 +30,22 @@ import { AiModule } from './ai/ai.module';
     GroupModule,
     FcmModule,
     BullModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      imports: [
+        ConfigModule.forRoot({
+          validate,
+        }),
+        CustomConfigModule,
+      ],
+      inject: [CustomConfigService],
+      useFactory: (customConfigService: CustomConfigService) => ({
         redis: {
-          host: configService.getOrThrow<string>('REDIS_HOST'),
-          port: configService.getOrThrow<number>('REDIS_PORT'),
+          host: customConfigService.REDIS_HOST,
+          port: customConfigService.REDIS_PORT,
         },
       }),
     }),
     AiModule,
+    CustomConfigModule,
   ],
   controllers: [AppController],
 })

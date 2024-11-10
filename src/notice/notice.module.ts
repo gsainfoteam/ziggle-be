@@ -4,19 +4,19 @@ import { NoticeService } from './notice.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { NoticeRepository } from './notice.repository';
 import { UserModule } from 'src/user/user.module';
-import { ConfigModule } from '@nestjs/config';
 import { NoticeMapper } from './notice.mapper';
 import { ImageModule } from 'src/image/image.module';
 import { DocumentModule } from 'src/document/document.module';
 import { FileModule } from 'src/file/file.module';
 import { GroupModule } from 'src/group/group.module';
 import { FcmModule } from 'src/fcm/fcm.module';
+import { CustomConfigModule } from 'src/config/customConfig.module';
 
 @Module({
   imports: [
     PrismaModule,
     UserModule,
-    ConfigModule,
+    CustomConfigModule,
     ImageModule,
     DocumentModule,
     FileModule,

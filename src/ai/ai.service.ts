@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { DeadlineResponse } from './types/deadlineResponse.type';
 import OpenAI from 'openai';
 import {
@@ -7,12 +6,13 @@ import {
   ChatCompletionSystemMessageParam,
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
+import { CustomConfigService } from 'src/config/customConfig.service';
 @Injectable()
 export class AiService {
   private readonly openai: OpenAI;
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly customConfigService: CustomConfigService) {
     this.openai = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+      apiKey: this.customConfigService.OPENAI_API_KEY,
     });
   }
 

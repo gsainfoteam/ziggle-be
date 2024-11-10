@@ -7,9 +7,9 @@ import {
 } from '@nestjs/common';
 import { IdpJwtResponse, IdpUserInfoRes } from './types/idp.type';
 import { catchError, firstValueFrom } from 'rxjs';
-import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { UserInfo } from './types/userInfo.type';
+import { CustomConfigService } from 'src/config/customConfig.service';
 
 @Injectable()
 export class IdpService {
@@ -17,9 +17,9 @@ export class IdpService {
   private idpUrl: string;
   constructor(
     private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
+    private readonly customConfigService: CustomConfigService,
   ) {
-    this.idpUrl = this.configService.getOrThrow<string>('IDP_URL');
+    this.idpUrl = this.customConfigService.IDP_URL;
   }
 
   /**
@@ -48,8 +48,8 @@ export class IdpService {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             auth: {
-              username: this.configService.getOrThrow<string>('CLIENT_ID'),
-              password: this.configService.getOrThrow<string>('CLIENT_SECRET'),
+              username: this.customConfigService.CLIENT_ID,
+              password: this.customConfigService.CLIENT_SECRET,
             },
           },
         )
@@ -90,8 +90,8 @@ export class IdpService {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             auth: {
-              username: this.configService.getOrThrow<string>('CLIENT_ID'),
-              password: this.configService.getOrThrow<string>('CLIENT_SECRET'),
+              username: this.customConfigService.CLIENT_ID,
+              password: this.customConfigService.CLIENT_SECRET,
             },
           },
         )
@@ -166,8 +166,8 @@ export class IdpService {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             auth: {
-              username: this.configService.getOrThrow<string>('CLIENT_ID'),
-              password: this.configService.getOrThrow<string>('CLIENT_SECRET'),
+              username: this.customConfigService.CLIENT_ID,
+              password: this.customConfigService.CLIENT_SECRET,
             },
           },
         )

@@ -3,17 +3,15 @@ import { NoticeFullContent } from './types/noticeFullContent';
 import { GeneralNoticeDto } from './dto/res/generalNotice.dto';
 import { firstValueFrom, from, groupBy, mergeMap, toArray } from 'rxjs';
 import { htmlToText } from 'html-to-text';
-import { ConfigService } from '@nestjs/config';
 import { FileType } from '@prisma/client';
 import { ExpandedGeneralNoticeDto } from './dto/res/expandedGeneralNotice.dto';
+import { CustomConfigService } from 'src/config/customConfig.service';
 
 @Injectable()
 export class NoticeMapper {
   private readonly s3Url: string;
-  constructor(private readonly configService: ConfigService) {
-    this.s3Url = `https://s3.${configService.get<string>(
-      'AWS_S3_REGION',
-    )}.amazonaws.com/${configService.get<string>('AWS_S3_BUCKET_NAME')}/`;
+  constructor(private readonly customConfigService: CustomConfigService) {
+    this.s3Url = `https://s3.${customConfigService.AWS_S3_REGION}.amazonaws.com/${customConfigService.AWS_S3_BUCKET_NAME}/`;
   }
 
   async NoticeFullContentToExpandedGeneralNoticeList(

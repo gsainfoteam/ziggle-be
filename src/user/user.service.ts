@@ -1,17 +1,17 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { LoginDto } from './dto/req/login.dto';
 import { IdpService } from 'src/idp/idp.service';
-import { ConfigService } from '@nestjs/config';
 import { UserRepository } from './user.repository';
 import { JwtTokenType } from './types/jwtToken.type';
 import { User } from '@prisma/client';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
+import { CustomConfigService } from 'src/config/customConfig.service';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
   constructor(
     private readonly idpService: IdpService,
-    private readonly configService: ConfigService,
+    private readonly customConfigService: CustomConfigService,
     private readonly userRepository: UserRepository,
   ) {}
 
@@ -30,10 +30,10 @@ export class UserService {
     }
     const redirectUri =
       type === 'flutter'
-        ? this.configService.getOrThrow<string>('FLUTTER_REDIRECT_URI')
+        ? this.customConfigService.FLUTTER_REDIRECT_URI
         : type === 'local'
-          ? this.configService.getOrThrow<string>('LOCAL_REDIRECT_URI')
-          : this.configService.getOrThrow<string>('WEB_REDIRECT_URI');
+          ? this.customConfigService.LOCAL_REDIRECT_URI
+          : this.customConfigService.WEB_REDIRECT_URI;
     const tokens = await this.idpService.getAccessTokenFromIdP(
       code,
       redirectUri,

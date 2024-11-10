@@ -5,11 +5,11 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { GroupsToken } from './types/groupsToken.type';
 import { GroupInfo } from './types/groupinfo.type';
+import { CustomConfigService } from 'src/config/customConfig.service';
 
 @Injectable()
 export class GroupService {
@@ -19,14 +19,11 @@ export class GroupService {
   private readonly groupsClientSecret: string;
   constructor(
     private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
+    private readonly customConfigService: CustomConfigService,
   ) {
-    this.groupsUrl = this.configService.getOrThrow<string>('GROUPS_URL');
-    this.groupsClientId =
-      this.configService.getOrThrow<string>('GROUPS_CLIENT_ID');
-    this.groupsClientSecret = this.configService.getOrThrow<string>(
-      'GROUPS_CLIENT_SECRET',
-    );
+    this.groupsUrl = this.customConfigService.GROUPS_URL;
+    this.groupsClientId = this.customConfigService.GROUPS_CLIENT_ID;
+    this.groupsClientSecret = this.customConfigService.GROUPS_CLIENT_SECRET;
   }
 
   async getExternalTokenFromGroups(accessToken: string): Promise<GroupsToken> {

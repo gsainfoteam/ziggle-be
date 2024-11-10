@@ -29,7 +29,7 @@ import { FcmService } from 'src/fcm/fcm.service';
 import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 import { htmlToText } from 'html-to-text';
 import { Notification } from 'firebase-admin/messaging';
-import { ConfigService } from '@nestjs/config';
+import { CustomConfigService } from 'src/config/customConfig.service';
 
 @Injectable()
 export class NoticeService {
@@ -43,9 +43,9 @@ export class NoticeService {
     private readonly noticeMapper: NoticeMapper,
     private readonly groupService: GroupService,
     private readonly fcmService: FcmService,
-    private readonly configService: ConfigService,
+    private readonly customConfigService: CustomConfigService,
   ) {
-    this.fcmDelay = Number(this.configService.getOrThrow<number>('FCM_DELAY'));
+    this.fcmDelay = Number(this.customConfigService.FCM_DELAY);
   }
 
   async getNoticeList(

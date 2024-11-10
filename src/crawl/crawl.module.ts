@@ -3,13 +3,13 @@ import { CrawlService } from './crawl.service';
 import { CrawlController } from './crawl.controller';
 import { CrawlRepository } from './crawl.repository';
 import { PrismaModule } from 'src/prisma/prisma.module';
-import { ConfigModule } from '@nestjs/config';
 import { UserModule } from 'src/user/user.module';
 import { AiModule } from 'src/ai/ai.module';
 import { FcmModule } from 'src/fcm/fcm.module';
+import { CustomConfigModule } from 'src/config/customConfig.module';
 
 @Module({
-  imports: [PrismaModule, ConfigModule, UserModule, AiModule, FcmModule],
+  imports: [PrismaModule, CustomConfigModule, UserModule, AiModule, FcmModule],
   providers: [CrawlService, CrawlRepository],
   controllers: [CrawlController],
 })
