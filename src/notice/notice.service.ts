@@ -135,12 +135,13 @@ export class NoticeService {
     if (createNoticeDto.documents.length) {
       await this.documentService.validateDocuments(createNoticeDto.documents);
     }
-
     const createdNotice = await this.noticeRepository.createNotice(
       createNoticeDto,
-      userUuid,
-      undefined,
-      new Date(new Date().getTime() + this.fcmDelay),
+      {
+        userUuid,
+        publishedAt: new Date(new Date().getTime() + this.fcmDelay),
+        createdAt: undefined,
+      },
     );
 
     const notice = await this.getNotice(createdNotice.id, { isViewed: false });
@@ -168,7 +169,7 @@ export class NoticeService {
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException('not author of the notice');
     }
-    if (notice.publishedAt === null || notice.publishedAt < new Date()) {
+    if (notice.publishedAt < new Date()) {
       throw new ForbiddenException('a message already sent');
     }
 
