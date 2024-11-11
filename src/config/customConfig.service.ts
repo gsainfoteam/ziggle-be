@@ -1,18 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EnvironmentVariableKeys } from 'src/env.validation';
 
 @Injectable()
 export class CustomConfigService {
   constructor(private configService: ConfigService) {}
 
-  private getEnvVariable(key: string) {
-    const value = this.configService.getOrThrow(key);
-
-    if (!value) {
-      throw new Error(`${key} env value is missing`);
-    }
-
-    return value;
+  private getEnvVariable(key: EnvironmentVariableKeys) {
+    return this.configService.getOrThrow(key);
   }
 
   get IDP_URL(): string {
@@ -21,10 +16,6 @@ export class CustomConfigService {
 
   get DATABASE_URL(): string {
     return this.getEnvVariable('DATABASE_URL');
-  }
-
-  get SWAGGER_URL(): string {
-    return this.getEnvVariable('SWAGGER_URL');
   }
 
   get SWAGGER_USER(): string {

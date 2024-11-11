@@ -89,7 +89,29 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   GROUPS_CLIENT_SECRET: string;
+
+  @IsString()
+  @IsNotEmpty()
+  API_URL: string;
+
+  @IsString()
+  @IsNotEmpty()
+  CRAWL_PASSWORD: string;
+
+  @IsString()
+  @IsNotEmpty()
+  FLUTTER_REDIRECT_URI: string;
+
+  @IsString()
+  @IsNotEmpty()
+  LOCAL_REDIRECT_URI: string;
+
+  @IsString()
+  @IsNotEmpty()
+  WEB_REDIRECT_URI: string;
 }
+
+export type EnvironmentVariableKeys = keyof EnvironmentVariables;
 
 export function validate(config: Record<string, unknown>) {
   const validatedConfiguration = plainToInstance(EnvironmentVariables, config, {
