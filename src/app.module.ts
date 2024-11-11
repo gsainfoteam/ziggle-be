@@ -11,9 +11,7 @@ import { CrawlModule } from './crawl/crawl.module';
 import { GroupModule } from './group/group.module';
 import { FcmModule } from './fcm/fcm.module';
 import { BullModule } from '@nestjs/bull';
-import { ConfigModule } from '@nestjs/config';
 import { AiModule } from './ai/ai.module';
-import { validate } from './env.validation';
 import { CustomConfigService } from './config/customConfig.service';
 import { CustomConfigModule } from './config/customConfig.module';
 
@@ -30,12 +28,7 @@ import { CustomConfigModule } from './config/customConfig.module';
     GroupModule,
     FcmModule,
     BullModule.forRootAsync({
-      imports: [
-        ConfigModule.forRoot({
-          validate,
-        }),
-        CustomConfigModule,
-      ],
+      imports: [CustomConfigModule],
       inject: [CustomConfigService],
       useFactory: (customConfigService: CustomConfigService) => ({
         redis: {
@@ -45,7 +38,6 @@ import { CustomConfigModule } from './config/customConfig.module';
       }),
     }),
     AiModule,
-    CustomConfigModule,
   ],
   controllers: [AppController],
 })
