@@ -117,4 +117,8 @@ export class CustomConfigService {
   get WEB_REDIRECT_URI(): string {
     return this.getEnvVariable('WEB_REDIRECT_URI');
   }
+
+  get DEEPL_API_KEY(): string {
+    return this.getEnvVariable('DEEPL_API_KEY');
+  }
 }

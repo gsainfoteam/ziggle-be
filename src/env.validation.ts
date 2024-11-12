@@ -109,6 +109,10 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   WEB_REDIRECT_URI: string;
+
+  @IsString()
+  @IsNotEmpty()
+  DEEPL_API_KEY: string;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;

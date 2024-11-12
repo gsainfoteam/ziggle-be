@@ -8,9 +8,9 @@ import {
 import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { GroupsToken } from './types/groupsToken.type';
-import { GroupInfo } from './types/groupinfo.type';
 import { CustomConfigService } from 'src/config/customConfig.service';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { GroupInfo } from './types/groupInfo.type';
 
 @Injectable()
 @Loggable()

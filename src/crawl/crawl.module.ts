@@ -5,7 +5,6 @@ import { CrawlRepository } from './crawl.repository';
 import { UserModule } from 'src/user/user.module';
 import { AiModule } from 'src/ai/ai.module';
 import { FcmModule } from 'src/fcm/fcm.module';
-import { LoggerModule } from '@lib/logger'
 import { PrismaModule } from '@lib/prisma';
 import { LoggerModule } from '@lib/logger';
 import { CustomConfigModule } from 'src/config/customConfig.module';

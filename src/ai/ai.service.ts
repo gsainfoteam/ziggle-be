@@ -28,7 +28,7 @@ export class AiService {
       apiKey: this.customConfigService.OPENAI_API_KEY,
     });
     this.translator = new deepl.Translator(
-      this.configService.getOrThrow<string>('DEEPL_API_KEY'),
+      this.customConfigService.DEEPL_API_KEY,
     );
   }
 

@@ -5,12 +5,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-<<<<<<< HEAD:src/idp/idp.service.ts
-import { IdpJwtResponse, IdpUserInfoRes } from './types/idp.type';
-=======
-import { ConfigService } from '@nestjs/config';
 import { IdpJwtResponse, IdpUserInfoResponse } from './types/idp.type';
->>>>>>> main:libs/infoteam-idp/src/infoteam-idp.service.ts
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { UserInfo } from './types/userInfo.type';

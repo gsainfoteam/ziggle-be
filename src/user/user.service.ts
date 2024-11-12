@@ -1,7 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { LoginDto } from './dto/req/login.dto';
-import { IdpService } from 'src/idp/idp.service';
-import { ConfigService } from '@nestjs/config';
 import { UserRepository } from './user.repository';
 import { JwtTokenType } from './types/jwtToken.type';
 import { User } from '@prisma/client';
@@ -37,7 +35,7 @@ export class UserService {
         : type === 'local'
           ? this.customConfigService.LOCAL_REDIRECT_URI
           : this.customConfigService.WEB_REDIRECT_URI;
-    const tokens = await this.idpService.getAccessTokenFromIdP(
+    const tokens = await this.infoteamIdpService.getAccessToken(
       code,
       redirectUri,
     );

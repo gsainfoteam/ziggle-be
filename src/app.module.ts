@@ -16,10 +16,6 @@ import { CustomConfigModule } from './config/customConfig.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      cache: true,
-      ignoreEnvFile: false,
-    }),
     FileModule,
     UserModule,
     TagModule,
