@@ -6,7 +6,7 @@ import { FcmTargetUser } from './types/fcmTargetUser.type';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Loggable } from '@lib/logger/decorator/loggable';
-import { CustomConfigService } from 'src/config/customConfig.service';
+import { CustomConfigService } from '@lib/custom-config';
 
 @Injectable()
 @Loggable()

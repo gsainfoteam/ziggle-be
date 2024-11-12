@@ -4,13 +4,13 @@ import {
   PutObjectTaggingCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { CustomConfigService } from '@lib/custom-config';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import {
   Injectable,
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { CustomConfigService } from 'src/config/customConfig.service';
 
 @Injectable()
 @Loggable()

@@ -12,8 +12,8 @@ import { GetCrawlDto } from './dto/req/getCrawl.dto';
 import { AiService } from 'src/ai/ai.service';
 import { FcmService } from 'src/fcm/fcm.service';
 import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
-import { CustomConfigService } from 'src/config/customConfig.service';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { CustomConfigService } from '@lib/custom-config';
 
 @Injectable()
 @Loggable()

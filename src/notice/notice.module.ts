@@ -9,9 +9,9 @@ import { DocumentModule } from 'src/document/document.module';
 import { FileModule } from 'src/file/file.module';
 import { GroupModule } from 'src/group/group.module';
 import { FcmModule } from 'src/fcm/fcm.module';
-import { CustomConfigModule } from 'src/config/customConfig.module';
 import { PrismaModule } from '@lib/prisma';
 import { LoggerModule } from '@lib/logger';
+import { CustomConfigModule } from '@lib/custom-config';
 
 @Module({
   imports: [

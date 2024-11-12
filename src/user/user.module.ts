@@ -7,10 +7,10 @@ import { IdPOptionalStrategy } from './guard/idpOptional.strategy';
 import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
 import { UserService } from './user.service';
-import { CustomConfigModule } from 'src/config/customConfig.module';
 import { PrismaModule } from '@lib/prisma';
 import { InfoteamIdpModule } from '@lib/infoteam-idp';
 import { LoggerModule } from '@lib/logger';
+import { CustomConfigModule } from '@lib/custom-config';
 
 @Module({
   imports: [
