@@ -14,7 +14,7 @@ import { Loggable } from '@lib/logger/decorator/loggable';
 import * as deepl from 'deepl-node';
 import { TranslateResDto } from './dto/res/translateRes.dto';
 import { TranslateDto } from './dto/req/translate.dto';
-import { CustomConfigService } from 'src/config/customConfig.service';
+import { CustomConfigService } from '@lib/custom-config';
 @Injectable()
 @Loggable()
 export class AiService {

@@ -7,7 +7,7 @@ import { AiModule } from 'src/ai/ai.module';
 import { FcmModule } from 'src/fcm/fcm.module';
 import { PrismaModule } from '@lib/prisma';
 import { LoggerModule } from '@lib/logger';
-import { CustomConfigModule } from 'src/config/customConfig.module';
+import { CustomConfigModule } from '@lib/custom-config';
 
 @Module({
   imports: [

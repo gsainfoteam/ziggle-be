@@ -36,6 +36,18 @@
       ],
       "@lib/logger/*": [
         "libs/logger/src/*"
+      ],
+      "@lib/config": [
+        "libs/config/src"
+      ],
+      "@lib/config/*": [
+        "libs/config/src/*"
+      ],
+      "@lib/custom-config": [
+        "libs/custom-config/src"
+      ],
+      "@lib/custom-config/*": [
+        "libs/custom-config/src/*"
       ]
     }
   }

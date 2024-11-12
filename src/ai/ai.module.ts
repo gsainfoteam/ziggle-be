@@ -3,7 +3,7 @@ import { AiService } from './ai.service';
 import { AiController } from './ai.controller';
 import { UserModule } from 'src/user/user.module';
 import { LoggerModule } from '@lib/logger';
-import { CustomConfigModule } from 'src/config/customConfig.module';
+import { CustomConfigModule } from '@lib/custom-config';
 
 @Module({
   imports: [CustomConfigModule, UserModule, LoggerModule],

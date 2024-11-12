@@ -4,9 +4,9 @@ import { UserRepository } from './user.repository';
 import { JwtTokenType } from './types/jwtToken.type';
 import { User } from '@prisma/client';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
-import { CustomConfigService } from 'src/config/customConfig.service';
 import { InfoteamIdpService } from '@lib/infoteam-idp';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { CustomConfigService } from '@lib/custom-config';
 @Injectable()
 @Loggable()
 export class UserService {

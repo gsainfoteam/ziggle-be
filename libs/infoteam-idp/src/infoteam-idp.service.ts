@@ -9,7 +9,7 @@ import { IdpJwtResponse, IdpUserInfoResponse } from './types/idp.type';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { UserInfo } from './types/userInfo.type';
-import { CustomConfigService } from 'src/config/customConfig.service';
+import { CustomConfigService } from '@lib/custom-config';
 
 @Injectable()
 export class InfoteamIdpService {

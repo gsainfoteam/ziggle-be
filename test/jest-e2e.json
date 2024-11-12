@@ -16,6 +16,10 @@
     "@lib/infoteam-idp/(.*)": "<rootDir>/../libs/infoteam-idp/src/$1",
     "@lib/infoteam-idp": "<rootDir>/../libs/infoteam-idp/src",
     "@lib/logger/(.*)": "<rootDir>/../libs/logger/src/$1",
-    "@lib/logger": "<rootDir>/../libs/logger/src"
+    "@lib/logger": "<rootDir>/../libs/logger/src",
+    "@lib/config/(.*)": "<rootDir>/../libs/config/src/$1",
+    "@lib/config": "<rootDir>/../libs/config/src",
+    "@lib/custom-config/(.*)": "<rootDir>/../libs/custom-config/src/$1",
+    "@lib/custom-config": "<rootDir>/../libs/custom-config/src"
   }
 }

@@ -5,7 +5,7 @@ import { firstValueFrom, from, groupBy, mergeMap, toArray } from 'rxjs';
 import { htmlToText } from 'html-to-text';
 import { FileType } from '@prisma/client';
 import { ExpandedGeneralNoticeDto } from './dto/res/expandedGeneralNotice.dto';
-import { CustomConfigService } from 'src/config/customConfig.service';
+import { CustomConfigService } from '@lib/custom-config';
 
 @Injectable()
 export class NoticeMapper {
