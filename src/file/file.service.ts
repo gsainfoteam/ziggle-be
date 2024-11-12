@@ -4,22 +4,22 @@ import {
   PutObjectTaggingCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { CustomConfigService } from '@lib/custom-config';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import {
   Injectable,
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 @Loggable()
 export class FileService {
   private readonly logger = new Logger(FileService.name);
   private readonly s3Client: S3Client;
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly customConfigService: CustomConfigService) {
     this.s3Client = new S3Client({
-      region: configService.get('AWS_S3_REGION'),
+      region: customConfigService.AWS_S3_REGION,
     });
   }
 
@@ -31,7 +31,7 @@ export class FileService {
    */
   async uploadFile(file: Express.Multer.File, key: string): Promise<string> {
     const command = new PutObjectCommand({
-      Bucket: this.configService.getOrThrow<string>('AWS_S3_BUCKET_NAME'),
+      Bucket: this.customConfigService.AWS_S3_BUCKET_NAME,
       Key: key,
       Body: file.buffer,
       Tagging: 'expiration=true',
@@ -55,7 +55,7 @@ export class FileService {
    */
   async validateFile(key: string): Promise<void> {
     const command = new PutObjectTaggingCommand({
-      Bucket: this.configService.getOrThrow('AWS_S3_BUCKET_NAME'),
+      Bucket: this.customConfigService.AWS_S3_BUCKET_NAME,
       Key: key,
       Tagging: {
         TagSet: [{ Key: 'expiration', Value: 'false' }],
@@ -73,7 +73,7 @@ export class FileService {
    */
   async deleteFile(key: string): Promise<void> {
     const command = new DeleteObjectCommand({
-      Bucket: this.configService.getOrThrow('AWS_S3_BUCKET_NAME'),
+      Bucket: this.customConfigService.AWS_S3_BUCKET_NAME,
       Key: key,
     });
 

@@ -33,6 +33,24 @@
       "compilerOptions": {
         "tsConfigPath": "libs/logger/tsconfig.lib.json"
       }
+    },
+    "config": {
+      "type": "library",
+      "root": "libs/config",
+      "entryFile": "index",
+      "sourceRoot": "libs/config/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/config/tsconfig.lib.json"
+      }
+    },
+    "custom-config": {
+      "type": "library",
+      "root": "libs/custom-config",
+      "entryFile": "index",
+      "sourceRoot": "libs/custom-config/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/custom-config/tsconfig.lib.json"
+      }
     }
   }
 }

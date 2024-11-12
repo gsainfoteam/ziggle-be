@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { App, cert, initializeApp } from 'firebase-admin/app';
 import { Notification, getMessaging } from 'firebase-admin/messaging';
 import { FcmRepository } from './fcm.repository';
@@ -7,6 +6,7 @@ import { FcmTargetUser } from './types/fcmTargetUser.type';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { CustomConfigService } from '@lib/custom-config';
 
 @Injectable()
 @Loggable()
@@ -15,16 +15,17 @@ export class FcmService {
   private readonly logger = new Logger(FcmService.name);
   constructor(
     @InjectQueue('fcm') private readonly fcmQueue: Queue,
-    private readonly configService: ConfigService,
+    private readonly customConfigService: CustomConfigService,
     private readonly fcmRepository: FcmRepository,
   ) {
     this.app = initializeApp({
       credential: cert({
-        projectId: this.configService.getOrThrow('FCM_PROJECT_ID'),
-        clientEmail: this.configService.getOrThrow('FCM_CLIENT_EMAIL'),
-        privateKey: this.configService
-          .getOrThrow('FCM_PRIVATE_KEY')
-          .replace(/\\n/g, '\n'),
+        projectId: this.customConfigService.FCM_PROJECT_ID,
+        clientEmail: this.customConfigService.FCM_CLIENT_EMAIL,
+        privateKey: this.customConfigService.FCM_PRIVATE_KEY.replace(
+          /\\n/g,
+          '\n',
+        ),
       }),
     });
   }
@@ -38,7 +39,7 @@ export class FcmService {
     await this.fcmQueue.add(
       { notification, targetUser, data },
       {
-        delay: this.configService.getOrThrow<number>('FCM_DELAY'),
+        delay: this.customConfigService.FCM_DELAY,
         removeOnComplete: true,
         removeOnFail: true,
         jobId,

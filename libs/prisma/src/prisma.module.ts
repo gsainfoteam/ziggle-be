@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
-import { ConfigModule } from '@nestjs/config';
+import { CustomConfigModule } from '@lib/custom-config';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [CustomConfigModule],
   providers: [PrismaService],
   exports: [PrismaService],
 })

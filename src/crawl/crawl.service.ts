@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { CrawlRepository } from './crawl.repository';
 import { CreateCrawlDto } from './dto/req/createCrawl.dto';
-import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { Crawl } from '@prisma/client';
 import { GetCrawlDto } from './dto/req/getCrawl.dto';
@@ -14,6 +13,7 @@ import { AiService } from 'src/ai/ai.service';
 import { FcmService } from 'src/fcm/fcm.service';
 import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { CustomConfigService } from '@lib/custom-config';
 
 @Injectable()
 @Loggable()
@@ -21,14 +21,14 @@ export class CrawlService {
   private readonly logger = new Logger(CrawlService.name);
   constructor(
     private readonly crawlRepository: CrawlRepository,
-    private readonly configService: ConfigService,
+    private readonly customConfigService: CustomConfigService,
     private readonly userService: UserService,
     private readonly fcmService: FcmService,
     private readonly aiService: AiService,
   ) {}
 
   async getCrawlData(dto: GetCrawlDto): Promise<Crawl> {
-    if (dto.password !== this.configService.get<string>('CRAWL_PASSWORD')) {
+    if (dto.password !== this.customConfigService.CRAWL_PASSWORD) {
       this.logger.debug('Invalid password');
       throw new ForbiddenException('Invalid password');
     }
@@ -40,7 +40,7 @@ export class CrawlService {
   }
 
   async createCrawl(dto: CreateCrawlDto): Promise<void> {
-    if (dto.password !== this.configService.get<string>('CRAWL_PASSWORD')) {
+    if (dto.password !== this.customConfigService.CRAWL_PASSWORD) {
       this.logger.debug('Invalid password');
       throw new ForbiddenException('Invalid password');
     }
