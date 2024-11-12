@@ -2,9 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { CustomConfigService } from './config/customConfig.service';
 import expressBasicAuth from 'express-basic-auth';
 import { json } from 'express';
+import { CustomConfigService } from '@lib/custom-config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
