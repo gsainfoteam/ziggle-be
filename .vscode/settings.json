@@ -1,4 +1,21 @@
 {
-  "cSpell.words": ["gsainfoteam", "infoteam"],
+  "cSpell.words": [
+    "axios",
+    "datasources",
+    "datetime",
+    "dbml",
+    "deepl",
+    "gistory",
+    "gsainfoteam",
+    "infoteam",
+    "LOGGABLE",
+    "metatype",
+    "nestjs",
+    "noreply",
+    "openai",
+    "prisma",
+    "rxjs",
+    "ziggle"
+  ],
   "git.branchProtection": ["main"]
 }

@@ -3,19 +3,20 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { CreateCrawlDto } from './dto/req/createCrawl.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Crawl, User } from '@prisma/client';
 import { GetCrawlDto } from './dto/req/getCrawl.dto';
+import { PrismaService } from '@lib/prisma';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class CrawlRepository {
   private readonly logger = new Logger(CrawlRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
   async getCrawlData({ url }: GetCrawlDto): Promise<Crawl | null> {
-    this.logger.log('getCrawlData');
     return this.prismaService.crawl
       .findFirst({
         where: {
@@ -37,7 +38,6 @@ export class CrawlRepository {
     deadline: Date | null,
     user: User,
   ): Promise<Crawl> {
-    this.logger.log('createCrawl');
     return this.prismaService.crawl
       .create({
         data: {
@@ -75,7 +75,6 @@ export class CrawlRepository {
     { title, body, type }: CreateCrawlDto,
     id: number,
   ): Promise<Crawl> {
-    this.logger.log('updateCrawl');
     return this.prismaService.crawl
       .update({
         where: {

@@ -30,8 +30,10 @@ import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 import { htmlToText } from 'html-to-text';
 import { Notification } from 'firebase-admin/messaging';
 import { CustomConfigService } from 'src/config/customConfig.service';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class NoticeService {
   private readonly logger = new Logger(NoticeService.name);
   private fcmDelay: number;
@@ -133,12 +135,13 @@ export class NoticeService {
     if (createNoticeDto.documents.length) {
       await this.documentService.validateDocuments(createNoticeDto.documents);
     }
-
     const createdNotice = await this.noticeRepository.createNotice(
       createNoticeDto,
-      userUuid,
-      undefined,
-      new Date(new Date().getTime() + this.fcmDelay),
+      {
+        userUuid,
+        publishedAt: new Date(new Date().getTime() + this.fcmDelay),
+        createdAt: undefined,
+      },
     );
 
     const notice = await this.getNotice(createdNotice.id, { isViewed: false });
@@ -162,15 +165,13 @@ export class NoticeService {
   }
 
   async sendNotice(id: number, userUuid: string): Promise<void> {
-    this.logger.log(`Send notice ${id}`);
     const notice = await this.getNotice(id, { isViewed: false });
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException('not author of the notice');
     }
-    if (notice.publishedAt === null || notice.publishedAt < new Date()) {
+    if (notice.publishedAt < new Date()) {
       throw new ForbiddenException('a message already sent');
     }
-    this.logger.log(`Notice time ${notice.publishedAt} is not sent yet`);
 
     const notification = {
       title: '[긴급] ' + notice.title,

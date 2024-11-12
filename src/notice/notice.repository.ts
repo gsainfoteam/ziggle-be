@@ -4,7 +4,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import dayjs from 'dayjs';
 import { NoticeFullContent } from './types/noticeFullContent';
@@ -17,8 +16,11 @@ import {
   UpdateNoticeDto,
   UpdateNoticeQueryDto,
 } from './dto/req/updateNotice.dto';
+import { PrismaService } from '@lib/prisma';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class NoticeRepository {
   private readonly logger = new Logger(NoticeRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
@@ -33,7 +35,6 @@ export class NoticeRepository {
     { search, tags, orderBy, my, category }: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<number> {
-    this.logger.log(`getTotalCount`);
     return await this.prismaService.notice.count({
       where: {
         deletedAt: null,
@@ -101,7 +102,6 @@ export class NoticeRepository {
     }: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<NoticeFullContent[]> {
-    this.logger.log(`getNoticeList`);
     return this.prismaService.notice
       .findMany({
         take: limit,
@@ -198,7 +198,6 @@ export class NoticeRepository {
    * @returns the notice
    */
   async getNotice(id: number): Promise<NoticeFullContent> {
-    this.logger.log(`getNotice`);
     return this.prismaService.notice
       .findUniqueOrThrow({
         where: {
@@ -251,7 +250,6 @@ export class NoticeRepository {
    * @returns notice object
    */
   async getNoticeWithView(id: number): Promise<NoticeFullContent> {
-    this.logger.log(`getNoticeWithView`);
     return this.prismaService.notice
       .update({
         where: {
@@ -308,7 +306,7 @@ export class NoticeRepository {
    * @param param0 create notice dto
    * @param userUuid user's uuid
    * @param createdAt created time (optional)
-   * @param publishedAt published time (optional) the time that will be sent fcm message.
+   * @param publishedAt published time : the time that will be sent fcm message.
    * @returns NoticeFullContent
    */
   async createNotice(
@@ -322,11 +320,18 @@ export class NoticeRepository {
       groupName,
       category,
     }: CreateNoticeDto,
-    userUuid: string,
-    createdAt?: Date,
-    publishedAt?: Date,
+    {
+      userUuid,
+      publishedAt,
+      createdAt,
+    }: {
+      userUuid: string;
+      publishedAt: Date;
+      createdAt?: Date;
+    },
   ): Promise<NoticeFullContent> {
     this.logger.log(`createNotice`);
+
     const findTags = await this.prismaService.tag.findMany({
       where: {
         id: {

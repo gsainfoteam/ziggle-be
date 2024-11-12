@@ -13,8 +13,10 @@ import { AiService } from 'src/ai/ai.service';
 import { FcmService } from 'src/fcm/fcm.service';
 import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 import { CustomConfigService } from 'src/config/customConfig.service';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class CrawlService {
   private readonly logger = new Logger(CrawlService.name);
   constructor(
@@ -26,7 +28,6 @@ export class CrawlService {
   ) {}
 
   async getCrawlData(dto: GetCrawlDto): Promise<Crawl> {
-    this.logger.log('getCrawlData');
     if (dto.password !== this.customConfigService.CRAWL_PASSWORD) {
       this.logger.debug('Invalid password');
       throw new ForbiddenException('Invalid password');
@@ -39,7 +40,6 @@ export class CrawlService {
   }
 
   async createCrawl(dto: CreateCrawlDto): Promise<void> {
-    this.logger.log('createCrawl');
     if (dto.password !== this.customConfigService.CRAWL_PASSWORD) {
       this.logger.debug('Invalid password');
       throw new ForbiddenException('Invalid password');

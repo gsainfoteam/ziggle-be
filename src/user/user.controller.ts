@@ -30,9 +30,9 @@ import { User } from '@prisma/client';
 import { GetUser } from './decorator/get-user.decorator';
 import { UserInfoRes } from './dto/res/userInfoRes.dto';
 import { GetIdPUser } from './decorator/get-idp-user.decorator';
-import { UserInfo } from 'src/idp/types/userInfo.type';
 import { setFcmTokenRes } from './dto/res/setFcmTokenRes.dto';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
+import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
 
 @ApiTags('user')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')

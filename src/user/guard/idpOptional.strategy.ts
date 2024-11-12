@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-http-bearer';
 import { UserService } from '../user.service';
-import { IdpService } from 'src/idp/idp.service';
 import { User } from '@prisma/client';
-import { UserInfo } from 'src/idp/types/userInfo.type';
+import { InfoteamIdpService } from '@lib/infoteam-idp';
+import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
 
 @Injectable()
 export class IdPOptionalStrategy extends PassportStrategy(
@@ -13,7 +13,7 @@ export class IdPOptionalStrategy extends PassportStrategy(
 ) {
   constructor(
     private readonly userService: UserService,
-    private readonly idpService: IdpService,
+    private readonly infoteamIdpService: InfoteamIdpService,
   ) {
     super();
   }
@@ -22,7 +22,7 @@ export class IdPOptionalStrategy extends PassportStrategy(
     ziggle: User;
     idp: UserInfo;
   } | void> {
-    const idp = await this.idpService.getUserInfo(token).catch(() => {
+    const idp = await this.infoteamIdpService.getUserInfo(token).catch(() => {
       return undefined;
     });
     if (!idp) return undefined;

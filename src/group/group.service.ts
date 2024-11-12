@@ -10,8 +10,10 @@ import { firstValueFrom } from 'rxjs';
 import { GroupsToken } from './types/groupsToken.type';
 import { GroupInfo } from './types/groupinfo.type';
 import { CustomConfigService } from 'src/config/customConfig.service';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class GroupService {
   private readonly logger = new Logger(GroupService.name);
   private readonly groupsUrl: string;
@@ -27,7 +29,6 @@ export class GroupService {
   }
 
   async getExternalTokenFromGroups(accessToken: string): Promise<GroupsToken> {
-    this.logger.log('getGroupFromVapor called');
     const groupResponse = await firstValueFrom(
       this.httpService.post<{
         token: string;
@@ -63,7 +64,6 @@ export class GroupService {
   }
 
   async getGroupInfoFromGroups(groupsToken: string): Promise<GroupInfo[]> {
-    this.logger.log('getGroupInfoFromGroups called');
     const groupResponse = await firstValueFrom(
       this.httpService.get<{ list: GroupInfo[] }>(this.groupsUrl + '/info', {
         headers: {

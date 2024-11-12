@@ -1,0 +1,37 @@
+name: Update Package Version
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  update:
+    name: Update Package Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.repository }}
+          ssh-key: ${{ secrets.UPDATE_VERSION_SSH_KEY }}
+          fetch-depth: 0
+
+      - name: Update Package Version
+        run: |
+          VERSION=$(echo "${{ github.ref }}" | sed "s/v//")
+          if ! sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json; then
+            echo "Failed to update package version"
+            exit 1
+          fi
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -am "chore: Update package version to $VERSION"
+          git push

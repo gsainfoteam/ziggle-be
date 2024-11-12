@@ -6,11 +6,13 @@ import {
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { v4 as uuid } from 'uuid';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
+import { PrismaService } from '@lib/prisma';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
+@Loggable()
 export class UserRepository {
   private readonly logger = new Logger(UserRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
@@ -19,7 +21,6 @@ export class UserRepository {
     uuid,
     name,
   }: Pick<User, 'uuid' | 'name'>): Promise<User> {
-    this.logger.log('findUserOrCreate called');
     const user = await this.prismaService.user.findUnique({
       where: { uuid },
     });
@@ -41,7 +42,6 @@ export class UserRepository {
     uuid,
     name,
   }: Pick<User, 'uuid' | 'name'>): Promise<User> {
-    this.logger.log('findUserAndUpdate called');
     const user = await this.prismaService.user
       .findUniqueOrThrow({
         where: { uuid },
@@ -87,7 +87,6 @@ export class UserRepository {
   }
 
   async setConsent(user: User): Promise<User> {
-    this.logger.log('setConsent called');
     return this.prismaService.user
       .update({
         where: { uuid: user.uuid },
@@ -112,7 +111,6 @@ export class UserRepository {
   }
 
   async findUserByName({ name }: Pick<User, 'name'>): Promise<User | null> {
-    this.logger.log('findUserByName called');
     return this.prismaService.user
       .findFirst({
         where: { name },
@@ -128,7 +126,6 @@ export class UserRepository {
   }
 
   async createTempUser({ name }: Pick<User, 'name'>): Promise<User> {
-    this.logger.log('createTempUser called');
     return this.prismaService.user
       .create({
         data: {
@@ -151,7 +148,6 @@ export class UserRepository {
     userUuid: string | undefined,
     { fcmToken }: setFcmTokenReq,
   ) {
-    this.logger.log('setFcmToken called');
     await this.prismaService.fcmToken
       .upsert({
         where: { fcmTokenId: fcmToken },

@@ -122,7 +122,7 @@ model Notice {
   currentDeadline DateTime? @map("current_deadline")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @default(now()) @map("updated_at")
-  publishedAt     DateTime? @map("published_at")
+  publishedAt     DateTime  @map("published_at")
   deletedAt       DateTime? @map("deleted_at")
 
   authorId   String       @map("author_id") @db.Uuid
@@ -137,6 +137,7 @@ model Notice {
   groupName  String?      @map("group_name")
   UserRecord UserRecord[]
 
+  @@index([deletedAt])
   @@map("notice")
 }
 

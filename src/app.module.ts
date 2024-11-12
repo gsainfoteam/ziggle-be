@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { FileModule } from './file/file.module';
 import { UserModule } from './user/user.module';
-import { IdpModule } from './idp/idp.module';
 import { TagModule } from './tag/tag.module';
 import { NoticeModule } from './notice/notice.module';
 import { DocumentModule } from './document/document.module';
@@ -17,9 +16,12 @@ import { CustomConfigModule } from './config/customConfig.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      cache: true,
+      ignoreEnvFile: false,
+    }),
     FileModule,
     UserModule,
-    IdpModule,
     TagModule,
     NoticeModule,
     DocumentModule,

@@ -38,9 +38,6 @@ export class AiController {
   async translate(
     @Body() translateDto: TranslateDto,
   ): Promise<TranslateResDto> {
-    return {
-      text: translateDto.text,
-      lang: translateDto.targetLang,
-    };
+    return this.aiService.translate(translateDto);
   }
 }
