@@ -462,9 +462,11 @@ export class NoticeRepository {
           },
           category,
           group:
-            groupName === undefined
+            groupId === undefined || groupName === undefined
               ? undefined
-              : { connect: { uuid: groupId, name: groupName } },
+              : {
+                  connect: { uuid: groupId },
+                },
           publishedAt,
         },
         include: {
