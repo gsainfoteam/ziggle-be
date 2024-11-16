@@ -29,7 +29,6 @@ import { FcmService } from 'src/fcm/fcm.service';
 import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 import { htmlToText } from 'html-to-text';
 import { Notification } from 'firebase-admin/messaging';
-import { ConfigService } from '@nestjs/config';
 import { GetGroupNoticeQueryDto } from './dto/req/getGroupNotice.dto';
 import { Authority } from '../group/types/groupInfo.type';
 import { Loggable } from '@lib/logger/decorator/loggable';
@@ -183,7 +182,7 @@ export class NoticeService {
         userUuid,
         publishedAt: new Date(new Date().getTime() + this.fcmDelay),
         createdAt: undefined,
-        groupName
+        groupName,
       },
     );
 

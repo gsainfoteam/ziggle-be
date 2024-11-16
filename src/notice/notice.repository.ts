@@ -391,12 +391,12 @@ export class NoticeRepository {
       userUuid,
       publishedAt,
       createdAt,
-      groupName
+      groupName,
     }: {
       userUuid: string;
       publishedAt: Date;
       createdAt?: Date;
-      groupName?: string,
+      groupName?: string;
     },
   ): Promise<NoticeFullContent> {
     this.logger.log(`createNotice`);
