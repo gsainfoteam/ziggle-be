@@ -1,9 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class GetGroupNoticeQueryDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '0',
     description: '넘길 공지의 개수',
     required: false,
@@ -13,7 +13,7 @@ export class GetGroupNoticeQueryDto {
   @IsOptional()
   offset?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '10',
     description: '페이지당 공지 개수',
     required: false,
@@ -23,7 +23,7 @@ export class GetGroupNoticeQueryDto {
   @IsOptional()
   limit?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'en',
     description: '언어',
     required: false,
@@ -32,7 +32,7 @@ export class GetGroupNoticeQueryDto {
   @IsOptional()
   lang?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'deadline',
     description: '정렬 기준 (deadline, hot, recent)',
     required: false,

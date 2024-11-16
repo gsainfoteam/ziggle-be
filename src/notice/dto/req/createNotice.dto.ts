@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Category } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
@@ -31,7 +31,7 @@ export class CreateNoticeDto {
   @MaxLength(100000)
   body: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '2021-08-01T00:00:00.000Z',
     description: '마감일',
     required: false,
@@ -41,7 +41,7 @@ export class CreateNoticeDto {
   @IsOptional()
   deadline?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '1',
     description: '공지태그의 id',
     required: false,
@@ -50,7 +50,7 @@ export class CreateNoticeDto {
   @IsOptional()
   tags: number[] = [];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '공지 그룹의 id',
     required: false,
     enum: Category,
@@ -59,7 +59,7 @@ export class CreateNoticeDto {
   @IsOptional()
   category?: Category;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'wow.png',
     description: '이미지 파일 이름',
     required: false,
@@ -68,7 +68,7 @@ export class CreateNoticeDto {
   @IsOptional()
   images: string[] = [];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'wow.docx',
     description: '파일 이름',
     required: false,
@@ -77,7 +77,7 @@ export class CreateNoticeDto {
   @IsOptional()
   documents: string[] = [];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '공지 그룹 id',
     description: '공지 그룹 id',
     required: false,
