@@ -1,16 +1,18 @@
 import { Module } from '@nestjs/common';
 import { FcmService } from './fcm.service';
-import { ConfigModule } from '@nestjs/config';
 import { FcmRepository } from './fcm.repository';
 import { BullModule } from '@nestjs/bull';
 import { FcmConsumer } from './fcm.consumer';
 import { PrismaModule } from '@lib/prisma';
+import { LoggerModule } from '@lib/logger';
+import { CustomConfigModule } from '@lib/custom-config';
 
 @Module({
   imports: [
-    ConfigModule,
+    CustomConfigModule,
     PrismaModule,
     BullModule.registerQueue({ name: 'fcm' }),
+    LoggerModule,
   ],
   providers: [FcmService, FcmRepository, FcmConsumer],
   exports: [FcmService],

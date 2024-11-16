@@ -32,8 +32,11 @@ import { Notification } from 'firebase-admin/messaging';
 import { ConfigService } from '@nestjs/config';
 import { GetGroupNoticeQueryDto } from './dto/req/getGroupNotice.dto';
 import { Authority } from '../group/types/groupInfo.type';
+import { Loggable } from '@lib/logger/decorator/loggable';
+import { CustomConfigService } from '@lib/custom-config';
 
 @Injectable()
+@Loggable()
 export class NoticeService {
   private readonly logger = new Logger(NoticeService.name);
   private fcmDelay: number;
@@ -45,9 +48,9 @@ export class NoticeService {
     private readonly noticeMapper: NoticeMapper,
     private readonly groupService: GroupService,
     private readonly fcmService: FcmService,
-    private readonly configService: ConfigService,
+    private readonly customConfigService: CustomConfigService,
   ) {
-    this.fcmDelay = Number(this.configService.getOrThrow<number>('FCM_DELAY'));
+    this.fcmDelay = Number(this.customConfigService.FCM_DELAY);
   }
 
   async getNoticeList(
@@ -174,13 +177,14 @@ export class NoticeService {
     if (createNoticeDto.documents.length) {
       await this.documentService.validateDocuments(createNoticeDto.documents);
     }
-
     const createdNotice = await this.noticeRepository.createNotice(
       createNoticeDto,
-      userUuid,
-      undefined,
-      new Date(new Date().getTime() + this.fcmDelay),
-      groupName,
+      {
+        userUuid,
+        publishedAt: new Date(new Date().getTime() + this.fcmDelay),
+        createdAt: undefined,
+        groupName
+      },
     );
 
     const notice = await this.getNotice(createdNotice.id, { isViewed: false });
@@ -204,15 +208,13 @@ export class NoticeService {
   }
 
   async sendNotice(id: number, userUuid: string): Promise<void> {
-    this.logger.log(`Send notice ${id}`);
     const notice = await this.getNotice(id, { isViewed: false });
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException('not author of the notice');
     }
-    if (notice.publishedAt === null || notice.publishedAt < new Date()) {
+    if (notice.publishedAt < new Date()) {
       throw new ForbiddenException('a message already sent');
     }
-    this.logger.log(`Notice time ${notice.publishedAt} is not sent yet`);
 
     const notification = {
       title: '[긴급] ' + notice.title,

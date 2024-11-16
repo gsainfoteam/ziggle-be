@@ -62,10 +62,7 @@ export class NoticeController {
     @Query() query: GetAllNoticeQueryDto,
     @GetUser() user?: User,
   ): Promise<GeneralNoticeListDto> {
-    const now = new Date();
-    const result = await this.noticeService.getNoticeList(query, user?.uuid);
-    console.log('time:', new Date().getTime() - now.getTime());
-    return result;
+    return this.noticeService.getNoticeList(query, user?.uuid);
   }
 
   @ApiOperation({

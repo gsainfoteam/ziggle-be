@@ -5,11 +5,11 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { IdpJwtResponse, IdpUserInfoResponse } from './types/idp.type';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { UserInfo } from './types/userInfo.type';
+import { CustomConfigService } from '@lib/custom-config';
 
 @Injectable()
 export class InfoteamIdpService {
@@ -19,9 +19,9 @@ export class InfoteamIdpService {
   private readonly idpUrl: string;
   constructor(
     private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
+    private readonly customConfigService: CustomConfigService,
   ) {
-    this.idpUrl = this.configService.getOrThrow<string>('IDP_URL');
+    this.idpUrl = this.customConfigService.IDP_URL;
   }
 
   /**
@@ -51,8 +51,8 @@ export class InfoteamIdpService {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             auth: {
-              username: this.configService.getOrThrow<string>('CLIENT_ID'),
-              password: this.configService.getOrThrow<string>('CLIENT_SECRET'),
+              username: this.customConfigService.CLIENT_ID,
+              password: this.customConfigService.CLIENT_SECRET,
             },
           },
         )
@@ -131,8 +131,8 @@ export class InfoteamIdpService {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             auth: {
-              username: this.configService.getOrThrow<string>('CLIENT_ID'),
-              password: this.configService.getOrThrow<string>('CLIENT_SECRET'),
+              username: this.customConfigService.CLIENT_ID,
+              password: this.customConfigService.CLIENT_SECRET,
             },
           },
         )
@@ -171,8 +171,8 @@ export class InfoteamIdpService {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
             auth: {
-              username: this.configService.getOrThrow<string>('CLIENT_ID'),
-              password: this.configService.getOrThrow<string>('CLIENT_SECRET'),
+              username: this.customConfigService.CLIENT_ID,
+              password: this.customConfigService.CLIENT_SECRET,
             },
           },
         )

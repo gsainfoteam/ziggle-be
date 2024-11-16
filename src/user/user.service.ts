@@ -1,17 +1,19 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { LoginDto } from './dto/req/login.dto';
-import { ConfigService } from '@nestjs/config';
 import { UserRepository } from './user.repository';
 import { JwtTokenType } from './types/jwtToken.type';
 import { User } from '@prisma/client';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { InfoteamIdpService } from '@lib/infoteam-idp';
+import { Loggable } from '@lib/logger/decorator/loggable';
+import { CustomConfigService } from '@lib/custom-config';
 @Injectable()
+@Loggable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
   constructor(
+    private readonly customConfigService: CustomConfigService,
     private readonly infoteamIdpService: InfoteamIdpService,
-    private readonly configService: ConfigService,
     private readonly userRepository: UserRepository,
   ) {}
 
@@ -23,17 +25,16 @@ export class UserService {
    * @returns accessToken, refreshToken and the information that is  the user consent required
    */
   async login({ code, type }: LoginDto): Promise<JwtTokenType> {
-    this.logger.log('login called');
     if (!code || !type) {
       this.logger.debug('invalid code or type');
       throw new BadRequestException();
     }
     const redirectUri =
       type === 'flutter'
-        ? this.configService.getOrThrow<string>('FLUTTER_REDIRECT_URI')
+        ? this.customConfigService.FLUTTER_REDIRECT_URI
         : type === 'local'
-          ? this.configService.getOrThrow<string>('LOCAL_REDIRECT_URI')
-          : this.configService.getOrThrow<string>('WEB_REDIRECT_URI');
+          ? this.customConfigService.LOCAL_REDIRECT_URI
+          : this.customConfigService.WEB_REDIRECT_URI;
     const tokens = await this.infoteamIdpService.getAccessToken(
       code,
       redirectUri,
@@ -45,7 +46,6 @@ export class UserService {
       uuid: userInfo.uuid,
       name: userInfo.name,
     });
-    this.logger.log('login finished');
     return {
       ...tokens,
       consent_required: !user?.consent,
@@ -59,7 +59,6 @@ export class UserService {
    * @returns accessToken, refreshToken and the information that is  the user consent required
    */
   async refresh(refreshToken: string): Promise<JwtTokenType> {
-    this.logger.log('refresh called');
     const tokens = await this.infoteamIdpService.refresh(refreshToken);
     const userData = await this.infoteamIdpService.getUserInfo(
       tokens.access_token,
@@ -68,7 +67,6 @@ export class UserService {
       uuid: userData.uuid,
       name: userData.name,
     });
-    this.logger.log('refresh finished');
     return {
       ...tokens,
       consent_required: !user?.consent,
@@ -82,7 +80,6 @@ export class UserService {
    * @returns void
    */
   async logout(accessToken: string, refreshToken: string): Promise<void> {
-    this.logger.log('logout called');
     await this.infoteamIdpService.revoke(accessToken);
     await this.infoteamIdpService.revoke(refreshToken);
   }
@@ -93,7 +90,6 @@ export class UserService {
    * @returns void
    */
   async setConsent(user: User): Promise<void> {
-    this.logger.log('setConsent called');
     await this.userRepository.setConsent(user);
   }
 
@@ -103,12 +99,10 @@ export class UserService {
    * @returns user
    */
   async findUserOrCreate(user: Pick<User, 'uuid' | 'name'>): Promise<User> {
-    this.logger.log('findUserOrCreate called');
     return this.userRepository.findUserOrCreate(user);
   }
 
   async findOrCreateTempUser(user: Pick<User, 'name'>): Promise<User> {
-    this.logger.log('findOrCreateTempUser called');
     const foundUser = await this.userRepository.findUserByName(user);
     if (foundUser) {
       return foundUser;
@@ -117,7 +111,6 @@ export class UserService {
   }
 
   async setFcmToken(userUuid: string, fcmToken: setFcmTokenReq) {
-    this.logger.log('setFcmToken is called');
     return this.userRepository.setFcmToken(userUuid, fcmToken);
   }
 }

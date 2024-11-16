@@ -5,13 +5,15 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { GroupsToken } from './types/groupsToken.type';
+import { Loggable } from '@lib/logger/decorator/loggable';
 import { GroupInfo } from './types/groupInfo.type';
+import { CustomConfigService } from '@lib/custom-config';
 
 @Injectable()
+@Loggable()
 export class GroupService {
   private readonly logger = new Logger(GroupService.name);
   private readonly groupsUrl: string;
@@ -19,18 +21,14 @@ export class GroupService {
   private readonly groupsClientSecret: string;
   constructor(
     private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
+    private readonly customConfigService: CustomConfigService,
   ) {
-    this.groupsUrl = this.configService.getOrThrow<string>('GROUPS_URL');
-    this.groupsClientId =
-      this.configService.getOrThrow<string>('GROUPS_CLIENT_ID');
-    this.groupsClientSecret = this.configService.getOrThrow<string>(
-      'GROUPS_CLIENT_SECRET',
-    );
+    this.groupsUrl = this.customConfigService.GROUPS_URL;
+    this.groupsClientId = this.customConfigService.GROUPS_CLIENT_ID;
+    this.groupsClientSecret = this.customConfigService.GROUPS_CLIENT_SECRET;
   }
 
   async getExternalTokenFromGroups(accessToken: string): Promise<GroupsToken> {
-    this.logger.log('getGroupFromVapor called');
     const groupResponse = await firstValueFrom(
       this.httpService.post<{
         token: string;
@@ -66,7 +64,6 @@ export class GroupService {
   }
 
   async getGroupInfoFromGroups(groupsToken: string): Promise<GroupInfo[]> {
-    this.logger.log('getGroupInfoFromGroups called');
     const groupResponse = await firstValueFrom(
       this.httpService.get<{ list: GroupInfo[] }>(
         this.groupsUrl + '/external/info',

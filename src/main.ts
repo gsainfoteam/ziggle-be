@@ -2,21 +2,21 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ConfigService } from '@nestjs/config';
 import expressBasicAuth from 'express-basic-auth';
 import { json } from 'express';
+import { CustomConfigService } from '@lib/custom-config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
+  const customConfigService = app.get(CustomConfigService);
   // swagger auth config
   app.use(
     ['/api'],
     expressBasicAuth({
       challenge: true,
       users: {
-        [configService.getOrThrow<string>('SWAGGER_USER')]:
-          configService.getOrThrow<string>('SWAGGER_PASSWORD'),
+        [customConfigService.SWAGGER_USER]:
+          customConfigService.SWAGGER_PASSWORD,
       },
     }),
   );
@@ -57,8 +57,8 @@ async function bootstrap() {
         bearerFormat: 'token',
         flows: {
           authorizationCode: {
-            authorizationUrl: configService.getOrThrow('SWAGGER_AUTH_URL'),
-            tokenUrl: configService.getOrThrow('SWAGGER_TOKEN_URL'),
+            authorizationUrl: customConfigService.SWAGGER_AUTH_URL,
+            tokenUrl: customConfigService.SWAGGER_TOKEN_URL,
             scopes: {
               openid: 'openid',
               email: 'email',
@@ -73,7 +73,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
-      oauth2RedirectUrl: `${configService.getOrThrow('API_URL')}/api/oauth2-redirect.html`,
+      oauth2RedirectUrl: `${customConfigService.API_URL}/api/oauth2-redirect.html`,
       displayRequestDuration: true,
     },
   });

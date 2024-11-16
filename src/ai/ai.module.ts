@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AiService } from './ai.service';
-import { ConfigModule } from '@nestjs/config';
 import { AiController } from './ai.controller';
 import { UserModule } from 'src/user/user.module';
+import { LoggerModule } from '@lib/logger';
+import { CustomConfigModule } from '@lib/custom-config';
 
 @Module({
-  imports: [ConfigModule, UserModule],
+  imports: [CustomConfigModule, UserModule, LoggerModule],
   providers: [AiService],
   exports: [AiService],
   controllers: [AiController],

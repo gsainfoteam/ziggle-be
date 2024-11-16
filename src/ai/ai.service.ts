@@ -3,7 +3,6 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { DeadlineResponse } from './types/deadlineResponse.type';
 import OpenAI from 'openai';
 import {
@@ -11,23 +10,25 @@ import {
   ChatCompletionSystemMessageParam,
   ChatCompletionUserMessageParam,
 } from 'openai/resources';
+import { Loggable } from '@lib/logger/decorator/loggable';
 import * as deepl from 'deepl-node';
 import { TranslateResDto } from './dto/res/translateRes.dto';
 import { TranslateDto } from './dto/req/translate.dto';
-
+import { CustomConfigService } from '@lib/custom-config';
 @Injectable()
+@Loggable()
 export class AiService {
   private readonly logger = new Logger(AiService.name, {
     timestamp: true,
   });
   private readonly openai: OpenAI;
   private readonly translator: deepl.Translator;
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly customConfigService: CustomConfigService) {
     this.openai = new OpenAI({
-      apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
+      apiKey: this.customConfigService.OPENAI_API_KEY,
     });
     this.translator = new deepl.Translator(
-      this.configService.getOrThrow<string>('DEEPL_API_KEY'),
+      this.customConfigService.DEEPL_API_KEY,
     );
   }
 
