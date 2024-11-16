@@ -17,6 +17,7 @@ import {
   UpdateNoticeQueryDto,
 } from './dto/req/updateNotice.dto';
 import { PrismaService } from '@lib/prisma';
+import { GetGroupNoticeQueryDto } from './dto/req/getGroupNotice.dto';
 
 @Injectable()
 export class NoticeRepository {
@@ -100,6 +101,7 @@ export class NoticeRepository {
       category,
     }: GetAllNoticeQueryDto,
     userUuid?: string,
+    groupId?: string,
   ): Promise<NoticeFullContent[]> {
     this.logger.log(`getNoticeList`);
     return this.prismaService.notice
@@ -155,6 +157,71 @@ export class NoticeRepository {
               }
             : {}),
           category,
+          groupId: groupId || undefined,
+        },
+        include: {
+          tags: true,
+          contents: {
+            where: {
+              id: 1,
+            },
+          },
+          crawls: true,
+          reminders: true,
+          author: {
+            select: {
+              name: true,
+              uuid: true,
+            },
+          },
+          files: {
+            where: {
+              type: FileType.IMAGE,
+            },
+            orderBy: { order: 'asc' },
+          },
+          reactions: {
+            where: {
+              deletedAt: null,
+            },
+          },
+          group: true,
+        },
+      })
+      .catch((error) => {
+        this.logger.error('getNoticeList error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException();
+      });
+  }
+
+  async getGroupNoticeList(
+    { offset = 0, limit = 10, orderBy }: GetGroupNoticeQueryDto,
+    groupId: string,
+  ): Promise<NoticeFullContent[]> {
+    this.logger.log(`getGroupNoticeList`);
+    return this.prismaService.notice
+      .findMany({
+        take: limit,
+        skip: offset,
+        orderBy: {
+          currentDeadline: orderBy === 'deadline' ? 'asc' : undefined,
+          views: orderBy === 'hot' ? 'desc' : undefined,
+          createdAt: orderBy === 'recent' ? 'desc' : undefined,
+        },
+        where: {
+          ...(orderBy === 'deadline'
+            ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
+            : {}),
+          ...(orderBy === 'hot'
+            ? {
+                createdAt: {
+                  gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
+                },
+              }
+            : {}),
+          deletedAt: null,
+          groupId: groupId,
         },
         include: {
           tags: true,
@@ -319,12 +386,13 @@ export class NoticeRepository {
       tags,
       images,
       documents,
-      groupName,
+      groupId,
       category,
     }: CreateNoticeDto,
     userUuid: string,
     createdAt?: Date,
     publishedAt?: Date,
+    groupName?: string,
   ): Promise<NoticeFullContent> {
     this.logger.log(`createNotice`);
     const findTags = await this.prismaService.tag.findMany({
@@ -335,13 +403,14 @@ export class NoticeRepository {
       },
     });
 
-    if (groupName !== undefined) {
+    if (groupId && groupName) {
       await this.prismaService.group.upsert({
         where: {
-          name: groupName,
+          uuid: groupId,
         },
         update: {},
         create: {
+          uuid: groupId,
           name: groupName,
         },
       });
@@ -389,7 +458,7 @@ export class NoticeRepository {
           group:
             groupName === undefined
               ? undefined
-              : { connect: { name: groupName } },
+              : { connect: { uuid: groupId, name: groupName } },
           publishedAt,
         },
         include: {

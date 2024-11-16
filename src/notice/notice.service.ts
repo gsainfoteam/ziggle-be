@@ -30,6 +30,8 @@ import { FcmTargetUser } from 'src/fcm/types/fcmTargetUser.type';
 import { htmlToText } from 'html-to-text';
 import { Notification } from 'firebase-admin/messaging';
 import { ConfigService } from '@nestjs/config';
+import { GetGroupNoticeQueryDto } from './dto/req/getGroupNotice.dto';
+import { Authority } from '../group/types/groupInfo.type';
 
 @Injectable()
 export class NoticeService {
@@ -78,6 +80,40 @@ export class NoticeService {
     };
   }
 
+  async getGroupNoticeList(
+    groupId: string,
+    getGroupNoticeQueryDto: GetGroupNoticeQueryDto,
+    userUuid?: string,
+  ): Promise<GeneralNoticeListDto> {
+    const notices = (
+      await this.noticeRepository.getGroupNoticeList(
+        getGroupNoticeQueryDto,
+        groupId,
+      )
+    ).map((notice) =>
+      this.noticeMapper
+        .NoticeFullContentToGeneralNoticeList(
+          notice,
+          getGroupNoticeQueryDto.lang,
+          userUuid,
+        )
+        .catch((error) => {
+          this.logger.debug(`Notice ${notice.id} is not valid`);
+          this.logger.error(error);
+          throw new InternalServerErrorException(
+            `Notice ${notice.id} is not valid`,
+          );
+        }),
+    );
+    return {
+      total: await this.noticeRepository.getTotalCount(
+        getGroupNoticeQueryDto,
+        userUuid,
+      ),
+      list: await Promise.all(notices),
+    };
+  }
+
   async getNotice(
     id: number,
     getNoticeDto: GetNoticeDto,
@@ -111,20 +147,25 @@ export class NoticeService {
     userUuid: string,
     groupsToken?: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    if (createNoticeDto.groupName !== undefined && groupsToken !== undefined) {
+    let groupName;
+
+    if (createNoticeDto.groupId !== undefined && groupsToken !== undefined) {
       const getGroupResult =
         await this.groupService.getGroupInfoFromGroups(groupsToken);
 
-      if (
-        !getGroupResult ||
-        !getGroupResult.find(
-          (group) =>
-            group.name === createNoticeDto.groupName &&
-            group.role.some((role) => role.authorities.includes('WRITE')),
-        )
-      ) {
+      const matchingGroup = getGroupResult.find(
+        (group) =>
+          group.uuid === createNoticeDto.groupId &&
+          group.role.some((role) =>
+            role.externalAuthority.includes(Authority.WRITE),
+          ),
+      );
+
+      if (!matchingGroup) {
         throw new ForbiddenException();
       }
+
+      groupName = matchingGroup.name;
     }
 
     if (createNoticeDto.images.length) {
@@ -139,6 +180,7 @@ export class NoticeService {
       userUuid,
       undefined,
       new Date(new Date().getTime() + this.fcmDelay),
+      groupName,
     );
 
     const notice = await this.getNotice(createdNotice.id, { isViewed: false });

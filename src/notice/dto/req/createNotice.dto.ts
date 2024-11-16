@@ -78,11 +78,11 @@ export class CreateNoticeDto {
   documents: string[] = [];
 
   @ApiProperty({
-    example: '공지 그룹 이름',
-    description: '공지 그룹 이름',
+    example: '공지 그룹 id',
+    description: '공지 그룹 id',
     required: false,
   })
   @IsString()
   @IsOptional()
-  groupName?: string;
+  groupId?: string;
 }
