@@ -164,7 +164,10 @@ export class NoticeService {
     return notice;
   }
 
-  async sendNotice(id: number, userUuid: string): Promise<void> {
+  async sendNotice(
+    id: number,
+    userUuid: string,
+  ): Promise<ExpandedGeneralNoticeDto> {
     const notice = await this.getNotice(id, { isViewed: false });
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException('not author of the notice');
@@ -180,14 +183,33 @@ export class NoticeService {
     };
 
     await this.fcmService.deleteMessageJobIdPattern(notice.id.toString());
-    await this.fcmService.postMessage(
-      this.convertNotificationBodyToString(notification),
-      FcmTargetUser.All,
-      {
-        path: `/notice/${id}`,
-      },
-    );
-    await this.noticeRepository.updatePublishedAt(id, new Date());
+    await this.fcmService
+      .postMessage(
+        this.convertNotificationBodyToString(notification),
+        FcmTargetUser.All,
+        {
+          path: `/notice/${id}`,
+        },
+      )
+      .catch((error) => {
+        this.logger.error(
+          `Failed to send notification for notice ${id}: `,
+          error,
+        );
+        throw new InternalServerErrorException('failed to send notification');
+      });
+
+    await this.noticeRepository
+      .updatePublishedAt(id, new Date())
+      .catch((error) => {
+        this.logger.error(
+          `Failed to update publishedAt for notice ${id}: `,
+          error,
+        );
+        throw new InternalServerErrorException('failed to update publishedAt');
+      });
+
+    return notice;
   }
 
   async addNoticeAdditional(

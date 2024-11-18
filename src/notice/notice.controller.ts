@@ -125,7 +125,7 @@ export class NoticeController {
   async sendNotice(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<void> {
+  ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.sendNotice(id, user.uuid);
   }
 
