@@ -164,7 +164,10 @@ export class NoticeService {
     return notice;
   }
 
-  async sendNotice(id: number, userUuid: string): Promise<void> {
+  async sendNotice(
+    id: number,
+    userUuid: string,
+  ): Promise<ExpandedGeneralNoticeDto> {
     const notice = await this.getNotice(id, { isViewed: false });
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException('not author of the notice');
@@ -188,6 +191,8 @@ export class NoticeService {
       },
     );
     await this.noticeRepository.updatePublishedAt(id, new Date());
+
+    return notice;
   }
 
   async addNoticeAdditional(
