@@ -36,7 +36,6 @@ export class InfoteamIdpService {
     code: string,
     redirectUri: string,
   ): Promise<IdpJwtResponse> {
-    this.logger.log('getAccessToken called');
     const accessTokenResponse = await firstValueFrom(
       this.httpService
         .post<IdpJwtResponse>(
@@ -67,7 +66,6 @@ export class InfoteamIdpService {
           }),
         ),
     );
-    this.logger.log('getAccessToken response');
     return accessTokenResponse.data;
   }
 
@@ -79,7 +77,6 @@ export class InfoteamIdpService {
    * @throws InternalServerErrorException if there is an unknown error while getting the user info
    */
   async getUserInfo(accessToken: string): Promise<UserInfo> {
-    this.logger.log('getUserInfo called');
     const userInfoResponse = await firstValueFrom(
       this.httpService
         .get<IdpUserInfoResponse>(this.idpUrl + '/userinfo', {
@@ -98,7 +95,6 @@ export class InfoteamIdpService {
           }),
         ),
     );
-    this.logger.log('getUserInfo response');
     const {
       uuid,
       name,
@@ -117,7 +113,6 @@ export class InfoteamIdpService {
    * @throws InternalServerErrorException if there is an unknown error while refreshing the token
    */
   async refresh(refreshToken: string): Promise<IdpJwtResponse> {
-    this.logger.log('refresh called');
     const accessTokenResponse = await firstValueFrom(
       this.httpService
         .post<IdpJwtResponse>(
@@ -147,7 +142,6 @@ export class InfoteamIdpService {
           }),
         ),
     );
-    this.logger.log('refresh response');
     return accessTokenResponse.data;
   }
 
@@ -158,7 +152,6 @@ export class InfoteamIdpService {
    * @throws InternalServerErrorException if there is an unknown error while revoking the token
    */
   async revoke(token: string): Promise<void> {
-    this.logger.log('revoke called');
     await firstValueFrom(
       this.httpService
         .post(
@@ -187,6 +180,5 @@ export class InfoteamIdpService {
           }),
         ),
     );
-    this.logger.log('revoke response');
   }
 }

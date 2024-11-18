@@ -65,11 +65,14 @@ export class GroupService {
 
   async getGroupInfoFromGroups(groupsToken: string): Promise<GroupInfo[]> {
     const groupResponse = await firstValueFrom(
-      this.httpService.get<{ list: GroupInfo[] }>(this.groupsUrl + '/info', {
-        headers: {
-          Authorization: `Bearer ${groupsToken}`,
+      this.httpService.get<{ list: GroupInfo[] }>(
+        this.groupsUrl + '/external/info',
+        {
+          headers: {
+            Authorization: `Bearer ${groupsToken}`,
+          },
         },
-      }),
+      ),
     ).catch((error) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {

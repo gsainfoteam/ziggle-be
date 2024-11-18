@@ -23,7 +23,6 @@ export class TagRepository {
         throw new InternalServerErrorException();
       })
       .then((tags) => {
-        this.logger.log('findAllTags: ' + tags.length);
         return tags;
       });
   }
@@ -45,7 +44,6 @@ export class TagRepository {
         throw new InternalServerErrorException();
       })
       .then((tag) => {
-        this.logger.log('findTag: ' + tag);
         return tag;
       });
   }
@@ -64,7 +62,6 @@ export class TagRepository {
         throw new InternalServerErrorException();
       })
       .then((tags) => {
-        this.logger.log('searchTags: ' + tags.length);
         return tags;
       });
   }
@@ -81,7 +78,6 @@ export class TagRepository {
         throw new InternalServerErrorException();
       })
       .then((tag) => {
-        this.logger.log('createTag: ' + tag);
         return tag;
       });
   }
