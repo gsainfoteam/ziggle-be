@@ -19,6 +19,7 @@ export class CreateNoticeDto {
   })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(200)
   title: string;
 
   @ApiProperty({

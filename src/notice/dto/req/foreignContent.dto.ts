@@ -18,6 +18,7 @@ export class ForeignContentDto {
   })
   @IsString()
   @IsOptional()
+  @MaxLength(200)
   title?: string;
 
   @ApiProperty({
