@@ -176,6 +176,16 @@ export class NoticeService {
       throw new ForbiddenException('a message already sent');
     }
 
+    await this.noticeRepository
+      .updatePublishedAt(id, new Date())
+      .catch((error) => {
+        this.logger.error(
+          `Failed to update publishedAt for notice ${id}: `,
+          error,
+        );
+        throw new InternalServerErrorException('failed to update publishedAt');
+      });
+
     const notification = {
       title: '[긴급] ' + notice.title,
       body: notice.content,
@@ -183,14 +193,21 @@ export class NoticeService {
     };
 
     await this.fcmService.deleteMessageJobIdPattern(notice.id.toString());
-    await this.fcmService.postMessage(
-      this.convertNotificationBodyToString(notification),
-      FcmTargetUser.All,
-      {
-        path: `/notice/${id}`,
-      },
-    );
-    await this.noticeRepository.updatePublishedAt(id, new Date());
+    await this.fcmService
+      .postMessage(
+        this.convertNotificationBodyToString(notification),
+        FcmTargetUser.All,
+        {
+          path: `/notice/${id}`,
+        },
+      )
+      .catch((error) => {
+        this.logger.error(
+          `Failed to send notification for notice ${id}: `,
+          error,
+        );
+        throw new InternalServerErrorException('failed to send notification');
+      });
 
     return notice;
   }
