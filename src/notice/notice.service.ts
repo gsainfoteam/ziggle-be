@@ -176,16 +176,6 @@ export class NoticeService {
       throw new ForbiddenException('a message already sent');
     }
 
-    await this.noticeRepository
-      .updatePublishedAt(id, new Date())
-      .catch((error) => {
-        this.logger.error(
-          `Failed to update publishedAt for notice ${id}: `,
-          error,
-        );
-        throw new InternalServerErrorException('failed to update publishedAt');
-      });
-
     const notification = {
       title: '[긴급] ' + notice.title,
       body: notice.content,
@@ -207,6 +197,16 @@ export class NoticeService {
           error,
         );
         throw new InternalServerErrorException('failed to send notification');
+      });
+
+    await this.noticeRepository
+      .updatePublishedAt(id, new Date())
+      .catch((error) => {
+        this.logger.error(
+          `Failed to update publishedAt for notice ${id}: `,
+          error,
+        );
+        throw new InternalServerErrorException('failed to update publishedAt');
       });
 
     return notice;
