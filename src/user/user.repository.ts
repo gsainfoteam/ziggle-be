@@ -47,6 +47,7 @@ export class UserRepository {
       .catch((err) => {
         if (err instanceof PrismaClientKnownRequestError) {
           if (err.code === 'P2016') {
+            this.logger.debug('user not found');
             throw new NotFoundException();
           }
           this.logger.error(err.message);

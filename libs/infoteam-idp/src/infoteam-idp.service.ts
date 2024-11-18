@@ -90,6 +90,7 @@ export class InfoteamIdpService {
               this.logger.debug('Invalid access token');
               throw new UnauthorizedException();
             }
+            this.logger.error(error.message);
             throw new InternalServerErrorException();
           }),
         ),

@@ -39,6 +39,7 @@ export class TagRepository {
             throw new NotFoundException(`tag with name ${name} not found`);
           }
         }
+        this.logger.error('findTag error');
         this.logger.debug(err);
         throw new InternalServerErrorException();
       })
