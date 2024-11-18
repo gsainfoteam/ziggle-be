@@ -199,7 +199,6 @@ export class NoticeRepository {
     { offset = 0, limit = 10, orderBy }: GetGroupNoticeQueryDto,
     groupId: string,
   ): Promise<NoticeFullContent[]> {
-    this.logger.log(`getGroupNoticeList`);
     return this.prismaService.notice
       .findMany({
         take: limit,
@@ -399,8 +398,6 @@ export class NoticeRepository {
       groupName?: string;
     },
   ): Promise<NoticeFullContent> {
-    this.logger.log(`createNotice`);
-
     const findTags = await this.prismaService.tag.findMany({
       where: {
         id: {

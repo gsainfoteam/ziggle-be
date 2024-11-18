@@ -25,10 +25,8 @@ export class UserRepository {
       where: { uuid },
     });
     if (user) {
-      this.logger.log('user found');
       return user;
     }
-    this.logger.log('user not found, create new user');
     return this.prismaService.user.create({
       data: {
         uuid,
@@ -49,7 +47,6 @@ export class UserRepository {
       .catch((err) => {
         if (err instanceof PrismaClientKnownRequestError) {
           if (err.code === 'P2016') {
-            this.logger.debug('user not found');
             throw new NotFoundException();
           }
           this.logger.error(err.message);
@@ -59,10 +56,8 @@ export class UserRepository {
         throw new InternalServerErrorException();
       });
     if (user.name === name) {
-      this.logger.log('user name is same');
       return user;
     }
-    this.logger.log('user name is different, update user');
     return this.prismaService.user
       .update({
         where: { uuid },
@@ -81,7 +76,6 @@ export class UserRepository {
         throw new InternalServerErrorException();
       })
       .then((user) => {
-        this.logger.log('findUserAndUpdate finished');
         return user;
       });
   }
@@ -95,7 +89,6 @@ export class UserRepository {
       .catch((err) => {
         if (err instanceof PrismaClientKnownRequestError) {
           if (err.code === 'P2025' || err.code === 'P2016') {
-            this.logger.log('user not found');
             throw new NotFoundException();
           }
           this.logger.error(err.message);
@@ -105,7 +98,6 @@ export class UserRepository {
         throw new InternalServerErrorException();
       })
       .then((user) => {
-        this.logger.log('setConsent finished');
         return user;
       });
   }
