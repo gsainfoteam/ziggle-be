@@ -111,7 +111,7 @@ export class NoticeRepository {
         orderBy: {
           currentDeadline: orderBy === 'deadline' ? 'asc' : undefined,
           views: orderBy === 'hot' ? 'desc' : undefined,
-          createdAt: orderBy === 'recent' ? 'desc' : undefined,
+          updatedAt: orderBy === 'recent' ? 'desc' : undefined,
         },
         where: {
           ...(orderBy === 'deadline'
@@ -206,7 +206,7 @@ export class NoticeRepository {
         orderBy: {
           currentDeadline: orderBy === 'deadline' ? 'asc' : undefined,
           views: orderBy === 'hot' ? 'desc' : undefined,
-          createdAt: orderBy === 'recent' ? 'desc' : undefined,
+          updatedAt: orderBy === 'recent' ? 'desc' : undefined,
         },
         where: {
           ...(orderBy === 'deadline'
