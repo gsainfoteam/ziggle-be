@@ -37,6 +37,7 @@ import {
   UpdateNoticeQueryDto,
 } from './dto/req/updateNotice.dto';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
+import { GetGroupNoticeQueryDto } from './dto/req/getGroupNotice.dto';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -85,6 +86,31 @@ export class NoticeController {
   }
 
   @ApiOperation({
+    summary: 'Get group notice list',
+    description: 'Get group notice list',
+  })
+  @ApiOkResponse({
+    type: GeneralNoticeListDto,
+    description: 'Return group notice list',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @Get('group/:id')
+  @UseGuards(IdPOptionalGuard)
+  async getGroupNoticeList(
+    @Param('id') groupId: string,
+    @Query() query: GetGroupNoticeQueryDto,
+    @GetUser() user?: User,
+  ): Promise<GeneralNoticeListDto> {
+    const result = await this.noticeService.getGroupNoticeList(
+      groupId,
+      query,
+      user?.uuid,
+    );
+    return result;
+  }
+
+  @ApiOperation({
     summary: 'Create notice',
     description: 'Create notice',
   })
@@ -125,7 +151,7 @@ export class NoticeController {
   async sendNotice(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<void> {
+  ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.sendNotice(id, user.uuid);
   }
 

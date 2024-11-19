@@ -85,14 +85,12 @@ export class AiService {
     text,
     targetLang,
   }: TranslateDto): Promise<TranslateResDto> {
-    this.logger.log(`translate called`);
     const result = await this.translator
       .translateText(text, null, targetLang)
       .catch((error) => {
         this.logger.error(`deepl translation error: ${error.message}`);
         throw new InternalServerErrorException(error.message);
       });
-    this.logger.log(`translate finished`);
     return {
       text: result.text,
       lang: targetLang,

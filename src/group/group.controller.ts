@@ -4,6 +4,7 @@ import { IdPGuard } from 'src/user/guard/idp.guard';
 import {
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
+  ApiOAuth2,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -12,6 +13,7 @@ import { GetToken } from 'src/user/decorator/get-token.decorator';
 import { GroupsTokenRes } from './dto/res/GroupsTokenRes.dto';
 
 @ApiTags('Group')
+@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
 @Controller('group')
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}

@@ -46,7 +46,9 @@ async function bootstrap() {
   // set swagger config
   const config = new DocumentBuilder()
     .setTitle('Ziggle API')
-    .setDescription('Ziggle API')
+    .setDescription(
+      'Backend API for Ziggle\n[GitHub](https://github.com/gsainfoteam/ziggle-be)',
+    )
     .setVersion('1.0')
     .addTag('Ziggle')
     .addOAuth2(

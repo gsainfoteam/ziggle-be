@@ -53,7 +53,8 @@ model UserRecord {
 }
 
 model Group {
-  name String @id
+  uuid String @id @db.Uuid
+  name String
 
   Notice Notice[]
 
@@ -133,8 +134,8 @@ model Notice {
   crawls     Crawl[]
   tags       Tag[]
   reactions  Reaction[]
-  group      Group?       @relation(fields: [groupName], references: [name])
-  groupName  String?      @map("group_name")
+  group      Group?       @relation(fields: [groupId], references: [uuid])
+  groupId    String?      @map("group_id") @db.Uuid
   UserRecord UserRecord[]
 
   @@index([deletedAt])

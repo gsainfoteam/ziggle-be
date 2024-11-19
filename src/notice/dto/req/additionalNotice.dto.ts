@@ -16,6 +16,7 @@ export class AdditionalNoticeDto {
   })
   @IsString()
   @IsOptional()
+  @MaxLength(200)
   title?: string;
 
   @ApiProperty({
