@@ -12,6 +12,8 @@ import { FcmModule } from './fcm/fcm.module';
 import { BullModule } from '@nestjs/bull';
 import { AiModule } from './ai/ai.module';
 import { CustomConfigModule, CustomConfigService } from '@lib/custom-config';
+import { HealthModule } from './health/health.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [
@@ -34,7 +36,16 @@ import { CustomConfigModule, CustomConfigService } from '@lib/custom-config';
         },
       }),
     }),
+    RedisModule.forRootAsync({
+      imports: [CustomConfigModule],
+      inject: [CustomConfigService],
+      useFactory: (customConfigService: CustomConfigService) => ({
+        type: 'single',
+        url: `redis://${customConfigService.REDIS_HOST}:${customConfigService.REDIS_PORT}`,
+      }),
+    }),
     AiModule,
+    HealthModule,
   ],
   controllers: [AppController],
 })
