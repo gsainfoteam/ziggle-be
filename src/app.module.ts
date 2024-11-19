@@ -42,6 +42,10 @@ import { RedisModule } from '@nestjs-modules/ioredis';
       useFactory: (customConfigService: CustomConfigService) => ({
         type: 'single',
         url: `redis://${customConfigService.REDIS_HOST}:${customConfigService.REDIS_PORT}`,
+        options: {
+          connectTimeout: 10000,
+          commandTimeout: 10000,
+        },
       }),
     }),
     AiModule,
