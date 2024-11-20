@@ -437,7 +437,6 @@ export class NoticeRepository {
             },
           },
           createdAt: createdAt || new Date(),
-          updatedAt: new Date(),
           currentDeadline: deadline || null,
           tags: {
             connect: findTags,
@@ -565,6 +564,7 @@ export class NoticeRepository {
             },
           },
           currentDeadline: deadline ?? notice.currentDeadline,
+          updatedAt: new Date(),
         },
       })
       .catch((error) => {
