@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import path from 'path';
 import { FileService } from 'src/file/file.service';
 import sharp from 'sharp';
@@ -72,7 +77,13 @@ export class ImageService {
     file.buffer = await sharp(file.buffer)
       .rotate()
       .webp({ effort: 0 })
-      .toBuffer();
+      .toBuffer()
+      .catch((error) => {
+        if (error.message.includes('unsupported image format')) {
+          throw new BadRequestException(error.message);
+        }
+        throw new InternalServerErrorException(error.message);
+      });
     return file;
   }
 }
