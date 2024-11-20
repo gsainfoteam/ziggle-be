@@ -119,7 +119,7 @@ export class NoticeRepository {
             : {}),
           ...(orderBy === 'hot'
             ? {
-                updatedAt: {
+                createdAt: {
                   gte: dayjs().startOf('d').subtract(7, 'd').toDate(),
                 },
               }
