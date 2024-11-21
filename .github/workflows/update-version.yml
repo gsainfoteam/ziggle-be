@@ -19,6 +19,7 @@ jobs:
 
       - name: Update Package Version
         run: |
+          echo "${{ github.ref }}"
           VERSION=$(echo "${{ github.ref }}" | sed "s/v//")
           if ! sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json; then
             echo "Failed to update package version"
