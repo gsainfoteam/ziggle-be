@@ -14,6 +14,10 @@ export class CustomConfigService {
     return this.getEnvVariable('IDP_URL');
   }
 
+  get IDP_BASE_URL(): string {
+    return this.getEnvVariable('IDP_BASE_URL');
+  }
+
   get DATABASE_URL(): string {
     return this.getEnvVariable('DATABASE_URL');
   }

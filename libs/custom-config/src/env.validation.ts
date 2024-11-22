@@ -8,6 +8,10 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsNotEmpty()
+  IDP_BASE_URL: string;
+
+  @IsString()
+  @IsNotEmpty()
   DATABASE_URL: string;
 
   @IsString()
