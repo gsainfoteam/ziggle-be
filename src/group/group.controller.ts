@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { GroupService } from './group.service';
 import { IdPGuard } from 'src/user/guard/idp.guard';
 import {
@@ -11,6 +11,8 @@ import {
 } from '@nestjs/swagger';
 import { GetToken } from 'src/user/decorator/get-token.decorator';
 import { GroupsTokenRes } from './dto/res/GroupsTokenRes.dto';
+import { GroupListResDto } from './dto/res/GroupsRes.dto';
+import { GetGroupByNameQueryDto } from './dto/req/getGroup.dto';
 
 @ApiTags('Group')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -32,5 +34,18 @@ export class GroupController {
   @UseGuards(IdPGuard)
   async getGroupsToken(@GetToken() token: string): Promise<GroupsTokenRes> {
     return this.groupService.getExternalTokenFromGroups(token);
+  }
+
+  @ApiOperation({
+    summary: 'Get',
+    description: ' Get ',
+  })
+  @ApiUnauthorizedResponse()
+  @ApiInternalServerErrorResponse()
+  @Get('search')
+  async getGroupListByNamequeryFromGroups(
+    @Query() groupNameQuery: GetGroupByNameQueryDto,
+  ): Promise<GroupListResDto> {
+    return this.groupService.getGroupListByNamequeryFromGroups(groupNameQuery);
   }
 }

@@ -11,6 +11,8 @@ import { GroupsToken } from './types/groupsToken.type';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { GroupInfo } from './types/groupInfo.type';
 import { CustomConfigService } from '@lib/custom-config';
+import { GroupListResDto } from './dto/res/GroupsRes.dto';
+import { GetGroupByNameQueryDto } from './dto/req/getGroup.dto';
 
 @Injectable()
 @Loggable()
@@ -70,6 +72,37 @@ export class GroupService {
         {
           headers: {
             Authorization: `Bearer ${groupsToken}`,
+          },
+        },
+      ),
+    ).catch((error) => {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 401) {
+          this.logger.debug('Unauthorized');
+          throw new UnauthorizedException();
+        } else if (error.response?.status === 500) {
+          this.logger.error('Internal Server Error');
+          throw new InternalServerErrorException();
+        }
+      }
+      this.logger.error(error);
+      throw new InternalServerErrorException();
+    });
+
+    return groupResponse.data.list;
+  }
+
+  async getGroupListByNamequeryFromGroups(
+    groupNameQuery: GetGroupByNameQueryDto,
+  ): Promise<GroupListResDto> {
+    const groupResponse = await firstValueFrom(
+      this.httpService.get<{ list: GroupListResDto }>(
+        this.groupsUrl + '/search',
+        {
+          params: groupNameQuery,
+          auth: {
+            username: this.groupsClientId,
+            password: this.groupsClientSecret,
           },
         },
       ),
