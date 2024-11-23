@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class GroupResDto {
   @ApiProperty()
@@ -7,7 +7,7 @@ export class GroupResDto {
   @ApiProperty()
   name: string;
 
-  @ApiPropertyOptional()
+  @ApiProperty()
   description: string | null;
 
   @ApiProperty()

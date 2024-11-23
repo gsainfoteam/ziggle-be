@@ -11,8 +11,8 @@ import { GroupsToken } from './types/groupsToken.type';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { GroupInfo } from './types/groupInfo.type';
 import { CustomConfigService } from '@lib/custom-config';
-import { GroupListResDto } from './dto/res/GroupsRes.dto';
 import { GetGroupByNameQueryDto } from './dto/req/getGroup.dto';
+import { GroupListResDto } from './dto/res/GroupsRes.dto';
 
 @Injectable()
 @Loggable()
@@ -96,16 +96,13 @@ export class GroupService {
     groupNameQuery: GetGroupByNameQueryDto,
   ): Promise<GroupListResDto> {
     const groupResponse = await firstValueFrom(
-      this.httpService.get<{ list: GroupListResDto }>(
-        this.groupsUrl + '/search',
-        {
-          params: groupNameQuery,
-          auth: {
-            username: this.groupsClientId,
-            password: this.groupsClientSecret,
-          },
+      this.httpService.get<GroupListResDto>(this.groupsUrl + '/group/search', {
+        params: groupNameQuery,
+        auth: {
+          username: this.groupsClientId,
+          password: this.groupsClientSecret,
         },
-      ),
+      }),
     ).catch((error) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
@@ -120,6 +117,8 @@ export class GroupService {
       throw new InternalServerErrorException();
     });
 
-    return groupResponse.data.list;
+    return {
+      list: groupResponse.data.list,
+    };
   }
 }

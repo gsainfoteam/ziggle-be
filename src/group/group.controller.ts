@@ -37,8 +37,12 @@ export class GroupController {
   }
 
   @ApiOperation({
-    summary: 'Get',
-    description: ' Get ',
+    summary: 'Searching group list',
+    description: 'Seaching group list by nmae query',
+  })
+  @ApiCreatedResponse({
+    type: GroupListResDto,
+    description: '검색된 그룹 목록',
   })
   @ApiUnauthorizedResponse()
   @ApiInternalServerErrorResponse()
