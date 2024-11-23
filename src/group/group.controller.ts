@@ -5,6 +5,7 @@ import {
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
   ApiOAuth2,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -38,9 +39,9 @@ export class GroupController {
 
   @ApiOperation({
     summary: 'Searching group list',
-    description: 'Seaching group list by nmae query',
+    description: 'Searching group list by nmae query',
   })
-  @ApiCreatedResponse({
+  @ApiOkResponse({
     type: GroupListResDto,
     description: '검색된 그룹 목록',
   })
