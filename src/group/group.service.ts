@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import {
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -51,6 +52,9 @@ export class GroupService {
         if (error.response?.status === 401) {
           this.logger.debug('Unauthorized');
           throw new UnauthorizedException();
+        } else if (error.response?.status === 403) {
+          this.logger.debug('Forbidden');
+          throw new ForbiddenException();
         } else if (error.response?.status === 500) {
           this.logger.error('Internal Server Error');
           throw new InternalServerErrorException();
