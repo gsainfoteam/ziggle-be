@@ -43,7 +43,7 @@ export class CreateNoticeDto {
   deadline?: Date;
 
   @ApiPropertyOptional({
-    example: '1',
+    example: '[1, 2]',
     description: '공지태그의 id',
     required: false,
   })
@@ -61,7 +61,7 @@ export class CreateNoticeDto {
   category?: Category;
 
   @ApiPropertyOptional({
-    example: 'wow.png',
+    example: '빼고 테스트 바랍니다',
     description: '이미지 파일 이름',
     required: false,
   })
@@ -70,7 +70,7 @@ export class CreateNoticeDto {
   images: string[] = [];
 
   @ApiPropertyOptional({
-    example: 'wow.docx',
+    example: '빼고 테스트 바랍니다',
     description: '파일 이름',
     required: false,
   })
