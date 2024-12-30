@@ -122,7 +122,8 @@ model Notice {
   category        Category  @default(ETC)
   currentDeadline DateTime? @map("current_deadline")
   createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @default(now()) @map("updated_at") @updatedAt
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
+  lastEditedAt    DateTime  @default(now()) @map("last_edited_at")
   publishedAt     DateTime  @map("published_at")
   deletedAt       DateTime? @map("deleted_at")
 

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "notice" ADD COLUMN     "last_edited_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

@@ -111,7 +111,7 @@ export class NoticeRepository {
         orderBy: {
           currentDeadline: orderBy === 'deadline' ? 'asc' : undefined,
           views: orderBy === 'hot' ? 'desc' : undefined,
-          updatedAt: orderBy === 'recent' ? 'desc' : undefined,
+          lastEditedAt: orderBy === 'recent' ? 'desc' : undefined,
         },
         where: {
           ...(orderBy === 'deadline'
@@ -206,7 +206,7 @@ export class NoticeRepository {
         orderBy: {
           currentDeadline: orderBy === 'deadline' ? 'asc' : undefined,
           views: orderBy === 'hot' ? 'desc' : undefined,
-          updatedAt: orderBy === 'recent' ? 'desc' : undefined,
+          lastEditedAt: orderBy === 'recent' ? 'desc' : undefined,
         },
         where: {
           ...(orderBy === 'deadline'
@@ -564,6 +564,7 @@ export class NoticeRepository {
             },
           },
           currentDeadline: deadline ?? notice.currentDeadline,
+          lastEditedAt: new Date(),
           updatedAt: new Date(),
         },
       })
@@ -598,6 +599,7 @@ export class NoticeRepository {
               deadline,
             },
           },
+          lastEditedAt: new Date(),
         },
       })
       .catch((error) => {
@@ -746,6 +748,7 @@ export class NoticeRepository {
             },
           },
           currentDeadline: deadline,
+          lastEditedAt: new Date(),
         },
       })
       .catch((error) => {
