@@ -79,6 +79,7 @@ export class NoticeRepository {
                 },
                 { tags: { some: { name: { contains: search } } } },
               ],
+              mode: 'insensitive',
             }
           : {}),
       },
@@ -154,6 +155,7 @@ export class NoticeRepository {
                   },
                   { tags: { some: { name: { contains: search } } } },
                 ],
+                mode: 'insensitive',
               }
             : {}),
           category,

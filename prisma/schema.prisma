@@ -7,6 +7,150 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  uuid            String       @id @db.Uuid
+  name            String
+  createdAt       DateTime     @default(now()) @map("created_at")
+  consent         Boolean
+  FcmToken        FcmToken[]
+  writedNotices   Notice[]
+  reactions       Reaction[]
+  UserRecord      UserRecord[]
+  remindedNotices Notice[]     @relation("Reminder")
+
+  @@map("user")
+}
+
+model UserRecord {
+  views     Int      @default(1)
+  updatedAt DateTime @default(now()) @map("updated_at")
+  userUuid  String   @map("user_uuid") @db.Uuid
+  noticeId  Int      @map("notice_id")
+  notice    Notice   @relation(fields: [noticeId], references: [id])
+  user      User     @relation(fields: [userUuid], references: [uuid])
+
+  @@id([userUuid, noticeId])
+  @@map("user_record")
+}
+
+model Group {
+  name   String
+  uuid   String   @id @db.Uuid
+  Notice Notice[]
+
+  @@map("group")
+}
+
+model File {
+  uuid      String   @id @default(uuid())
+  order     Int      @default(0)
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  url       String
+  type      FileType
+  noticeId  Int      @map("notice_id")
+  notice    Notice   @relation(fields: [noticeId], references: [id])
+
+  @@map("file")
+}
+
+model Content {
+  id        Int
+  lang      String
+  title     String?
+  body      String
+  deadline  DateTime?
+  createdAt DateTime  @default(now()) @map("created_at")
+  noticeId  Int       @map("notice_id")
+  notice    Notice    @relation(fields: [noticeId], references: [id])
+
+  @@id([id, lang, noticeId])
+  @@map("content")
+}
+
+model Crawl {
+  id        Int       @id @default(autoincrement())
+  title     String
+  body      String
+  type      CrawlType
+  url       String    @db.VarChar(300)
+  crawledAt DateTime  @default(now()) @map("crawled_at")
+  noticeId  Int       @map("notice_id")
+  notice    Notice    @relation(fields: [noticeId], references: [id])
+
+  @@map("crawl")
+}
+
+model Tag {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  notices Notice[] @relation("NoticeToTag")
+
+  @@map("tag")
+}
+
+model Notice {
+  id              Int          @id @default(autoincrement())
+  views           Int          @default(0)
+  category        Category     @default(ETC)
+  currentDeadline DateTime?    @map("current_deadline")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @default(now()) @updatedAt @map("updated_at")
+  publishedAt     DateTime     @map("published_at")
+  deletedAt       DateTime?    @map("deleted_at")
+  authorId        String       @map("author_id") @db.Uuid
+  groupId         String?      @map("group_id") @db.Uuid
+  contents        Content[]
+  crawls          Crawl[]
+  files           File[]
+  author          User         @relation(fields: [authorId], references: [uuid])
+  group           Group?       @relation(fields: [groupId], references: [uuid])
+  reactions       Reaction[]
+  UserRecord      UserRecord[]
+  tags            Tag[]        @relation("NoticeToTag")
+  reminders       User[]       @relation("Reminder")
+
+  @@index([deletedAt])
+  @@map("notice")
+}
+
+model Reaction {
+  emoji     String
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+  noticeId  Int       @map("notice_id")
+  userId    String    @map("user_uuid") @db.Uuid
+  notice    Notice    @relation(fields: [noticeId], references: [id])
+  user      User      @relation(fields: [userId], references: [uuid])
+
+  @@id([emoji, noticeId, userId])
+  @@map("reaction")
+}
+
+model FcmToken {
+  fcmTokenId   String   @id @map("fcm_token_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  lastCheckAt  DateTime @updatedAt @map("last_check_at")
+  successCount Int      @default(0) @map("success_count")
+  failCount    Int      @default(0) @map("fail_count")
+  errors       String?
+  userUuid     String?  @map("user_uuid") @db.Uuid
+  User         User?    @relation(fields: [userUuid], references: [uuid])
+  Logs         Log[]
+
+  @@map("fcm_token")
+}
+
+model Log {
+  id         Int      @id @default(autoincrement())
+  content    Json
+  createdAt  DateTime @default(now()) @map("created_at")
+  fcmTokenId String   @map("fcm_token_id")
+  FcmToken   FcmToken @relation(fields: [fcmTokenId], references: [fcmTokenId])
+
+  @@map("log")
+}
+
 enum FileType {
   IMAGE
   DOCUMENT
@@ -22,163 +166,4 @@ enum Category {
   EVENT
   CLUB
   ETC
-}
-
-model User {
-  uuid      String   @id @db.Uuid
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  consent   Boolean
-
-  remindedNotices Notice[]     @relation("Reminder")
-  writedNotices   Notice[]
-  reactions       Reaction[]
-  UserRecord      UserRecord[]
-  FcmToken        FcmToken[]
-
-  @@map("user")
-}
-
-model UserRecord {
-  views     Int      @default(1)
-  updatedAt DateTime @default(now()) @map("updated_at")
-  userUuid  String   @map("user_uuid") @db.Uuid
-  noticeId  Int      @map("notice_id")
-
-  user   User   @relation(fields: [userUuid], references: [uuid])
-  notice Notice @relation(fields: [noticeId], references: [id])
-
-  @@id([userUuid, noticeId])
-  @@map("user_record")
-}
-
-model Group {
-  uuid String @id @db.Uuid
-  name String
-
-  Notice Notice[]
-
-  @@map("group")
-}
-
-model File {
-  uuid      String   @id @default(uuid())
-  order     Int      @default(0)
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  url       String
-  type      FileType
-
-  noticeId Int    @map("notice_id")
-  notice   Notice @relation(fields: [noticeId], references: [id])
-
-  @@map("file")
-}
-
-model Content {
-  id Int
-
-  lang      String
-  title     String?
-  body      String
-  deadline  DateTime?
-  createdAt DateTime  @default(now()) @map("created_at")
-
-  noticeId Int    @map("notice_id")
-  notice   Notice @relation(fields: [noticeId], references: [id])
-
-  @@id([id, lang, noticeId])
-  @@map("content")
-}
-
-model Crawl {
-  id        Int       @id @default(autoincrement())
-  title     String
-  body      String
-  type      CrawlType
-  url       String    @db.VarChar(300)
-  crawledAt DateTime  @default(now()) @map("crawled_at")
-
-  noticeId Int    @map("notice_id")
-  notice   Notice @relation(fields: [noticeId], references: [id])
-
-  @@map("crawl")
-}
-
-model Tag {
-  id Int @id @default(autoincrement())
-
-  name String @unique
-
-  notices Notice[]
-
-  @@map("tag")
-}
-
-model Notice {
-  id Int @id @default(autoincrement())
-
-  views           Int       @default(0)
-  category        Category  @default(ETC)
-  currentDeadline DateTime? @map("current_deadline")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @default(now()) @map("updated_at") @updatedAt
-  publishedAt     DateTime  @map("published_at")
-  deletedAt       DateTime? @map("deleted_at")
-
-  authorId   String       @map("author_id") @db.Uuid
-  reminders  User[]       @relation("Reminder")
-  author     User         @relation(fields: [authorId], references: [uuid])
-  files      File[]
-  contents   Content[]
-  crawls     Crawl[]
-  tags       Tag[]
-  reactions  Reaction[]
-  group      Group?       @relation(fields: [groupId], references: [uuid])
-  groupId    String?      @map("group_id") @db.Uuid
-  UserRecord UserRecord[]
-
-  @@index([deletedAt])
-  @@map("notice")
-}
-
-model Reaction {
-  emoji     String
-  createdAt DateTime  @default(now()) @map("created_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  noticeId Int    @map("notice_id")
-  notice   Notice @relation(fields: [noticeId], references: [id])
-  userId   String @map("user_uuid") @db.Uuid
-  user     User   @relation(fields: [userId], references: [uuid])
-
-  @@id([emoji, noticeId, userId])
-  @@map("reaction")
-}
-
-model FcmToken {
-  fcmTokenId   String   @id @map("fcm_token_id")
-  createdAt    DateTime @default(now()) @map("created_at")
-  lastCheckAt  DateTime @updatedAt @map("last_check_at")
-  successCount Int      @default(0) @map("success_count")
-  failCount    Int      @default(0) @map("fail_count")
-
-  errors String?
-
-  userUuid String? @map("user_uuid") @db.Uuid
-  User     User?   @relation(fields: [userUuid], references: [uuid])
-  Logs     Log[]
-
-  @@map("fcm_token")
-}
-
-model Log {
-  id        Int      @id @default(autoincrement())
-  content   Json
-  createdAt DateTime @default(now()) @map("created_at")
-
-  fcmTokenId String   @map("fcm_token_id")
-  FcmToken   FcmToken @relation(fields: [fcmTokenId], references: [fcmTokenId])
-
-  @@map("log")
 }
