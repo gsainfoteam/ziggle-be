@@ -1,11 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/ziggle-be/src",
+  "sourceRoot": "apps/api/src",
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
-    "tsConfigPath": "apps/ziggle-be/tsconfig.app.json"
+    "tsConfigPath": "apps/api/tsconfig.app.json"
   },
   "projects": {
     "prisma": {
@@ -53,13 +53,13 @@
         "tsConfigPath": "libs/custom-config/tsconfig.lib.json"
       }
     },
-    "ziggle-be": {
+    "api": {
       "type": "application",
-      "root": "apps/ziggle-be",
+      "root": "apps/api",
       "entryFile": "main",
-      "sourceRoot": "apps/ziggle-be/src",
+      "sourceRoot": "apps/api/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/ziggle-be/tsconfig.app.json"
+        "tsConfigPath": "apps/api/tsconfig.app.json"
       }
     },
     "crawler": {
@@ -73,5 +73,5 @@
     }
   },
   "monorepo": true,
-  "root": "apps/ziggle-be"
+  "root": "apps/api"
 }
