@@ -1,8 +1,7 @@
+import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class CrawlerService {
-  getHello(): string {
-    return 'Hello World!';
-  }
+  constructor(private readonly httpService: HttpService) {}
 }

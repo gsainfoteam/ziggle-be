@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { CrawlerController } from './crawler.controller';
 import { CrawlerService } from './crawler.service';
+import { PrismaModule } from '@lib/prisma';
+import { HttpModule } from '@nestjs/axios';
+import { CrawlerRepository } from './crawler.repository';
 
 @Module({
-  imports: [],
-  controllers: [CrawlerController],
-  providers: [CrawlerService],
+  imports: [PrismaModule, HttpModule],
+  providers: [CrawlerService, CrawlerRepository],
 })
 export class CrawlerModule {}

@@ -10,6 +10,9 @@
     "gitops",
     "gsainfoteam",
     "infoteam",
+    "libheif",
+    "linuxmusl",
+    "localtime",
     "LOGGABLE",
     "metatype",
     "nestjs",
@@ -17,7 +20,8 @@
     "openai",
     "prisma",
     "rxjs",
-    "ziggle"
+    "ziggle",
+    "zoneinfo"
   ],
   "git.branchProtection": ["main"]
 }
