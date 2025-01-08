@@ -61,8 +61,8 @@ export class NoticeRepository {
                   crawls: {
                     some: {
                       OR: [
-                        { title: { contains: search } },
-                        { body: { contains: search } },
+                        { title: { contains: search, mode: 'insensitive' } },
+                        { body: { contains: search, mode: 'insensitive' } },
                       ],
                     },
                   },
@@ -71,13 +71,17 @@ export class NoticeRepository {
                   contents: {
                     some: {
                       OR: [
-                        { title: { contains: search } },
-                        { body: { contains: search } },
+                        { title: { contains: search, mode: 'insensitive' } },
+                        { body: { contains: search, mode: 'insensitive' } },
                       ],
                     },
                   },
                 },
-                { tags: { some: { name: { contains: search } } } },
+                {
+                  tags: {
+                    some: { name: { contains: search, mode: 'insensitive' } },
+                  },
+                },
               ],
             }
           : {}),
@@ -136,8 +140,8 @@ export class NoticeRepository {
                     crawls: {
                       some: {
                         OR: [
-                          { title: { contains: search } },
-                          { body: { contains: search } },
+                          { title: { contains: search, mode: 'insensitive' } },
+                          { body: { contains: search, mode: 'insensitive' } },
                         ],
                       },
                     },
@@ -146,13 +150,17 @@ export class NoticeRepository {
                     contents: {
                       some: {
                         OR: [
-                          { title: { contains: search } },
-                          { body: { contains: search } },
+                          { title: { contains: search, mode: 'insensitive' } },
+                          { body: { contains: search, mode: 'insensitive' } },
                         ],
                       },
                     },
                   },
-                  { tags: { some: { name: { contains: search } } } },
+                  {
+                    tags: {
+                      some: { name: { contains: search, mode: 'insensitive' } },
+                    },
+                  },
                 ],
               }
             : {}),
