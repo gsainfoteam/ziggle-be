@@ -30,6 +30,7 @@ describe('CrawlerService', () => {
       );
       expect(noticeList.length).toBeGreaterThan(0);
       console.log(noticeList);
+      console.log('noticeList.length:', noticeList.length);
     });
   });
 
