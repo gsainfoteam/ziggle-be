@@ -7,5 +7,6 @@ import { CrawlerRepository } from './crawler.repository';
 @Module({
   imports: [PrismaModule, HttpModule],
   providers: [CrawlerService, CrawlerRepository],
+  exports: [CrawlerService],
 })
 export class CrawlerModule {}
