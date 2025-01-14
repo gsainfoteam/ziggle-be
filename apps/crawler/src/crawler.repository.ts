@@ -6,7 +6,7 @@ import { Crawl, User } from '@prisma/client';
 export class CrawlerRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async checkCrawlData({ urls }: { urls: string[] }): Promise<Crawl[]> {
+  async checkCrawlData(urls: string[]): Promise<Crawl[]> {
     return this.prismaService.crawl.findMany({
       where: {
         url: {

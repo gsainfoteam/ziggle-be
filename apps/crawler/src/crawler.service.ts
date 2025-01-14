@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
+import { Crawl, User } from '@prisma/client';
 import { load } from 'cheerio';
 import {
   catchError,
@@ -9,12 +10,35 @@ import {
   throwError,
   timeout,
 } from 'rxjs';
+import { CrawlerRepository } from './crawler.repository';
 
 @Injectable()
 export class CrawlerService {
   private readonly targetUrl =
     'https://www.gist.ac.kr/kr/html/sub05/050209.html';
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly crawlerRepository: CrawlerRepository,
+  ) {}
+
+  async checkCrawlData(urls: string[]): Promise<Crawl[]> {
+    return this.crawlerRepository.checkCrawlData(urls);
+  }
+
+  async createCrawl(
+    data: Pick<Crawl, 'title' | 'body' | 'type' | 'crawledAt' | 'url'>,
+    user: User,
+    deadline?: Date,
+  ): Promise<Crawl> {
+    return this.crawlerRepository.createCrawl(data, user, deadline);
+  }
+
+  async updateCrawl(
+    data: Pick<Crawl, 'title' | 'body' | 'type'>,
+    id: number,
+  ): Promise<Crawl> {
+    return this.crawlerRepository.updateCrawl(data, id);
+  }
 
   getNoticeList(): Observable<any> {
     return this.httpService.get(this.targetUrl).pipe(
