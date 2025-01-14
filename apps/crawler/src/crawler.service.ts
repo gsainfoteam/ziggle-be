@@ -22,7 +22,7 @@ export class CrawlerService {
       catchError(throwError),
       map((res) => load(res.data)),
       map(($) => $('table > tbody > tr')),
-      concatMap(($) => $.toArray().map((value) => load(value))),
+      concatMap(($) => $.toArray().map((value: any) => load(value))),
       map(($) => {
         return {
           title: $('td').eq(2).text().trim(),
@@ -48,7 +48,7 @@ export class CrawlerService {
         content: $('.bd_detail_content').html()?.trim(),
         files: $('.bd_detail_file > ul > li > a')
           .toArray()
-          .map((value) => ({
+          .map((value: any) => ({
             href: `${this.targetUrl}${$(value).attr('href')}`,
             name: $(value).text().trim(),
             type: $(value).attr('class') as
