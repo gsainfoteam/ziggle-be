@@ -6,12 +6,10 @@ import { Crawl, User } from '@prisma/client';
 export class CrawlerRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async checkCrawlData(urls: string[]): Promise<Crawl[]> {
-    return this.prismaService.crawl.findMany({
+  async checkCrawlData(url: string): Promise<Crawl | null> {
+    return this.prismaService.crawl.findFirst({
       where: {
-        url: {
-          in: urls,
-        },
+        url,
       },
     });
   }
@@ -24,6 +22,7 @@ export class CrawlerRepository {
       crawledAt,
       url,
     }: Pick<Crawl, 'title' | 'body' | 'type' | 'crawledAt' | 'url'>,
+    createdAt: Date,
     user: User,
     deadline?: Date,
   ): Promise<Crawl> {
@@ -41,6 +40,7 @@ export class CrawlerRepository {
             author: {
               connect: user,
             },
+            createdAt,
             publishedAt: new Date(),
           },
         },

@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { Crawl, User } from '@prisma/client';
+import { Crawl } from '@prisma/client';
 import { load } from 'cheerio';
 import {
   catchError,
@@ -11,26 +11,30 @@ import {
   timeout,
 } from 'rxjs';
 import { CrawlerRepository } from './crawler.repository';
+import { UserService } from './user/user.service';
 
 @Injectable()
 export class CrawlerService {
   private readonly targetUrl =
     'https://www.gist.ac.kr/kr/html/sub05/050209.html';
   constructor(
+    private readonly userService: UserService,
     private readonly httpService: HttpService,
     private readonly crawlerRepository: CrawlerRepository,
   ) {}
 
-  async checkCrawlData(urls: string[]): Promise<Crawl[]> {
-    return this.crawlerRepository.checkCrawlData(urls);
+  async checkCrawlData(url: string): Promise<Crawl | null> {
+    return this.crawlerRepository.checkCrawlData(url);
   }
 
   async createCrawl(
     data: Pick<Crawl, 'title' | 'body' | 'type' | 'crawledAt' | 'url'>,
-    user: User,
+    createdAt: Date,
+    userName: string,
     deadline?: Date,
   ): Promise<Crawl> {
-    return this.crawlerRepository.createCrawl(data, user, deadline);
+    const user = await this.userService.findOrCreateTempUser(userName);
+    return this.crawlerRepository.createCrawl(data, createdAt, user, deadline);
   }
 
   async updateCrawl(
@@ -40,7 +44,14 @@ export class CrawlerService {
     return this.crawlerRepository.updateCrawl(data, id);
   }
 
-  getNoticeList(): Observable<any> {
+  getNoticeList(): Observable<{
+    title: string;
+    link: string;
+    author: string;
+    category: string;
+    createdAt: string;
+    id: number;
+  }> {
     return this.httpService.get(this.targetUrl).pipe(
       timeout(10 * 1000),
       catchError(throwError),
@@ -63,7 +74,14 @@ export class CrawlerService {
     );
   }
 
-  getNoticeDetail(link: string) {
+  getNoticeDetail(link: string): Observable<{
+    content: string | undefined;
+    files: {
+      href: string;
+      name: string;
+      type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
+    }[];
+  }> {
     return this.httpService.get(link).pipe(
       timeout(10 * 1000),
       map((res) => load(res.data)),
