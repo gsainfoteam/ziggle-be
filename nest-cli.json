@@ -1,10 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "src",
+  "sourceRoot": "apps/api/src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": true
+    "webpack": true,
+    "tsConfigPath": "apps/api/tsconfig.app.json"
   },
   "projects": {
     "prisma": {
@@ -51,6 +52,26 @@
       "compilerOptions": {
         "tsConfigPath": "libs/custom-config/tsconfig.lib.json"
       }
+    },
+    "api": {
+      "type": "application",
+      "root": "apps/api",
+      "entryFile": "main",
+      "sourceRoot": "apps/api/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/api/tsconfig.app.json"
+      }
+    },
+    "crawler": {
+      "type": "application",
+      "root": "apps/crawler",
+      "entryFile": "main",
+      "sourceRoot": "apps/crawler/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/crawler/tsconfig.app.json"
+      }
     }
-  }
+  },
+  "monorepo": true,
+  "root": "apps/api"
 }
