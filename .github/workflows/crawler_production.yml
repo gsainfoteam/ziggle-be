@@ -1,18 +1,12 @@
-name: Build Container And Update Kubernetes Cluster (Crawler Staging)
+name: Build Container And Update Kubernetes Cluster (Crawler Production)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - apps/crawler/**
-      - prisma/schema.prisma
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   REPOSITORY: ${{ github.repository }}
-  IMAGE_TAG: crawler-dev${{ github.run_number }}
+  IMAGE_TAG: crawler${{ github.run_number }}
 
 jobs:
   build:
@@ -70,7 +64,7 @@ jobs:
 
       - name: Update Kubernetes Manifest
         run: |
-          sed -i "s|image:.*|image: $REGISTRY\/$REPOSITORY:$IMAGE_TAG|g" infoteam/service/ziggle/crawler.stg.yaml
+          sed -i "s|image:.*|image: $REGISTRY\/$REPOSITORY:$IMAGE_TAG|g" infoteam/service/ziggle/crawler.prod.yaml
 
       - name: Commit and Push\
         run: |
