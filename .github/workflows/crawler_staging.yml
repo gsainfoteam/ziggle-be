@@ -11,8 +11,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  REPOSITORY: crawler
-  IMAGE_TAG: dev${{ github.run_number }}
+  REPOSITORY: ${{ github.repository }}
+  IMAGE_TAG: crawler-dev${{ github.run_number }}
 
 jobs:
   build:
