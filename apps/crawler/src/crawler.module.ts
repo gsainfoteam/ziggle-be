@@ -4,9 +4,10 @@ import { PrismaModule } from '@lib/prisma';
 import { HttpModule } from '@nestjs/axios';
 import { CrawlerRepository } from './crawler.repository';
 import { UserModule } from './user/user.module';
+import { LoggerModule } from '@lib/logger';
 
 @Module({
-  imports: [PrismaModule, HttpModule, UserModule],
+  imports: [PrismaModule, HttpModule, UserModule, LoggerModule],
   providers: [CrawlerService, CrawlerRepository],
   exports: [CrawlerService],
 })

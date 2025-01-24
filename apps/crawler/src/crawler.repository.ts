@@ -1,7 +1,9 @@
+import { Loggable } from '@lib/logger/decorator/loggable';
 import { PrismaService } from '@lib/prisma';
 import { Injectable } from '@nestjs/common';
 import { Crawl, User } from '@prisma/client';
 
+@Loggable()
 @Injectable()
 export class CrawlerRepository {
   constructor(private readonly prismaService: PrismaService) {}

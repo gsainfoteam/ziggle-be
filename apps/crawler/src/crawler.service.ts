@@ -12,7 +12,9 @@ import {
 } from 'rxjs';
 import { CrawlerRepository } from './crawler.repository';
 import { UserService } from './user/user.service';
+import { Loggable } from '@lib/logger/decorator/loggable';
 
+@Loggable()
 @Injectable()
 export class CrawlerService {
   private readonly targetUrl =
