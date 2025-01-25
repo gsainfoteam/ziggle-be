@@ -22,6 +22,7 @@ async function bootstrap() {
   );
   // set CORS config
   const whitelist = [
+    /https:\/\/.*gistory.me/,
     /https:\/\/.*ziggle.gistory.me/,
     /https:\/\/.*ziggle-fe.pages.dev/,
     /http:\/\/localhost:3000/,
