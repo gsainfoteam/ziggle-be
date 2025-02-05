@@ -30,9 +30,6 @@ export class GroupResDto {
 
   @ApiProperty()
   verified: boolean;
-
-  @ApiProperty()
-  deletedAt: Date | null;
 }
 
 export class GroupListResDto {
