@@ -57,7 +57,6 @@ export class GroupController {
   @ApiUnauthorizedResponse()
   @ApiInternalServerErrorResponse()
   @Get('search')
-  @UseGuards(IdPGuard)
   async getGroupListByNamequeryFromGroups(
     @Query() groupNameQuery: GetGroupByNameQueryDto,
   ): Promise<GroupListResDto> {
