@@ -1,7 +1,15 @@
-import { Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Headers,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { GroupService } from './group.service';
 import {
   ApiCreatedResponse,
+  ApiHeader,
   ApiInternalServerErrorResponse,
   ApiOAuth2,
   ApiOkResponse,
@@ -14,6 +22,7 @@ import { GroupListResDto } from './dto/res/GroupsRes.dto';
 import { GetGroupByNameQueryDto } from './dto/req/getGroup.dto';
 import { IdPGuard } from '../user/guard/idp.guard';
 import { GetToken } from '../user/decorator/get-token.decorator';
+import { GroupInfo } from './types/groupInfo.type';
 
 @ApiTags('Group')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -39,7 +48,7 @@ export class GroupController {
 
   @ApiOperation({
     summary: 'Searching group list',
-    description: 'Searching group list by nmae query',
+    description: 'Searching group list by name query',
   })
   @ApiOkResponse({
     type: GroupListResDto,
@@ -52,5 +61,28 @@ export class GroupController {
     @Query() groupNameQuery: GetGroupByNameQueryDto,
   ): Promise<GroupListResDto> {
     return this.groupService.getGroupListByNamequeryFromGroups(groupNameQuery);
+  }
+
+  @ApiOperation({
+    summary: 'Get the list and information of groups I belong to',
+    description: 'Get the list and information of groups I belong to',
+  })
+  @ApiOkResponse({
+    type: GroupListResDto,
+    description: '내가 속한 그룹의 목록과 정보',
+  })
+  @ApiUnauthorizedResponse()
+  @ApiInternalServerErrorResponse()
+  @ApiHeader({
+    name: 'Groups-Token',
+    description: 'Groups-Token',
+    required: false,
+  })
+  @Get('my')
+  @UseGuards(IdPGuard)
+  async getGroupInfoFromGroups(
+    @Headers('Groups-Token') groupToken: string,
+  ): Promise<GroupInfo[]> {
+    return this.groupService.getGroupInfoFromGroups(groupToken);
   }
 }
