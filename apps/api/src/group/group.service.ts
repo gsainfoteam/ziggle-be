@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   Logger,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
@@ -124,5 +125,33 @@ export class GroupService {
     return {
       list: groupResponse.data.list,
     };
+  }
+
+  async getGroupByUuid(uuid: string): Promise<GroupInfo> {
+    const groupResponse = await firstValueFrom(
+      this.httpService.get<GroupInfo>(`${this.groupsUrl}/group/${uuid}`, {
+        auth: {
+          username: this.groupsClientId,
+          password: this.groupsClientSecret,
+        },
+      }),
+    ).catch((error) => {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 401) {
+          this.logger.debug('Unauthorized');
+          throw new UnauthorizedException();
+        } else if (error.response?.status === 404) {
+          this.logger.debug('Group not found');
+          throw new NotFoundException('Group not found');
+        } else if (error.response?.status === 500) {
+          this.logger.error('Internal Server Error');
+          throw new InternalServerErrorException();
+        }
+      }
+      this.logger.error(error);
+      throw new InternalServerErrorException();
+    });
+
+    return groupResponse.data;
   }
 }
