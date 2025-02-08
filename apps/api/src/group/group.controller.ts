@@ -4,6 +4,7 @@ import {
   Headers,
   Post,
   Query,
+  Param,
   UseGuards,
 } from '@nestjs/common';
 import { GroupService } from './group.service';
@@ -18,7 +19,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { GroupsTokenRes } from './dto/res/GroupsTokenRes.dto';
-import { GroupListResDto } from './dto/res/GroupsRes.dto';
+import { GroupListResDto, GroupResDto } from './dto/res/GroupsRes.dto';
 import { GetGroupByNameQueryDto } from './dto/req/getGroup.dto';
 import { IdPGuard } from '../user/guard/idp.guard';
 import { GetToken } from '../user/decorator/get-token.decorator';
@@ -84,5 +85,20 @@ export class GroupController {
     @Headers('Groups-Token') groupToken: string,
   ): Promise<GroupInfo[]> {
     return this.groupService.getGroupInfoFromGroups(groupToken);
+  }
+
+  @ApiOperation({
+    summary: 'Get group info by UUID',
+    description: 'Get detailed information about a specific group',
+  })
+  @ApiOkResponse({
+    type: GroupResDto,
+    description: '특정 그룹의 상세 정보',
+  })
+  @ApiUnauthorizedResponse()
+  @ApiInternalServerErrorResponse()
+  @Get(':uuid')
+  async getGroupByUuid(@Param('uuid') uuid: string): Promise<GroupInfo> {
+    return this.groupService.getGroupByUuid(uuid);
   }
 }
