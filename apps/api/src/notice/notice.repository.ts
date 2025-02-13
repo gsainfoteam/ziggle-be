@@ -32,13 +32,14 @@ export class NoticeRepository {
    * @returns the total count of the notices
    */
   async getTotalCount(
-    { search, tags, orderBy, my, category }: GetAllNoticeQueryDto,
+    { search, tags, orderBy, my, category, groupId }: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<number> {
     return await this.prismaService.notice.count({
       where: {
         deletedAt: null,
         category,
+        groupId,
         authorId: my === 'own' ? userUuid : undefined,
         reminders:
           my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
