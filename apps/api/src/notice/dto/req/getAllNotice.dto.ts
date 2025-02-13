@@ -87,4 +87,13 @@ export class GetAllNoticeQueryDto {
   @IsEnum(['own', 'reminders'])
   @IsOptional()
   my?: 'own' | 'reminders';
+
+  @ApiProperty({
+    example: 'b5555555-0000-1111-2222-47997e666666',
+    description: '그룹 아이디',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  groupId?: string;
 }
