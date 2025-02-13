@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Category } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import {
   IsArray,
   IsEnum,
@@ -62,10 +62,12 @@ export class GetAllNoticeQueryDto {
     example: 'deadline',
     description: '정렬 기준 (deadline, hot, recent)',
     required: false,
+    name: 'order-by',
   })
   @IsString()
   @IsEnum(['deadline', 'hot', 'recent'])
   @IsOptional()
+  @Expose({ name: 'order-by' })
   orderBy?: 'recent' | 'deadline' | 'hot';
 
   @ApiProperty({
@@ -87,4 +89,15 @@ export class GetAllNoticeQueryDto {
   @IsEnum(['own', 'reminders'])
   @IsOptional()
   my?: 'own' | 'reminders';
+
+  @ApiProperty({
+    example: 'b5555555-0000-1111-2222-47997e666666',
+    description: '그룹 아이디',
+    required: false,
+    name: 'group-id',
+  })
+  @IsString()
+  @IsOptional()
+  @Expose({ name: 'group-id' })
+  groupId?: string;
 }

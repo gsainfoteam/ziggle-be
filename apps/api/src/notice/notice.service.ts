@@ -23,7 +23,6 @@ import {
 } from './dto/req/updateNotice.dto';
 import { htmlToText } from 'html-to-text';
 import { Notification } from 'firebase-admin/messaging';
-import { GetGroupNoticeQueryDto } from './dto/req/getGroupNotice.dto';
 import { Authority } from '../group/types/groupInfo.type';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
@@ -76,40 +75,6 @@ export class NoticeService {
     return {
       total: await this.noticeRepository.getTotalCount(
         getAllNoticeQueryDto,
-        userUuid,
-      ),
-      list: await Promise.all(notices),
-    };
-  }
-
-  async getGroupNoticeList(
-    groupId: string,
-    getGroupNoticeQueryDto: GetGroupNoticeQueryDto,
-    userUuid?: string,
-  ): Promise<GeneralNoticeListDto> {
-    const notices = (
-      await this.noticeRepository.getGroupNoticeList(
-        getGroupNoticeQueryDto,
-        groupId,
-      )
-    ).map((notice) =>
-      this.noticeMapper
-        .NoticeFullContentToGeneralNoticeList(
-          notice,
-          getGroupNoticeQueryDto.lang,
-          userUuid,
-        )
-        .catch((error) => {
-          this.logger.debug(`Notice ${notice.id} is not valid`);
-          this.logger.error(error);
-          throw new InternalServerErrorException(
-            `Notice ${notice.id} is not valid`,
-          );
-        }),
-    );
-    return {
-      total: await this.noticeRepository.getTotalCount(
-        getGroupNoticeQueryDto,
         userUuid,
       ),
       list: await Promise.all(notices),
