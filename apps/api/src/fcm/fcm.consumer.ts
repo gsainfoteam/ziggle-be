@@ -27,7 +27,7 @@ export class FcmConsumer {
   }
 
   @OnQueueRemoved()
-  async onRemoved(job: Job) {
-    this.logger.debug(`Job ${job.id} removed`);
+  async onRemoved(jobId: string) {
+    this.logger.debug(`Job ${jobId} removed`);
   }
 }
