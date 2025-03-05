@@ -21,19 +21,41 @@ export class UserRepository {
     uuid,
     name,
   }: Pick<User, 'uuid' | 'name'>): Promise<User> {
-    const user = await this.prismaService.user.findUnique({
-      where: { uuid },
-    });
+    const user = await this.prismaService.user
+      .findUnique({
+        where: { uuid },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          this.logger.error('findUserOrCreate error');
+          this.logger.debug(err);
+          throw new InternalServerErrorException('Database error');
+        }
+        this.logger.error('findUserOrCreate error');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('Unknown error');
+      });
     if (user) {
       return user;
     }
-    return this.prismaService.user.create({
-      data: {
-        uuid,
-        name,
-        consent: false,
-      },
-    });
+    return this.prismaService.user
+      .create({
+        data: {
+          uuid,
+          name,
+          consent: false,
+        },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          this.logger.error('findUserOrCreate error');
+          this.logger.debug(err);
+          throw new InternalServerErrorException('Database error');
+        }
+        this.logger.error('findUserOrCreate error');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('Unknown error');
+      });
   }
 
   async findUserAndUpdate({

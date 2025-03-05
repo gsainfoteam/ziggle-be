@@ -19,36 +19,16 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "paths": {
-      "@lib/prisma": [
-        "libs/prisma/src"
-      ],
-      "@lib/prisma/*": [
-        "libs/prisma/src/*"
-      ],
-      "@lib/infoteam-idp": [
-        "libs/infoteam-idp/src"
-      ],
-      "@lib/infoteam-idp/*": [
-        "libs/infoteam-idp/src/*"
-      ],
-      "@lib/logger": [
-        "libs/logger/src"
-      ],
-      "@lib/logger/*": [
-        "libs/logger/src/*"
-      ],
-      "@lib/config": [
-        "libs/config/src"
-      ],
-      "@lib/config/*": [
-        "libs/config/src/*"
-      ],
-      "@lib/custom-config": [
-        "libs/custom-config/src"
-      ],
-      "@lib/custom-config/*": [
-        "libs/custom-config/src/*"
-      ]
+      "@lib/prisma": ["libs/prisma/src"],
+      "@lib/prisma/*": ["libs/prisma/src/*"],
+      "@lib/infoteam-idp": ["libs/infoteam-idp/src"],
+      "@lib/infoteam-idp/*": ["libs/infoteam-idp/src/*"],
+      "@lib/logger": ["libs/logger/src"],
+      "@lib/logger/*": ["libs/logger/src/*"],
+      "@lib/config": ["libs/config/src"],
+      "@lib/config/*": ["libs/config/src/*"],
+      "@lib/custom-config": ["libs/custom-config/src"],
+      "@lib/custom-config/*": ["libs/custom-config/src/*"]
     }
   }
 }
