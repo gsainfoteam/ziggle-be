@@ -94,17 +94,19 @@ export class FcmService {
       .flat();
 
     if (failedTokens.length > 0) {
+      this.logger.warn('Some notifications permanently failed: ', failedTokens);
+    } else {
+      this.logger.debug('All notifications sent successfully');
+    }
+
+    if (failedTokens.length > 0) {
       this.logger.debug(
         `Retrying failed tokens (${failedTokens.length} tokens)`,
       );
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      return this._postMessage(notification, failedTokens, data);
-    }
+      await this._postMessage(notification, failedTokens, data);
 
-    if (failedTokens.length > 0) {
-      this.logger.warn('Some notifications permanently failed: ', failedTokens);
-    } else {
-      this.logger.debug('All notifications sent successfully');
+      this.logger.debug('Retry completed');
     }
   }
 
