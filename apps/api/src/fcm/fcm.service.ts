@@ -69,16 +69,43 @@ export class FcmService {
         ({ fcmTokenId }) => fcmTokenId,
       );
     }
+    const batches = tokens.reduce((acc, token, index) => {
+      if (index % 500 === 0) return [[token], ...acc];
+      const [first, ...array] = acc;
+      return [[...first, token], ...array];
+    }, []);
 
-    await Promise.all(
-      tokens
-        .reduce((acc, token, index) => {
-          if (index % 500 === 0) return [[token], ...acc];
-          const [first, ...array] = acc;
-          return [[...first, token], ...array];
-        }, [])
-        .map((subTokens) => this._postMessage(notification, subTokens, data)),
+    const results = await Promise.allSettled(
+      batches.map(async (subTokens) => {
+        try {
+          return await this._postMessage(notification, subTokens, data);
+        } catch (error) {
+          this.logger.error(`Failed batch: ${error.message}`);
+          throw error;
+        }
+      }),
     );
+
+    const failedTokens = results
+      .map((result, index) =>
+        result.status === 'rejected' ? batches[index] : null,
+      )
+      .filter((batch): batch is string[] => batch !== null)
+      .flat();
+
+    if (failedTokens.length > 0) {
+      this.logger.debug(
+        `Retrying failed tokens (${failedTokens.length} tokens)`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return this._postMessage(notification, failedTokens, data);
+    }
+
+    if (failedTokens.length > 0) {
+      this.logger.warn('Some notifications permanently failed: ', failedTokens);
+    } else {
+      this.logger.debug('All notifications sent successfully');
+    }
   }
 
   async _postMessage(
@@ -99,20 +126,20 @@ export class FcmService {
       res,
       token: tokens[idx],
     }));
-    const sucessed = responses.filter(({ res }) => res.success);
+    const succeed = responses.filter(({ res }) => res.success);
     const failed = responses.filter(({ res }) => !res.success);
 
-    await this.fcmRepository.updateFcmtokensSuccess(
-      sucessed.map(({ token }) => token),
+    await this.fcmRepository.updateFcmTokensSuccess(
+      succeed.map(({ token }) => token),
     );
-    await this.fcmRepository.updateFcmtokensFail(
+    await this.fcmRepository.updateFcmTokensFail(
       failed.map(({ token }) => token),
     );
 
     // create logs
     await this.fcmRepository.createLogs(
       { notification, data },
-      sucessed.map(({ token }) => token),
+      succeed.map(({ token }) => token),
     );
   }
 }
