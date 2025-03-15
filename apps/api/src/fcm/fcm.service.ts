@@ -69,6 +69,7 @@ export class FcmService {
         ({ fcmTokenId }) => fcmTokenId,
       );
     }
+
     const batches = tokens.reduce((acc, token, index) => {
       if (index % 500 === 0) return [[token], ...acc];
       const [first, ...array] = acc;
@@ -77,12 +78,12 @@ export class FcmService {
 
     const results = await Promise.allSettled(
       batches.map(async (subTokens) => {
-        try {
-          return await this._postMessage(notification, subTokens, data);
-        } catch (error) {
-          this.logger.error(`Failed batch: ${error.message}`);
-          throw error;
-        }
+        await this._postMessage(notification, subTokens, data).catch(
+          (error) => {
+            this.logger.error('Error while sending notification: ', error);
+            throw error;
+          },
+        );
       }),
     );
 
