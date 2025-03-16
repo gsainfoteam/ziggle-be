@@ -1,5 +1,6 @@
 import {
   OnQueueCompleted,
+  OnQueueFailed,
   OnQueueRemoved,
   Process,
   Processor,
@@ -18,16 +19,23 @@ export class FcmConsumer {
   async handleFcmMessage(job: { data: QueueDataType }): Promise<void> {
     this.logger.debug('Start processing fcm message');
     const { targetUser, notification, data } = job.data;
+
     await this.fcmService.postMessage(notification, targetUser, data);
   }
 
+  @OnQueueFailed()
+  onFailed(job: Job, error: Error) {
+    this.logger.error(`Job ${job.id} failed with error: ${error}`);
+    this.logger.error(job.data);
+  }
+
   @OnQueueCompleted()
-  async onCompleted(job: Job) {
+  onCompleted(job: Job) {
     this.logger.debug(`Job ${job.id} completed`);
   }
 
   @OnQueueRemoved()
-  async onRemoved(job: Job) {
-    this.logger.debug(`Job ${job.id} removed`);
+  onRemoved(jobId: string) {
+    this.logger.debug(`Job ${jobId} removed`);
   }
 }

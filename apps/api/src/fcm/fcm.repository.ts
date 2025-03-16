@@ -14,10 +14,10 @@ export class FcmRepository {
   private readonly logger = new Logger(FcmRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
-  async updateFcmtokensSuccess(fcmtokens: string[]): Promise<void> {
+  async updateFcmTokensSuccess(fcmTokens: string[]): Promise<void> {
     await this.prismaService.fcmToken.updateMany({
       where: {
-        fcmTokenId: { in: fcmtokens },
+        fcmTokenId: { in: fcmTokens },
       },
       data: {
         successCount: { increment: 1 },
@@ -25,10 +25,10 @@ export class FcmRepository {
     });
   }
 
-  async updateFcmtokensFail(fcmtokens: string[]): Promise<void> {
+  async updateFcmTokensFail(fcmTokens: string[]): Promise<void> {
     await this.prismaService.fcmToken.updateMany({
       where: {
-        fcmTokenId: { in: fcmtokens },
+        fcmTokenId: { in: fcmTokens },
       },
       data: {
         failCount: { increment: 1 },
