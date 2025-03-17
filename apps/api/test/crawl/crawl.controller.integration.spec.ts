@@ -3,10 +3,10 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Crawl } from '@prisma/client';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
-import { CrawlController } from 'src/crawl/crawl.controller';
-import { CrawlService } from 'src/crawl/crawl.service';
-import { GetCrawlDto } from 'src/crawl/dto/req/getCrawl.dto';
-import { CreateCrawlDto } from 'src/crawl/dto/req/createCrawl.dto';
+import { CrawlController } from '../../src/crawl/crawl.controller';
+import { CrawlService } from '../../src/crawl/crawl.service';
+import { GetCrawlDto } from '../../src/crawl/dto/req/getCrawl.dto';
+import { CreateCrawlDto } from '../../src/crawl/dto/req/createCrawl.dto';
 
 describe('CrawlController Integration Test', () => {
   let app: INestApplication;
