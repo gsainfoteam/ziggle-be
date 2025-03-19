@@ -189,6 +189,16 @@ export class NoticeService {
       imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
     };
 
+    await this.noticeRepository
+      .updatePublishedAt(id, new Date())
+      .catch((error) => {
+        this.logger.error(
+          `Failed to update publishedAt for notice ${id}: `,
+          error,
+        );
+        throw new InternalServerErrorException('failed to update publishedAt');
+      });
+
     await this.fcmService.deleteMessageJobIdPattern(notice.id.toString());
     await this.fcmService
       .postMessage(
@@ -204,16 +214,6 @@ export class NoticeService {
           error,
         );
         throw new InternalServerErrorException('failed to send notification');
-      });
-
-    await this.noticeRepository
-      .updatePublishedAt(id, new Date())
-      .catch((error) => {
-        this.logger.error(
-          `Failed to update publishedAt for notice ${id}: `,
-          error,
-        );
-        throw new InternalServerErrorException('failed to update publishedAt');
       });
 
     return notice;
