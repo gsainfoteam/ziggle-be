@@ -26,13 +26,12 @@ export class UserRepository {
         where: { uuid },
       })
       .catch((err) => {
+        this.logger.debug(err);
         if (err instanceof PrismaClientKnownRequestError) {
-          this.logger.error('findUserOrCreate error');
-          this.logger.debug(err);
+          this.logger.error('findUserOrCreate(find) Prisma error');
           throw new InternalServerErrorException('Database error');
         }
-        this.logger.error('findUserOrCreate error');
-        this.logger.debug(err);
+        this.logger.error('findUserOrCreate(find) error');
         throw new InternalServerErrorException('Unknown error');
       });
     if (user) {
@@ -47,13 +46,12 @@ export class UserRepository {
         },
       })
       .catch((err) => {
+        this.logger.debug(err);
         if (err instanceof PrismaClientKnownRequestError) {
-          this.logger.error('findUserOrCreate error');
-          this.logger.debug(err);
+          this.logger.error('findUserOrCreate(create) Prisma error');
           throw new InternalServerErrorException('Database error');
         }
-        this.logger.error('findUserOrCreate error');
-        this.logger.debug(err);
+        this.logger.error('findUserOrCreate(create) error');
         throw new InternalServerErrorException('Unknown error');
       });
   }
