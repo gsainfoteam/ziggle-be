@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Category } from '@prisma/client';
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsEnum,
@@ -49,7 +49,8 @@ export class GetAllNoticeQueryDto {
   search?: string;
 
   @ApiPropertyOptional({
-    example: '이런',
+    type: [String],
+    example: ['tag1', 'tag2'],
     description: '공지태그의 이름',
     required: false,
   })
@@ -60,7 +61,7 @@ export class GetAllNoticeQueryDto {
 
   @ApiProperty({
     example: 'deadline',
-    description: '정렬 기준 (deadline, hot, recent)',
+    description: '정렬 기준 (deadline, hot, recent 중 1개)',
     required: false,
     name: 'order-by',
   })
@@ -70,10 +71,32 @@ export class GetAllNoticeQueryDto {
   @Expose({ name: 'order-by' })
   orderBy?: 'recent' | 'deadline' | 'hot';
 
+  /**
+   * * @deprecated 모바일 앱의 하위 호환성을 위한 필드입니다. order-by로 요청을 해야합니다.
+   */
+  @ApiPropertyOptional({
+    example: 'deadline',
+    description: '정렬 기준 (deprecated 됨, order-by로 요청을 해야합니다.)',
+    deprecated: true,
+    name: 'orderBy',
+  })
+  @IsString()
+  @IsEnum(['deadline', 'hot', 'recent'])
+  @IsOptional()
+  @Expose({ name: 'orderBy' })
+  @Transform(({ value, obj }) => {
+    if (value && !obj['order-by']) {
+      obj['order-by'] = value;
+    }
+    return undefined;
+  })
+  orderByDeprecated?: 'deadline' | 'hot' | 'recent';
+
   @ApiProperty({
     example: 'ETC',
     description: '카테고리',
     required: false,
+    enum: Category,
   })
   @IsString()
   @IsEnum(Category)
