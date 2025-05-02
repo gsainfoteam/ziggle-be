@@ -183,4 +183,23 @@ export class UserRepository {
       });
     return { message: 'success', fcmToken: fcmToken };
   }
+
+  async deleteFcmToken(fcmToken: string) {
+    return this.prismaService.fcmToken
+      .delete({
+        where: { fcmTokenId: fcmToken },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            this.logger.debug('fcm token not found');
+            throw new NotFoundException();
+          }
+          this.logger.error(err.message);
+          throw new InternalServerErrorException();
+        }
+        this.logger.error(err);
+        throw new InternalServerErrorException();
+      });
+  }
 }

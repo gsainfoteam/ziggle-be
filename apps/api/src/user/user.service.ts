@@ -113,4 +113,8 @@ export class UserService {
   async setFcmToken(userUuid: string, fcmToken: setFcmTokenReq) {
     return this.userRepository.setFcmToken(userUuid, fcmToken);
   }
+
+  async deleteFcmToken(fcmToken: string) {
+    return this.userRepository.deleteFcmToken(fcmToken);
+  }
 }
