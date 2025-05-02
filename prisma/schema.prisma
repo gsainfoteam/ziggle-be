@@ -179,7 +179,7 @@ model Log {
   createdAt DateTime @default(now()) @map("created_at")
 
   fcmTokenId String   @map("fcm_token_id")
-  FcmToken   FcmToken @relation(fields: [fcmTokenId], references: [fcmTokenId])
+  FcmToken   FcmToken @relation(fields: [fcmTokenId], references: [fcmTokenId], onDelete: Cascade)
 
   @@map("log")
 }
