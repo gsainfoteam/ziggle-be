@@ -143,7 +143,7 @@ export class FcmService {
     const failed = responses.filter(({ res }) => res.status === 'rejected');
 
     const failedTokensToRetry = (
-      await Promise.all(
+      await Promise.allSettled(
         failed.map(async ({ res, token }) => {
           if (
             res.status === 'rejected' &&
@@ -153,13 +153,26 @@ export class FcmService {
               'messaging/third-party-auth-error',
             ].includes(res.reason.code)
           ) {
-            await this.userService.deleteFcmToken(token);
+            try {
+              await this.userService.deleteFcmToken(token);
+            } catch (err) {
+              this.logger.warn(
+                'Failed to delete fcm token but just ignore it',
+                err,
+              );
+            }
             return null;
           }
           return token;
         }),
       )
-    ).filter((token): token is string => token !== null);
+    )
+      .filter(
+        (result): result is PromiseFulfilledResult<string | null> =>
+          result.status === 'fulfilled',
+      )
+      .map((result) => result.value)
+      .filter((token): token is string => token !== null);
 
     await this.fcmRepository.updateFcmTokensSuccess(
       succeed.map(({ token }) => token),

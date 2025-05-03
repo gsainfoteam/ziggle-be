@@ -193,11 +193,12 @@ export class UserRepository {
         if (err instanceof PrismaClientKnownRequestError) {
           if (err.code === 'P2025') {
             this.logger.debug('fcm token not found. Just ignore it');
+            return;
           }
           this.logger.error(err.message);
         }
         this.logger.error(err);
-        return;
+        throw err;
       });
   }
 }
