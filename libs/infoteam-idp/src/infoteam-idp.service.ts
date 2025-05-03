@@ -96,7 +96,7 @@ export class InfoteamIdpService {
         ),
     );
     const {
-      uuid,
+      sub: uuid,
       name,
       email,
       phone_number: phoneNumber,
