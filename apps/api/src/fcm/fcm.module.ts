@@ -6,6 +6,7 @@ import { FcmConsumer } from './fcm.consumer';
 import { PrismaModule } from '@lib/prisma';
 import { LoggerModule } from '@lib/logger';
 import { CustomConfigModule } from '@lib/custom-config';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CustomConfigModule } from '@lib/custom-config';
     PrismaModule,
     BullModule.registerQueue({ name: 'fcm' }),
     LoggerModule,
+    UserModule,
   ],
   providers: [FcmService, FcmRepository, FcmConsumer],
   exports: [FcmService],

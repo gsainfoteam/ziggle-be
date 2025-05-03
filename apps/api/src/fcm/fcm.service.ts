@@ -7,6 +7,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 @Loggable()
@@ -17,6 +18,7 @@ export class FcmService {
     @InjectQueue('fcm') private readonly fcmQueue: Queue,
     private readonly customConfigService: CustomConfigService,
     private readonly fcmRepository: FcmRepository,
+    private readonly userService: UserService,
   ) {
     this.app = initializeApp({
       credential: cert({
@@ -76,73 +78,112 @@ export class FcmService {
       return [[...first, token], ...array];
     }, []);
 
-    const results = await Promise.allSettled(
-      batches.map(async (subTokens) => {
-        await this._postMessage(notification, subTokens, data).catch(
-          (error) => {
-            this.logger.error('Error while sending notification: ', error);
-            throw error;
-          },
+    await Promise.allSettled(
+      batches.map(async (batch, idx) => {
+        const failedTokensToRetry = await this._postMessage(
+          notification,
+          batch,
+          data,
         );
+
+        if (failedTokensToRetry.length > 0) {
+          this.logger.error(`Some fcm token in batch${idx} failed to send`);
+          this.logger.debug(
+            `Retrying failed tokens in batch${idx} (${failedTokensToRetry.length} tokens)`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          const secondFailedToken = await this._postMessage(
+            notification,
+            failedTokensToRetry,
+            data,
+          );
+
+          if (secondFailedToken.length > 0) {
+            this.logger.error(
+              `Also failed to send ${secondFailedToken.length} notification in batch${idx} at second try`,
+            );
+          } else {
+            this.logger.debug(
+              `Every failed notifications in batch${idx} sent successfully at second try`,
+            );
+          }
+        } else {
+          this.logger.debug(
+            `All notifications in batch${idx} sent successfully at first try`,
+          );
+        }
       }),
     );
-
-    const failedTokens = results
-      .map((result, index) =>
-        result.status === 'rejected' ? batches[index] : null,
-      )
-      .filter((batch): batch is string[] => batch !== null)
-      .flat();
-
-    if (failedTokens.length > 0) {
-      this.logger.warn('Some notifications permanently failed: ', failedTokens);
-    } else {
-      this.logger.debug('All notifications sent successfully');
-    }
-
-    if (failedTokens.length > 0) {
-      this.logger.debug(
-        `Retrying failed tokens (${failedTokens.length} tokens)`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      await this._postMessage(notification, failedTokens, data);
-
-      this.logger.debug('Retry completed');
-    }
   }
 
   async _postMessage(
     notification: Notification,
     tokens: string[],
     data?: Record<string, string>,
-  ): Promise<void> {
+  ): Promise<string[]> {
     // send message to each token
-    const result = await getMessaging(this.app).sendEachForMulticast({
-      tokens,
-      notification,
-      apns: { payload: { aps: { mutableContent: true } } },
-      data,
-    });
+    const result = await Promise.allSettled(
+      tokens.map((token) =>
+        getMessaging(this.app).send({
+          token,
+          notification,
+          apns: { payload: { aps: { mutableContent: true } } },
+          data,
+        }),
+      ),
+    );
 
     // update success and fail count
-    const responses = result.responses.map((res, idx) => ({
+    const responses = result.map((res, idx) => ({
       res,
       token: tokens[idx],
     }));
-    const succeed = responses.filter(({ res }) => res.success);
-    const failed = responses.filter(({ res }) => !res.success);
+
+    const succeed = responses.filter(({ res }) => res.status === 'fulfilled');
+    const failed = responses.filter(({ res }) => res.status === 'rejected');
+
+    const failedTokensToRetry = (
+      await Promise.allSettled(
+        failed.map(async ({ res, token }) => {
+          if (
+            res.status === 'rejected' &&
+            [
+              'messaging/invalid-argument',
+              'messaging/unregistered',
+              'messaging/third-party-auth-error',
+            ].includes(res.reason.code)
+          ) {
+            try {
+              await this.userService.deleteFcmToken(token);
+            } catch (err) {
+              this.logger.warn(
+                'Failed to delete fcm token but just ignore it',
+                err,
+              );
+            }
+            return null;
+          }
+          return token;
+        }),
+      )
+    )
+      .filter(
+        (result): result is PromiseFulfilledResult<string | null> =>
+          result.status === 'fulfilled',
+      )
+      .map((result) => result.value)
+      .filter((token): token is string => token !== null);
 
     await this.fcmRepository.updateFcmTokensSuccess(
       succeed.map(({ token }) => token),
     );
-    await this.fcmRepository.updateFcmTokensFail(
-      failed.map(({ token }) => token),
-    );
+    await this.fcmRepository.updateFcmTokensFail(failedTokensToRetry);
 
-    // create logs
     await this.fcmRepository.createLogs(
       { notification, data },
       succeed.map(({ token }) => token),
     );
+
+    return failedTokensToRetry;
   }
 }
