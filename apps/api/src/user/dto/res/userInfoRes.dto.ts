@@ -1,5 +1,5 @@
 import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UserInfoRes implements UserInfo {
   @ApiProperty({
@@ -20,15 +20,15 @@ export class UserInfoRes implements UserInfo {
   })
   name: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'User phone number',
     example: '01012345678',
   })
-  phoneNumber: string;
+  phoneNumber?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Student number',
     example: '20212345',
   })
-  studentNumber: string;
+  studentNumber?: string;
 }
