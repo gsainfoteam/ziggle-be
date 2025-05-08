@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { App, cert, initializeApp } from 'firebase-admin/app';
-import { Notification, getMessaging } from 'firebase-admin/messaging';
+import {
+  MulticastMessage,
+  Notification,
+  getMessaging,
+} from 'firebase-admin/messaging';
 import { FcmRepository } from './fcm.repository';
 import { FcmTargetUser } from './types/fcmTargetUser.type';
 import { InjectQueue } from '@nestjs/bull';
@@ -87,7 +91,6 @@ export class FcmService {
         );
 
         if (failedTokensToRetry.length > 0) {
-          this.logger.error(`Some fcm token in batch${idx} failed to send`);
           this.logger.debug(
             `Retrying failed tokens in batch${idx} (${failedTokensToRetry.length} tokens)`,
           );
@@ -109,7 +112,7 @@ export class FcmService {
           }
         } else {
           this.logger.debug(
-            `All notifications in batch${idx} sent successfully at first try`,
+            `There was no failed notification in batch${idx} at first try`,
           );
         }
       }),
@@ -121,68 +124,78 @@ export class FcmService {
     tokens: string[],
     data?: Record<string, string>,
   ): Promise<string[]> {
-    // send message to each token
-    const result = await Promise.allSettled(
-      tokens.map((token) =>
-        getMessaging(this.app).send({
-          token,
-          notification,
-          apns: { payload: { aps: { mutableContent: true } } },
-          data,
-        }),
-      ),
+    const message: MulticastMessage = {
+      tokens,
+      notification,
+      apns: { payload: { aps: { mutableContent: true } } },
+      data,
+    };
+
+    const batchResponse = await getMessaging(this.app).sendEachForMulticast(
+      message,
     );
 
-    // update success and fail count
-    const responses = result.map((res, idx) => ({
-      res,
-      token: tokens[idx],
+    const { responses } = batchResponse;
+
+    const results = tokens.map((token, idx) => ({
+      res: responses[idx],
+      token,
     }));
 
-    const succeed = responses.filter(({ res }) => res.status === 'fulfilled');
-    const failed = responses.filter(({ res }) => res.status === 'rejected');
+    const succeed = results
+      .filter(({ res }) => res.success)
+      .map(({ token }) => token);
 
-    const failedTokensToRetry = (
-      await Promise.allSettled(
-        failed.map(async ({ res, token }) => {
-          if (
-            res.status === 'rejected' &&
-            [
-              'messaging/invalid-argument',
-              'messaging/unregistered',
-              'messaging/third-party-auth-error',
-            ].includes(res.reason.code)
-          ) {
-            try {
-              await this.userService.deleteFcmToken(token);
-            } catch (err) {
-              this.logger.warn(
-                'Failed to delete fcm token but just ignore it',
-                err,
-              );
-            }
-            return null;
-          }
-          return token;
-        }),
-      )
-    )
+    const invalidCodes = [
+      'messaging/invalid-argument',
+      'messaging/unregistered',
+      'messaging/third-party-auth-error',
+    ];
+
+    results
+      .filter(({ res }) => !res.success)
+      .forEach(({ res }) => {
+        this.logger.error(`${res.error?.code}: ${res.error?.message}`);
+      });
+
+    const tokensToDelete = results
       .filter(
-        (result): result is PromiseFulfilledResult<string | null> =>
-          result.status === 'fulfilled',
+        ({ res }) =>
+          !res.success &&
+          res.error?.code &&
+          invalidCodes.includes(res.error.code),
       )
-      .map((result) => result.value)
-      .filter((token): token is string => token !== null);
+      .map(({ token }) => token);
 
-    await this.fcmRepository.updateFcmTokensSuccess(
-      succeed.map(({ token }) => token),
+    if (tokensToDelete.length > 0) {
+      this.logger.debug(
+        `Deleting ${tokensToDelete.length} invalid tokens from database`,
+      );
+    }
+
+    const failedTokensToRetry = results
+      .filter(
+        ({ res }) =>
+          !res.success &&
+          res.error?.code &&
+          !invalidCodes.includes(res.error.code),
+      )
+      .map(({ token }) => token);
+
+    await Promise.allSettled(
+      tokensToDelete.map(async (token) => {
+        this.userService.deleteFcmToken(token).catch((err) => {
+          this.logger.warn(
+            'Failed to delete fcm token but just ignore it',
+            err,
+          );
+        });
+      }),
     );
+
+    await this.fcmRepository.updateFcmTokensSuccess(succeed);
     await this.fcmRepository.updateFcmTokensFail(failedTokensToRetry);
-
-    await this.fcmRepository.createLogs(
-      { notification, data },
-      succeed.map(({ token }) => token),
-    );
+    await this.fcmRepository.createLogs({ notification, data }, succeed);
 
     return failedTokensToRetry;
   }
