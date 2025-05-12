@@ -131,11 +131,9 @@ export class FcmService {
       data,
     };
 
-    const batchResponse = await getMessaging(this.app).sendEachForMulticast(
+    const { responses } = await getMessaging(this.app).sendEachForMulticast(
       message,
     );
-
-    const { responses } = batchResponse;
 
     const results = tokens.map((token, idx) => ({
       res: responses[idx],
@@ -150,6 +148,7 @@ export class FcmService {
       'messaging/invalid-argument',
       'messaging/unregistered',
       'messaging/third-party-auth-error',
+      'messaging/registration-token-not-registered',
     ];
 
     results
