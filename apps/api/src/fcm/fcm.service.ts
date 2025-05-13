@@ -181,16 +181,9 @@ export class FcmService {
       )
       .map(({ token }) => token);
 
-    await Promise.allSettled(
-      tokensToDelete.map(async (token) => {
-        this.userService.deleteFcmToken(token).catch((err) => {
-          this.logger.warn(
-            'Failed to delete fcm token but just ignore it',
-            err,
-          );
-        });
-      }),
-    );
+    await this.userService.deleteFcmTokens(tokensToDelete).catch((err) => {
+      this.logger.warn('Failed to delete fcm tokens but just ignore it', err);
+    });
 
     await this.fcmRepository.updateFcmTokensSuccess(succeed);
     await this.fcmRepository.updateFcmTokensFail(failedTokensToRetry);

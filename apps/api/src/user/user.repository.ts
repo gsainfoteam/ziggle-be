@@ -184,15 +184,15 @@ export class UserRepository {
     return { message: 'success', fcmToken: fcmToken };
   }
 
-  async deleteFcmToken(fcmToken: string): Promise<void> {
+  async deleteFcmTokens(fcmTokens: string[]): Promise<void> {
     await this.prismaService.fcmToken
-      .delete({
-        where: { fcmTokenId: fcmToken },
+      .deleteMany({
+        where: { fcmTokenId: { in: fcmTokens } },
       })
       .catch((err) => {
         if (err instanceof PrismaClientKnownRequestError) {
           if (err.code === 'P2025') {
-            this.logger.debug('fcm token not found. Just ignore it');
+            this.logger.debug('Some fcm token not found. Just ignore it');
             return;
           }
           this.logger.error(err.message);
