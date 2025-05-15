@@ -36,21 +36,67 @@ export class FcmService {
     });
   }
 
+  async getTokensWithCondition(targetUser: FcmTargetUser): Promise<string[][]> {
+    let totalTokens;
+
+    if (targetUser === FcmTargetUser.All) {
+      totalTokens = (await this.fcmRepository.getAllFcmTokens()).map(
+        ({ fcmTokenId }) => fcmTokenId,
+      );
+    } else {
+      //TODO 이 부분은 알림을 허용한 user에게만 알림이 가도록 수정해야 함.
+      //(getAllFcmTokens 함수를 다른 함수로 대체해야 한다.)
+      totalTokens = (await this.fcmRepository.getAllFcmTokens()).map(
+        ({ fcmTokenId }) => fcmTokenId,
+      );
+    }
+
+    const batches = totalTokens.reduce((acc, token, index) => {
+      if (index % 100 === 0) return [[token], ...acc];
+      const [first, ...array] = acc;
+      return [[...first, token], ...array];
+    }, []);
+
+    return batches;
+  }
+
   async postMessageWithDelay(
-    jobId: string,
+    noticeId: string,
     notification: Notification,
     targetUser: FcmTargetUser,
     data?: Record<string, string>,
   ): Promise<void> {
-    await this.fcmQueue.add(
-      { notification, targetUser, data },
-      {
-        delay: this.customConfigService.FCM_DELAY,
-        removeOnComplete: true,
-        removeOnFail: true,
-        jobId,
-      },
-    );
+    const tokenBatches = await this.getTokensWithCondition(targetUser);
+
+    tokenBatches.forEach(async (tokenBatch, index) => {
+      await this.fcmQueue.add(
+        { notification, tokens: tokenBatch, data },
+        {
+          delay: this.customConfigService.FCM_DELAY,
+          removeOnComplete: true,
+          removeOnFail: true,
+          jobId: `${noticeId}-${index}`,
+        },
+      );
+    });
+  }
+
+  async postMessageImmediately(
+    noticeId: string,
+    notification: Notification,
+    targetUser: FcmTargetUser,
+    data?: Record<string, string>,
+  ): Promise<void> {
+    const tokenBatches = await this.getTokensWithCondition(targetUser);
+
+    tokenBatches.forEach(async (tokenBatch, index) => {
+      await this.postMessage(
+        notification,
+        tokenBatch,
+        `${noticeId}-${index}`,
+        data,
+      );
+    });
   }
 
   async deleteMessageJobIdPattern(name: string): Promise<void> {
@@ -59,64 +105,41 @@ export class FcmService {
 
   async postMessage(
     notification: Notification,
-    targetUser: FcmTargetUser,
+    tokens: string[],
+    jobId: string,
     data?: Record<string, string>,
   ) {
-    let tokens;
+    const failedTokensToRetry = await this._postMessage(
+      notification,
+      tokens,
+      data,
+    );
 
-    if (targetUser === FcmTargetUser.All) {
-      tokens = (await this.fcmRepository.getAllFcmTokens()).map(
-        ({ fcmTokenId }) => fcmTokenId,
+    if (failedTokensToRetry.length > 0) {
+      this.logger.debug(
+        `Retrying ${failedTokensToRetry.length} tokens in job ${jobId}`,
       );
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const secondFailedToken = await this._postMessage(
+        notification,
+        failedTokensToRetry,
+        data,
+      );
+
+      if (secondFailedToken.length > 0) {
+        this.logger.error(
+          `Also failed to send ${secondFailedToken.length} notification in job ${jobId} at second try`,
+        );
+      } else {
+        this.logger.debug(
+          `Every failed notifications in job ${jobId} sent successfully at second try`,
+        );
+      }
     } else {
-      //TODO 이 부분은 알림을 허용한 user에게만 알림이 가도록 수정해야 함.
-      //(getAllFcmTokens 함수를 다른 함수로 대체해야 한다.)
-      tokens = (await this.fcmRepository.getAllFcmTokens()).map(
-        ({ fcmTokenId }) => fcmTokenId,
+      this.logger.debug(
+        `There was no failed notification in job ${jobId} at first try`,
       );
     }
-
-    const batches = tokens.reduce((acc, token, index) => {
-      if (index % 500 === 0) return [[token], ...acc];
-      const [first, ...array] = acc;
-      return [[...first, token], ...array];
-    }, []);
-
-    await Promise.allSettled(
-      batches.map(async (batch, idx) => {
-        const failedTokensToRetry = await this._postMessage(
-          notification,
-          batch,
-          data,
-        );
-
-        if (failedTokensToRetry.length > 0) {
-          this.logger.debug(
-            `Retrying failed tokens in batch${idx} (${failedTokensToRetry.length} tokens)`,
-          );
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          const secondFailedToken = await this._postMessage(
-            notification,
-            failedTokensToRetry,
-            data,
-          );
-
-          if (secondFailedToken.length > 0) {
-            this.logger.error(
-              `Also failed to send ${secondFailedToken.length} notification in batch${idx} at second try`,
-            );
-          } else {
-            this.logger.debug(
-              `Every failed notifications in batch${idx} sent successfully at second try`,
-            );
-          }
-        } else {
-          this.logger.debug(
-            `There was no failed notification in batch${idx} at first try`,
-          );
-        }
-      }),
-    );
   }
 
   async _postMessage(
