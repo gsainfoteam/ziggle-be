@@ -201,7 +201,8 @@ export class NoticeService {
 
     await this.fcmService.deleteMessageJobIdPattern(notice.id.toString());
     await this.fcmService
-      .postMessage(
+      .postMessageImmediately(
+        notice.id.toString(),
         this.convertNotificationBodyToString(notification),
         FcmTargetUser.All,
         {

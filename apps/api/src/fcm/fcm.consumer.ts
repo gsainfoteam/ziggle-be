@@ -1,5 +1,6 @@
 import {
   OnQueueCompleted,
+  OnQueueError,
   OnQueueFailed,
   OnQueueRemoved,
   Process,
@@ -16,11 +17,20 @@ export class FcmConsumer {
   constructor(private readonly fcmService: FcmService) {}
 
   @Process()
-  async handleFcmMessage(job: { data: QueueDataType }): Promise<void> {
+  async handleFcmMessage(job: {
+    data: QueueDataType;
+    id: string;
+  }): Promise<void> {
     this.logger.debug('Start processing fcm message');
-    const { targetUser, notification, data } = job.data;
+    const { notification, tokens, data } = job.data;
 
-    await this.fcmService.postMessage(notification, targetUser, data);
+    await this.fcmService.postMessage(notification, tokens, job.id, data);
+  }
+
+  @OnQueueError()
+  onError(job: Job, error: Error) {
+    this.logger.error(`Error occurs in job ${job.id} : ${error}`);
+    this.logger.error(job.data);
   }
 
   @OnQueueFailed()

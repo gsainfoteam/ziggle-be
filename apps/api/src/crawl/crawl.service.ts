@@ -58,9 +58,14 @@ export class CrawlService {
       body: crawl.body,
     };
 
-    await this.fcmService.postMessage(notification, FcmTargetUser.All, {
-      path: `/notice/${crawl.noticeId}`,
-    });
+    await this.fcmService.postMessageImmediately(
+      crawl.noticeId.toString(),
+      notification,
+      FcmTargetUser.All,
+      {
+        path: `/notice/${crawl.noticeId}`,
+      },
+    );
   }
 
   async updateCrawl(dto: CreateCrawlDto): Promise<void> {
