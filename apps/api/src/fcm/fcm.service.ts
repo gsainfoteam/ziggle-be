@@ -36,21 +36,100 @@ export class FcmService {
     });
   }
 
+  private async getTokensWithTargetCondition(
+    targetUser: FcmTargetUser,
+  ): Promise<string[][]> {
+    const tokens =
+      targetUser === FcmTargetUser.All
+        ? await this.fcmRepository.getAllFcmTokens()
+        : // 모든 user 대상이 아닐 경우에 해당하는 함수를 만들어야 함.
+          await this.fcmRepository.getAllFcmTokens();
+
+    const totalTokens = tokens.map(({ fcmTokenId }) => fcmTokenId);
+
+    const BATCH_SIZE = 100;
+
+    return createBatches(totalTokens, BATCH_SIZE);
+  }
+
+  private async processBatches(
+    totalBatches: string[][],
+    noticeId: string,
+    notification: Notification,
+    attempt: number,
+    data?: Record<string, string>,
+  ): Promise<string[][]> {
+    const batchProcessResult = await Promise.allSettled(
+      totalBatches.map((tokens, index) =>
+        this.fcmQueue.add(
+          { notification, tokens, data },
+          {
+            delay: this.customConfigService.FCM_DELAY,
+            removeOnComplete: true,
+            removeOnFail: true,
+            jobId: `${noticeId}-${index}-${attempt}`,
+          },
+        ),
+      ),
+    );
+
+    const failedBatches = batchProcessResult
+      .map((res, idx) => ({ res, idx }))
+      .filter(({ res }) => res.status === 'rejected')
+      .map(({ idx }) => totalBatches[idx]);
+
+    if (failedBatches.length === 0) {
+      this.logger.debug(
+        `All ${totalBatches.length} batches were added successfully in attempt ${attempt}`,
+      );
+      return [];
+    }
+
+    this.logger.error(
+      `Failed to process ${failedBatches.length} batches out of ${totalBatches.length} in attempt ${attempt}`,
+    );
+    return failedBatches;
+  }
+
   async postMessageWithDelay(
-    jobId: string,
+    noticeId: string,
     notification: Notification,
     targetUser: FcmTargetUser,
     data?: Record<string, string>,
   ): Promise<void> {
-    await this.fcmQueue.add(
-      { notification, targetUser, data },
-      {
-        delay: this.customConfigService.FCM_DELAY,
-        removeOnComplete: true,
-        removeOnFail: true,
-        jobId,
-      },
+    const tokenBatches = await this.getTokensWithTargetCondition(targetUser);
+
+    const failedBatches = await this.processBatches(
+      tokenBatches,
+      noticeId,
+      notification,
+      1,
+      data,
     );
+
+    if (failedBatches.length > 0) {
+      this.logger.debug(
+        `Retrying ${failedBatches.length} batches in attempt 2`,
+      );
+      await this.processBatches(failedBatches, noticeId, notification, 2, data);
+    }
+  }
+
+  async postMessageImmediately(
+    noticeId: string,
+    notification: Notification,
+    targetUser: FcmTargetUser,
+    data?: Record<string, string>,
+  ): Promise<void> {
+    const tokenBatches = await this.getTokensWithTargetCondition(targetUser);
+
+    await Promise.all(
+      tokenBatches.map((batch, idx) =>
+        this.postMessage(notification, batch, `${noticeId}-${idx}`, data),
+      ),
+    ).catch((err) => {
+      this.logger.error('Some batches failed.', err);
+    });
   }
 
   async deleteMessageJobIdPattern(name: string): Promise<void> {
@@ -59,64 +138,41 @@ export class FcmService {
 
   async postMessage(
     notification: Notification,
-    targetUser: FcmTargetUser,
+    tokens: string[],
+    jobId: string,
     data?: Record<string, string>,
-  ) {
-    let tokens;
+  ): Promise<void> {
+    const failedTokensToRetry = await this._postMessage(
+      notification,
+      tokens,
+      data,
+    );
 
-    if (targetUser === FcmTargetUser.All) {
-      tokens = (await this.fcmRepository.getAllFcmTokens()).map(
-        ({ fcmTokenId }) => fcmTokenId,
+    if (failedTokensToRetry.length > 0) {
+      this.logger.debug(
+        `Retrying ${failedTokensToRetry.length} tokens in job ${jobId}`,
       );
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const secondFailedToken = await this._postMessage(
+        notification,
+        failedTokensToRetry,
+        data,
+      );
+
+      if (secondFailedToken.length > 0) {
+        this.logger.error(
+          `Also failed to send ${secondFailedToken.length} notification in job ${jobId} at second try`,
+        );
+      } else {
+        this.logger.debug(
+          `Every failed notifications in job ${jobId} sent successfully at second try`,
+        );
+      }
     } else {
-      //TODO 이 부분은 알림을 허용한 user에게만 알림이 가도록 수정해야 함.
-      //(getAllFcmTokens 함수를 다른 함수로 대체해야 한다.)
-      tokens = (await this.fcmRepository.getAllFcmTokens()).map(
-        ({ fcmTokenId }) => fcmTokenId,
+      this.logger.debug(
+        `There was no failed notification in job ${jobId} at first try`,
       );
     }
-
-    const batches = tokens.reduce((acc, token, index) => {
-      if (index % 500 === 0) return [[token], ...acc];
-      const [first, ...array] = acc;
-      return [[...first, token], ...array];
-    }, []);
-
-    await Promise.allSettled(
-      batches.map(async (batch, idx) => {
-        const failedTokensToRetry = await this._postMessage(
-          notification,
-          batch,
-          data,
-        );
-
-        if (failedTokensToRetry.length > 0) {
-          this.logger.debug(
-            `Retrying failed tokens in batch${idx} (${failedTokensToRetry.length} tokens)`,
-          );
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          const secondFailedToken = await this._postMessage(
-            notification,
-            failedTokensToRetry,
-            data,
-          );
-
-          if (secondFailedToken.length > 0) {
-            this.logger.error(
-              `Also failed to send ${secondFailedToken.length} notification in batch${idx} at second try`,
-            );
-          } else {
-            this.logger.debug(
-              `Every failed notifications in batch${idx} sent successfully at second try`,
-            );
-          }
-        } else {
-          this.logger.debug(
-            `There was no failed notification in batch${idx} at first try`,
-          );
-        }
-      }),
-    );
   }
 
   async _postMessage(
@@ -191,4 +247,12 @@ export class FcmService {
 
     return failedTokensToRetry;
   }
+}
+
+function createBatches<T>(array: T[], batchSize: number): T[][] {
+  const batches: T[][] = [];
+  for (let i = 0; i < array.length; i += batchSize) {
+    batches.push(array.slice(i, i + batchSize));
+  }
+  return batches;
 }
