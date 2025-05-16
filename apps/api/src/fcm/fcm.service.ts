@@ -53,10 +53,18 @@ export class FcmService {
       );
     }
 
-    const batches = totalTokens.reduce((acc, token, index) => {
-      if (index % 100 === 0) return [[token], ...acc];
-      const [first, ...array] = acc;
-      return [[...first, token], ...array];
+    const BATCH_SIZE = 100;
+
+    const batches = totalTokens.reduce<string[][]>((acc, token) => {
+      const lastBatch = acc[acc.length - 1];
+
+      if (!lastBatch || lastBatch.length >= BATCH_SIZE) {
+        acc.push([token]);
+      } else {
+        lastBatch.push(token);
+      }
+
+      return acc;
     }, []);
 
     return batches;
