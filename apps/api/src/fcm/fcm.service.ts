@@ -133,7 +133,7 @@ export class FcmService {
   ): Promise<void> {
     const tokenBatches = await this.getTokensWithTargetCondition(targetUser);
 
-    Promise.all(
+    await Promise.all(
       tokenBatches.map((batch, idx) =>
         this.postMessage(notification, batch, `${noticeId}-${idx}`, data),
       ),
