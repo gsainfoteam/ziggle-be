@@ -49,19 +49,7 @@ export class FcmService {
 
     const BATCH_SIZE = 100;
 
-    const batches = totalTokens.reduce<string[][]>((acc, token) => {
-      const lastBatch = acc[acc.length - 1];
-
-      if (!lastBatch || lastBatch.length >= BATCH_SIZE) {
-        acc.push([token]);
-      } else {
-        lastBatch.push(token);
-      }
-
-      return acc;
-    }, []);
-
-    return batches;
+    return createBatches(totalTokens, BATCH_SIZE);
   }
 
   private async processBatches(
@@ -259,4 +247,12 @@ export class FcmService {
 
     return failedTokensToRetry;
   }
+}
+
+function createBatches<T>(array: T[], batchSize: number): T[][] {
+  const batches: T[][] = [];
+  for (let i = 0; i < array.length; i += batchSize) {
+    batches.push(array.slice(i, i + batchSize));
+  }
+  return batches;
 }
