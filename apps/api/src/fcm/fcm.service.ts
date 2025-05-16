@@ -36,7 +36,7 @@ export class FcmService {
     });
   }
 
-  async getTokensWithTargetCondition(
+  private async getTokensWithTargetCondition(
     targetUser: FcmTargetUser,
   ): Promise<string[][]> {
     let totalTokens;
@@ -70,7 +70,7 @@ export class FcmService {
     return batches;
   }
 
-  async processBatches(
+  private async processBatches(
     totalBatches: string[][],
     noticeId: string,
     notification: Notification,
