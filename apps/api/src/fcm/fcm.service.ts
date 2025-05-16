@@ -39,19 +39,13 @@ export class FcmService {
   private async getTokensWithTargetCondition(
     targetUser: FcmTargetUser,
   ): Promise<string[][]> {
-    let totalTokens;
+    const tokens =
+      targetUser === FcmTargetUser.All
+        ? await this.fcmRepository.getAllFcmTokens()
+        : // 모든 user 대상이 아닐 경우에 해당하는 함수를 만들어야 함.
+          await this.fcmRepository.getAllFcmTokens();
 
-    if (targetUser === FcmTargetUser.All) {
-      totalTokens = (await this.fcmRepository.getAllFcmTokens()).map(
-        ({ fcmTokenId }) => fcmTokenId,
-      );
-    } else {
-      //TODO 이 부분은 알림을 허용한 user에게만 알림이 가도록 수정해야 함.
-      //(getAllFcmTokens 함수를 다른 함수로 대체해야 한다.)
-      totalTokens = (await this.fcmRepository.getAllFcmTokens()).map(
-        ({ fcmTokenId }) => fcmTokenId,
-      );
-    }
+    const totalTokens = tokens.map(({ fcmTokenId }) => fcmTokenId);
 
     const BATCH_SIZE = 100;
 
