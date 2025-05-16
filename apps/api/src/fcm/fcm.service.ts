@@ -36,7 +36,9 @@ export class FcmService {
     });
   }
 
-  async getTokensWithCondition(targetUser: FcmTargetUser): Promise<string[][]> {
+  async getTokensWithTargetCondition(
+    targetUser: FcmTargetUser,
+  ): Promise<string[][]> {
     let totalTokens;
 
     if (targetUser === FcmTargetUser.All) {
@@ -60,25 +62,67 @@ export class FcmService {
     return batches;
   }
 
+  async processBatches(
+    totalBatches: string[][],
+    noticeId: string,
+    notification: Notification,
+    attempt: number,
+    data?: Record<string, string>,
+  ): Promise<string[][]> {
+    const batchProcessResult = await Promise.allSettled(
+      totalBatches.map((tokens, index) =>
+        this.fcmQueue.add(
+          { notification, tokens, data },
+          {
+            delay: this.customConfigService.FCM_DELAY,
+            removeOnComplete: true,
+            removeOnFail: true,
+            jobId: `${noticeId}-${index}-${attempt}`,
+          },
+        ),
+      ),
+    );
+
+    const failedBatches = batchProcessResult
+      .map((res, idx) => ({ res, idx }))
+      .filter(({ res }) => res.status === 'rejected')
+      .map(({ idx }) => totalBatches[idx]);
+
+    if (failedBatches.length === 0) {
+      this.logger.debug(
+        `All ${totalBatches.length} batches were added successfully in attempt ${attempt}`,
+      );
+      return [];
+    }
+
+    this.logger.error(
+      `Failed to process ${failedBatches.length} batches out of ${totalBatches.length} in attempt ${attempt}`,
+    );
+    return failedBatches;
+  }
+
   async postMessageWithDelay(
     noticeId: string,
     notification: Notification,
     targetUser: FcmTargetUser,
     data?: Record<string, string>,
   ): Promise<void> {
-    const tokenBatches = await this.getTokensWithCondition(targetUser);
+    const tokenBatches = await this.getTokensWithTargetCondition(targetUser);
 
-    tokenBatches.forEach(async (tokenBatch, index) => {
-      await this.fcmQueue.add(
-        { notification, tokens: tokenBatch, data },
-        {
-          delay: this.customConfigService.FCM_DELAY,
-          removeOnComplete: true,
-          removeOnFail: true,
-          jobId: `${noticeId}-${index}`,
-        },
+    const failedBatches = await this.processBatches(
+      tokenBatches,
+      noticeId,
+      notification,
+      1,
+      data,
+    );
+
+    if (failedBatches.length > 0) {
+      this.logger.debug(
+        `Retrying ${failedBatches.length} batches in attempt 2`,
       );
-    });
+      await this.processBatches(failedBatches, noticeId, notification, 2, data);
+    }
   }
 
   async postMessageImmediately(
@@ -87,15 +131,14 @@ export class FcmService {
     targetUser: FcmTargetUser,
     data?: Record<string, string>,
   ): Promise<void> {
-    const tokenBatches = await this.getTokensWithCondition(targetUser);
+    const tokenBatches = await this.getTokensWithTargetCondition(targetUser);
 
-    tokenBatches.forEach(async (tokenBatch, index) => {
-      await this.postMessage(
-        notification,
-        tokenBatch,
-        `${noticeId}-${index}`,
-        data,
-      );
+    Promise.all(
+      tokenBatches.map((batch, idx) =>
+        this.postMessage(notification, batch, `${noticeId}-${idx}`, data),
+      ),
+    ).catch((err) => {
+      this.logger.error('Some batches failed.', err);
     });
   }
 
@@ -108,7 +151,7 @@ export class FcmService {
     tokens: string[],
     jobId: string,
     data?: Record<string, string>,
-  ) {
+  ): Promise<void> {
     const failedTokensToRetry = await this._postMessage(
       notification,
       tokens,
