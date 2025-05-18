@@ -133,7 +133,7 @@ export class FcmService {
   }
 
   async deleteMessageJobIdPattern(name: string): Promise<void> {
-    await this.fcmQueue.removeJobs(name);
+    await this.fcmQueue.removeJobs(`${name}-*`);
   }
 
   async postMessage(
