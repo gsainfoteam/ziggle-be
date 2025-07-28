@@ -37,6 +37,11 @@ import { GroupService } from '../group/group.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
 import { firstValueFrom, from, groupBy, mergeMap, toArray } from 'rxjs';
+import {
+  ContentsDto,
+  CrawlsDto,
+  MainContentsDto,
+} from './dto/res/mainContent.dto';
 
 @Injectable()
 @Loggable()
@@ -67,9 +72,13 @@ export class NoticeService {
       try {
         return new GeneralNoticeDto({
           ...notice,
+          ...this.determineContents(
+            notice.crawls,
+            notice.contents,
+            getAllNoticeQueryDto.lang,
+          ),
           reactions: await this.getResultReaction(notice.reactions, userUuid),
           s3Url: this.s3Url,
-          langFromDto: getAllNoticeQueryDto.lang,
           userUuid,
         });
       } catch (error) {
@@ -106,9 +115,13 @@ export class NoticeService {
     try {
       return new ExpandedGeneralNoticeDto({
         ...notice,
+        ...this.determineContents(
+          notice.crawls,
+          notice.contents,
+          getNoticeDto.lang,
+        ),
         reactions: await this.getResultReaction(notice.reactions, userUuid),
         s3Url: this.s3Url,
-        langFromDto: getNoticeDto.lang,
         userUuid,
       });
     } catch (error) {
@@ -351,5 +364,31 @@ export class NoticeService {
       count: reactions.length,
       isReacted: reactions.some(({ userId }) => userId === userUuid),
     }));
+  }
+
+  determineContents(
+    crawls: CrawlsDto[],
+    contents: ContentsDto[],
+    langFromDto?: string,
+  ): MainContentsDto {
+    const mainContent =
+      contents.filter(({ lang }) => lang === (langFromDto ?? 'ko'))[0] ??
+      contents[0];
+
+    return new MainContentsDto(
+      crawls.length > 0
+        ? {
+            title: crawls[0].title,
+            langs: ['ko'],
+            content: crawls[0].body,
+            deadline: null,
+          }
+        : {
+            title: mainContent.title as string,
+            langs: Array.from(new Set(contents.map(({ lang }) => lang))),
+            content: mainContent.body,
+            deadline: mainContent.deadline ?? null,
+          },
+    );
   }
 }

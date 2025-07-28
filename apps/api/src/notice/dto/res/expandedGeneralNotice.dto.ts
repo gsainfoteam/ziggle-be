@@ -19,13 +19,7 @@ export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   additionalContents: AdditionalNoticeDto[];
 
   @Expose()
-  @Transform(({ obj }: { obj: ExpandedGeneralNoticeDto }) => {
-    const mainContent =
-      obj.contents.filter(
-        ({ lang }) => lang === (obj.langFromDto ?? 'ko'),
-      )[0] ?? obj.contents[0];
-    return obj.crawls.length > 0 ? obj.crawls[0].body : mainContent.body;
-  })
+  @Transform(({ value }) => value)
   @ApiProperty()
   content: string;
 

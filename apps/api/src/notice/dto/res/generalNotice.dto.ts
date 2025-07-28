@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Category, FileType } from '@prisma/client';
+import { Category, File, FileType, Group } from '@prisma/client';
 import { Exclude, Expose, Transform } from 'class-transformer';
 import { htmlToText } from 'html-to-text';
+import { ContentsDto } from './mainContent.dto';
 
 export class AuthorDto {
   @ApiProperty()
@@ -13,13 +14,7 @@ export class AuthorDto {
 
 export class GeneralNoticeDto {
   @Exclude()
-  langFromDto?: string;
-  @Exclude()
-  crawls: CrawlsDto[];
-  @Exclude()
-  contents: ContentsDto[];
-  @Exclude()
-  files: FilesDto[];
+  files: File[];
   @Exclude()
   s3Url: string;
   @Exclude()
@@ -35,22 +30,15 @@ export class GeneralNoticeDto {
   @Exclude()
   authorId: string;
   @Exclude()
-  group: GroupDto | null;
+  group: Group | null;
+  @Exclude()
+  contents: ContentsDto[];
 
   @Expose()
   @ApiProperty()
   id: number;
 
   @Expose()
-  @Transform(({ obj }: { obj: GeneralNoticeDto }) => {
-    const mainContent =
-      obj.contents.filter(
-        ({ lang }) => lang === (obj.langFromDto ?? 'ko'),
-      )[0] ?? obj.contents[0];
-    return obj.crawls.length > 0
-      ? obj.crawls[0].title
-      : (mainContent.title as string);
-  })
   @ApiProperty()
   title: string;
 
@@ -76,29 +64,18 @@ export class GeneralNoticeDto {
   views: number;
 
   @Expose()
-  @Transform(({ obj }: { obj: GeneralNoticeDto }) =>
-    obj.crawls.length > 0
-      ? ['ko']
-      : Array.from(new Set(obj.contents.map(({ lang }) => lang))),
-  )
   @ApiProperty()
   langs: string[];
 
   @Expose()
-  @Transform(({ obj }: { obj: GeneralNoticeDto }) => {
-    const mainContent =
-      obj.contents.filter(
-        ({ lang }) => lang === (obj.langFromDto ?? 'ko'),
-      )[0] ?? obj.contents[0];
-    const content =
-      obj.crawls.length > 0 ? obj.crawls[0].body : mainContent.body;
-    return htmlToText(content, {
+  @Transform(({ value }) =>
+    htmlToText(value, {
       selectors: [
         { selector: 'a', options: { ignoreHref: true } },
         { selector: 'img', format: 'skip' },
       ],
-    }).slice(0, 1000);
-  })
+    }).slice(0, 1000),
+  )
   @ApiProperty()
   content: string;
 
@@ -118,13 +95,6 @@ export class GeneralNoticeDto {
   category: Category;
 
   @Expose()
-  @Transform(({ obj }: { obj: GeneralNoticeDto }) => {
-    const mainContent =
-      obj.contents.filter(
-        ({ lang }) => lang === (obj.langFromDto ?? 'ko'),
-      )[0] ?? obj.contents[0];
-    return obj.crawls.length > 0 ? null : mainContent.deadline ?? null;
-  })
   @ApiProperty()
   deadline: Date | null;
 
@@ -184,36 +154,6 @@ export class GeneralNoticeListDto {
   list: GeneralNoticeDto[];
 }
 
-class CrawlsDto {
-  id: number;
-  title: string;
-  body: string;
-  type: 'ACADEMIC';
-  url: string;
-  crawledAt: Date;
-  noticeId: number;
-}
-
-class ContentsDto {
-  id: number;
-  lang: string;
-  title: string | null;
-  body: string;
-  deadline: Date | null;
-  createdAt: Date;
-  noticeId: number;
-}
-
-class FilesDto {
-  uuid: string;
-  order: number;
-  name: string;
-  createdAt: Date;
-  url: string;
-  type: FileType;
-  noticeId: number;
-}
-
 class RemindersDto {
   uuid: string;
   name: string;
@@ -227,9 +167,4 @@ export class ReactionsDto {
   deletedAt: Date | null;
   noticeId: number;
   userId: string;
-}
-
-class GroupDto {
-  uuid: string;
-  name: string;
 }
