@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { GeneralNoticeDto } from './generalNotice.dto';
-import { Expose, Transform } from 'class-transformer';
+import { Expose } from 'class-transformer';
 
 export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   @Expose()
