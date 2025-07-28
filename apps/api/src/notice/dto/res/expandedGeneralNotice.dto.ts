@@ -4,17 +4,6 @@ import { Expose, Transform } from 'class-transformer';
 
 export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   @Expose()
-  @Transform(({ obj }: { obj: ExpandedGeneralNoticeDto }) =>
-    obj.contents
-      .filter(({ id }) => id !== 1)
-      .map(({ id, createdAt, body, deadline, lang }) => ({
-        id,
-        content: body,
-        deadline: deadline ?? null,
-        createdAt,
-        lang,
-      })),
-  )
   @ApiProperty()
   additionalContents: AdditionalNoticeDto[];
 

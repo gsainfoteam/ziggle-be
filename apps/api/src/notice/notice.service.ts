@@ -112,6 +112,15 @@ export class NoticeService {
           getNoticeDto.lang,
           userUuid,
         )),
+        additionalContents: notice.contents
+          .filter(({ id }) => id !== 1)
+          .map(({ id, createdAt, body, deadline, lang }) => ({
+            id,
+            content: body,
+            deadline: deadline ?? null,
+            createdAt,
+            lang,
+          })),
       });
     } catch (error) {
       this.logger.debug(`Notice ${notice.id} is not valid`);

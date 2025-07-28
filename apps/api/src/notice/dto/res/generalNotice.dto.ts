@@ -1,8 +1,7 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Category, File, Group } from '@prisma/client';
 import { Exclude, Expose } from 'class-transformer';
 import { TransformNoticeDto } from './transformNotice.dto';
-import { AdditionalNoticeDto } from '../req/additionalNotice.dto';
 
 export class AuthorDto {
   @ApiProperty()
