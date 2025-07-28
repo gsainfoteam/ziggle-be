@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { NoticeController } from './notice.controller';
 import { NoticeService } from './notice.service';
 import { NoticeRepository } from './notice.repository';
-import { NoticeMapper } from './notice.mapper';
 import { PrismaModule } from '@lib/prisma';
 import { LoggerModule } from '@lib/logger';
 import { CustomConfigModule } from '@lib/custom-config';
@@ -26,6 +25,6 @@ import { FcmModule } from '../fcm/fcm.module';
     LoggerModule,
   ],
   controllers: [NoticeController],
-  providers: [NoticeService, NoticeRepository, NoticeMapper],
+  providers: [NoticeService, NoticeRepository],
 })
 export class NoticeModule {}
