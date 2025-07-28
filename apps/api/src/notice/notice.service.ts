@@ -61,8 +61,8 @@ export class NoticeService {
   ): Promise<GeneralNoticeListDto> {
     const notices = (
       await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
-    ).map(
-      async (notice) => {
+    ).map(async (notice) => {
+      try {
         const resultReaction = await firstValueFrom(
           from(notice.reactions).pipe(
             groupBy(({ emoji }) => emoji),
@@ -82,17 +82,14 @@ export class NoticeService {
           langFromDto: getAllNoticeQueryDto.lang,
           userUuid,
         });
-      },
-      /*
-      .catch((error) => {
+      } catch (error) {
         this.logger.debug(`Notice ${notice.id} is not valid`);
         this.logger.error(error);
         throw new InternalServerErrorException(
           `Notice ${notice.id} is not valid`,
         );
-      }),
-      */
-    );
+      }
+    });
     return {
       total: await this.noticeRepository.getTotalCount(
         getAllNoticeQueryDto,
@@ -116,34 +113,33 @@ export class NoticeService {
       notice = await this.noticeRepository.getNotice(id);
     }
 
-    const resultReaction = await firstValueFrom(
-      from(notice.reactions).pipe(
-        groupBy(({ emoji }) => emoji),
-        mergeMap((group) => group.pipe(toArray())),
-        toArray(),
-      ),
-    );
+    try {
+      const resultReaction = await firstValueFrom(
+        from(notice.reactions).pipe(
+          groupBy(({ emoji }) => emoji),
+          mergeMap((group) => group.pipe(toArray())),
+          toArray(),
+        ),
+      );
 
-    return new ExpandedGeneralNoticeDto({
-      ...notice,
-      reactions: resultReaction.map((reactions) => ({
-        emoji: reactions[0].emoji,
-        count: reactions.length,
-        isReacted: reactions.some(({ userId }) => userId === userUuid),
-      })),
-      s3Url: this.s3Url,
-      langFromDto: getNoticeDto.lang,
-      userUuid,
-    });
-    /*
-      .catch((error) => {
-        this.logger.debug(`Notice ${notice.id} is not valid`);
-        this.logger.error(error);
-        throw new InternalServerErrorException(
-          `Notice ${notice.id} is not valid`,
-        );
+      return new ExpandedGeneralNoticeDto({
+        ...notice,
+        reactions: resultReaction.map((reactions) => ({
+          emoji: reactions[0].emoji,
+          count: reactions.length,
+          isReacted: reactions.some(({ userId }) => userId === userUuid),
+        })),
+        s3Url: this.s3Url,
+        langFromDto: getNoticeDto.lang,
+        userUuid,
       });
-      */
+    } catch (error) {
+      this.logger.debug(`Notice ${notice.id} is not valid`);
+      this.logger.error(error);
+      throw new InternalServerErrorException(
+        `Notice ${notice.id} is not valid`,
+      );
+    }
   }
 
   async createNotice(
