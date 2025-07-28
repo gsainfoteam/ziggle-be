@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Category, File, FileType, Group } from '@prisma/client';
-import { Exclude, Expose, Transform } from 'class-transformer';
-import { htmlToText } from 'html-to-text';
-import { ContentsDto } from './mainContent.dto';
+import { Category, File, Group } from '@prisma/client';
+import { Exclude, Expose } from 'class-transformer';
+import { TransformNoticeDto } from './transformNotice.dto';
+import { AdditionalNoticeDto } from '../req/additionalNotice.dto';
 
 export class AuthorDto {
   @ApiProperty()
@@ -12,15 +12,13 @@ export class AuthorDto {
   name: string;
 }
 
-export class GeneralNoticeDto {
+export class GeneralNoticeDto extends TransformNoticeDto {
   @Exclude()
   files: File[];
   @Exclude()
-  s3Url: string;
+  crawls: any[];
   @Exclude()
-  reminders: RemindersDto[];
-  @Exclude()
-  userUuid?: string;
+  reminders: any[];
   @Exclude()
   updatedAt: Date | null;
   @Exclude()
@@ -32,15 +30,11 @@ export class GeneralNoticeDto {
   @Exclude()
   group: Group | null;
   @Exclude()
-  contents: ContentsDto[];
+  contents: any[];
 
   @Expose()
   @ApiProperty()
   id: number;
-
-  @Expose()
-  @ApiProperty()
-  title: string;
 
   @Expose()
   @ApiProperty()
@@ -55,48 +49,12 @@ export class GeneralNoticeDto {
   createdAt: Date;
 
   @Expose()
-  @Transform(({ obj }) => obj.tags.map(({ name }: { name: string }) => name))
-  @ApiProperty()
-  tags: string[] | object[];
-
-  @Expose()
   @ApiProperty()
   views: number;
 
   @Expose()
   @ApiProperty()
-  langs: string[];
-
-  @Expose()
-  @Transform(({ value }) =>
-    htmlToText(value, {
-      selectors: [
-        { selector: 'a', options: { ignoreHref: true } },
-        { selector: 'img', format: 'skip' },
-      ],
-    }).slice(0, 1000),
-  )
-  @ApiProperty()
-  content: string;
-
-  @Expose()
-  @ApiProperty()
-  reactions: GeneralReactionDto[];
-
-  @Expose()
-  @Transform(({ obj }: { obj: GeneralNoticeDto }) =>
-    obj.reminders.some(({ uuid }) => uuid === obj.userUuid),
-  )
-  @ApiProperty()
-  isReminded: boolean;
-
-  @Expose()
-  @ApiProperty()
   category: Category;
-
-  @Expose()
-  @ApiProperty()
-  deadline: Date | null;
 
   @Expose()
   @ApiProperty()
@@ -106,25 +64,8 @@ export class GeneralNoticeDto {
   @ApiProperty()
   publishedAt: Date;
 
-  @Expose()
-  @Transform(({ obj }: { obj: GeneralNoticeDto }) =>
-    obj.files
-      ?.filter(({ type }) => type === FileType.IMAGE)
-      .map(({ url }) => `${obj.s3Url}${url}`),
-  )
-  @ApiPropertyOptional()
-  imageUrls?: string[];
-
-  @Expose()
-  @Transform(({ obj }: { obj: GeneralNoticeDto }) =>
-    obj.files
-      ?.filter(({ type }) => type === FileType.DOCUMENT)
-      .map(({ url }) => `${obj.s3Url}${url}`),
-  )
-  @ApiPropertyOptional()
-  documentUrls?: string[];
-
   constructor(partial: Partial<GeneralNoticeDto>) {
+    super({});
     Object.assign(this, partial);
   }
 }
@@ -152,19 +93,4 @@ export class GeneralNoticeListDto {
     isArray: true,
   })
   list: GeneralNoticeDto[];
-}
-
-class RemindersDto {
-  uuid: string;
-  name: string;
-  createdAt: Date;
-  consent: boolean;
-}
-
-export class ReactionsDto {
-  emoji: string;
-  createdAt: Date;
-  deletedAt: Date | null;
-  noticeId: number;
-  userId: string;
 }

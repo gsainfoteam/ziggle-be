@@ -18,11 +18,6 @@ export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   @ApiProperty()
   additionalContents: AdditionalNoticeDto[];
 
-  @Expose()
-  @Transform(({ value }) => value)
-  @ApiProperty()
-  content: string;
-
   constructor(partial: Partial<ExpandedGeneralNoticeDto>) {
     super({});
     Object.assign(this, partial);

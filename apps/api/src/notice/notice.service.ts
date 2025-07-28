@@ -10,8 +10,6 @@ import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import {
   GeneralNoticeDto,
   GeneralNoticeListDto,
-  GeneralReactionDto,
-  ReactionsDto,
 } from './dto/res/generalNotice.dto';
 import { NoticeRepository } from './notice.repository';
 import { GetNoticeDto } from './dto/req/getNotice.dto';
@@ -37,11 +35,8 @@ import { GroupService } from '../group/group.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
 import { firstValueFrom, from, groupBy, mergeMap, toArray } from 'rxjs';
-import {
-  ContentsDto,
-  CrawlsDto,
-  MainContentsDto,
-} from './dto/res/mainContent.dto';
+import { FileType } from '@prisma/client';
+import { TransformNoticeDto } from './dto/res/transformNotice.dto';
 
 @Injectable()
 @Loggable()
@@ -72,14 +67,11 @@ export class NoticeService {
       try {
         return new GeneralNoticeDto({
           ...notice,
-          ...this.determineContents(
-            notice.crawls,
-            notice.contents,
+          ...(await this.transformNotice(
+            notice,
             getAllNoticeQueryDto.lang,
-          ),
-          reactions: await this.getResultReaction(notice.reactions, userUuid),
-          s3Url: this.s3Url,
-          userUuid,
+            userUuid,
+          )),
         });
       } catch (error) {
         this.logger.debug(`Notice ${notice.id} is not valid`);
@@ -115,14 +107,11 @@ export class NoticeService {
     try {
       return new ExpandedGeneralNoticeDto({
         ...notice,
-        ...this.determineContents(
-          notice.crawls,
-          notice.contents,
+        ...(await this.transformExpandedNotice(
+          notice,
           getNoticeDto.lang,
-        ),
-        reactions: await this.getResultReaction(notice.reactions, userUuid),
-        s3Url: this.s3Url,
-        userUuid,
+          userUuid,
+        )),
       });
     } catch (error) {
       this.logger.debug(`Notice ${notice.id} is not valid`);
@@ -347,10 +336,33 @@ export class NoticeService {
     };
   }
 
-  async getResultReaction(
-    reactions: ReactionsDto[],
+  async transformNotice(
+    notice: NoticeFullContent,
+    langFromDto?: string,
     userUuid?: string,
-  ): Promise<GeneralReactionDto[]> {
+  ): Promise<TransformNoticeDto> {
+    const { content, ...result } = await this.transformExpandedNotice(
+      notice,
+      langFromDto,
+      userUuid,
+    );
+
+    return {
+      content: htmlToText(content, {
+        selectors: [
+          { selector: 'a', options: { ignoreHref: true } },
+          { selector: 'img', format: 'skip' },
+        ],
+      }).slice(0, 1000),
+      ...result,
+    };
+  }
+
+  async transformExpandedNotice(
+    { crawls, contents, tags, reminders, files, reactions }: NoticeFullContent,
+    langFromDto?: string,
+    userUuid?: string,
+  ): Promise<TransformNoticeDto> {
     const resultReaction = await firstValueFrom(
       from(reactions).pipe(
         groupBy(({ emoji }) => emoji),
@@ -359,24 +371,12 @@ export class NoticeService {
       ),
     );
 
-    return resultReaction.map((reactions) => ({
-      emoji: reactions[0].emoji,
-      count: reactions.length,
-      isReacted: reactions.some(({ userId }) => userId === userUuid),
-    }));
-  }
-
-  determineContents(
-    crawls: CrawlsDto[],
-    contents: ContentsDto[],
-    langFromDto?: string,
-  ): MainContentsDto {
     const mainContent =
       contents.filter(({ lang }) => lang === (langFromDto ?? 'ko'))[0] ??
       contents[0];
 
-    return new MainContentsDto(
-      crawls.length > 0
+    return new TransformNoticeDto({
+      ...(crawls.length > 0
         ? {
             title: crawls[0].title,
             langs: ['ko'],
@@ -388,7 +388,20 @@ export class NoticeService {
             langs: Array.from(new Set(contents.map(({ lang }) => lang))),
             content: mainContent.body,
             deadline: mainContent.deadline ?? null,
-          },
-    );
+          }),
+      tags: tags.map(({ name }: { name: string }) => name),
+      isReminded: reminders.some(({ uuid }) => uuid === userUuid),
+      imageUrls: files
+        ?.filter(({ type }) => type === FileType.IMAGE)
+        .map(({ url }) => `${this.s3Url}${url}`),
+      documentUrls: files
+        ?.filter(({ type }) => type === FileType.DOCUMENT)
+        .map(({ url }) => `${this.s3Url}${url}`),
+      reactions: resultReaction.map((reactions) => ({
+        emoji: reactions[0].emoji,
+        count: reactions.length,
+        isReacted: reactions.some(({ userId }) => userId === userUuid),
+      })),
+    });
   }
 }
