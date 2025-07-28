@@ -11,43 +11,6 @@ export class AuthorDto {
   name: string;
 }
 
-class crawlsDto {
-  id: number;
-  title: string;
-  body: string;
-  type: 'ACADEMIC';
-  url: string;
-  crawledAt: Date;
-  noticeId: number;
-}
-
-class contentsDto {
-  id: number;
-  lang: string;
-  title: string | null;
-  body: string;
-  deadline: Date | null;
-  createdAt: Date;
-  noticeId: number;
-}
-
-class filesDto {
-  uuid: string;
-  order: number;
-  name: string;
-  createdAt: Date;
-  url: string;
-  type: FileType;
-  noticeId: number;
-}
-
-class remindersDto {
-  uuid: string;
-  name: string;
-  createdAt: Date;
-  consent: boolean;
-}
-
 export class GeneralNoticeDto {
   @Exclude()
   langFromDto?: string;
@@ -71,6 +34,8 @@ export class GeneralNoticeDto {
   deletedAt: Date | null;
   @Exclude()
   authorId: string;
+  @Exclude()
+  group: groupDto | null;
 
   @Expose()
   @ApiProperty()
@@ -217,4 +182,46 @@ export class GeneralNoticeListDto {
     isArray: true,
   })
   list: GeneralNoticeDto[];
+}
+
+class crawlsDto {
+  id: number;
+  title: string;
+  body: string;
+  type: 'ACADEMIC';
+  url: string;
+  crawledAt: Date;
+  noticeId: number;
+}
+
+class contentsDto {
+  id: number;
+  lang: string;
+  title: string | null;
+  body: string;
+  deadline: Date | null;
+  createdAt: Date;
+  noticeId: number;
+}
+
+class filesDto {
+  uuid: string;
+  order: number;
+  name: string;
+  createdAt: Date;
+  url: string;
+  type: FileType;
+  noticeId: number;
+}
+
+class remindersDto {
+  uuid: string;
+  name: string;
+  createdAt: Date;
+  consent: boolean;
+}
+
+class groupDto {
+  uuid: string;
+  name: string;
 }
