@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { GeneralNoticeDto } from './generalNotice.dto';
-import { Transform } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 
 export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
+  @Expose()
   @Transform(({ obj }: { obj: ExpandedGeneralNoticeDto }) =>
     obj.contents
       .filter(({ id }) => id !== 1)
@@ -17,6 +18,7 @@ export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   @ApiProperty()
   additionalContents: AdditionalNoticeDto[];
 
+  @Expose()
   @Transform(({ obj }: { obj: ExpandedGeneralNoticeDto }) => {
     const mainContent =
       obj.contents.filter(
