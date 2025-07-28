@@ -8,8 +8,7 @@ export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   additionalContents: AdditionalNoticeDto[];
 
   constructor(partial: Partial<ExpandedGeneralNoticeDto>) {
-    super({});
-    Object.assign(this, partial);
+    super(partial);
   }
 }
 

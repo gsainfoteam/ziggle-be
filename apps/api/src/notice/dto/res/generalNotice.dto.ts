@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Category, File, Group } from '@prisma/client';
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 import { TransformNoticeDto } from './transformNotice.dto';
 
 export class AuthorDto {
@@ -36,6 +36,7 @@ export class GeneralNoticeDto extends TransformNoticeDto {
   id: number;
 
   @Expose()
+  @Type(() => AuthorDto)
   @ApiProperty()
   groupId: string | null;
 
@@ -64,8 +65,7 @@ export class GeneralNoticeDto extends TransformNoticeDto {
   publishedAt: Date;
 
   constructor(partial: Partial<GeneralNoticeDto>) {
-    super({});
-    Object.assign(this, partial);
+    super(partial);
   }
 }
 
