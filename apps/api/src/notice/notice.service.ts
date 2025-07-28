@@ -10,6 +10,8 @@ import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import {
   GeneralNoticeDto,
   GeneralNoticeListDto,
+  GeneralReactionDto,
+  ReactionsDto,
 } from './dto/res/generalNotice.dto';
 import { NoticeRepository } from './notice.repository';
 import { GetNoticeDto } from './dto/req/getNotice.dto';
@@ -63,21 +65,9 @@ export class NoticeService {
       await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
     ).map(async (notice) => {
       try {
-        const resultReaction = await firstValueFrom(
-          from(notice.reactions).pipe(
-            groupBy(({ emoji }) => emoji),
-            mergeMap((group) => group.pipe(toArray())),
-            toArray(),
-          ),
-        );
-
         return new GeneralNoticeDto({
           ...notice,
-          reactions: resultReaction.map((reactions) => ({
-            emoji: reactions[0].emoji,
-            count: reactions.length,
-            isReacted: reactions.some(({ userId }) => userId === userUuid),
-          })),
+          reactions: await this.getResultReaction(notice.reactions, userUuid),
           s3Url: this.s3Url,
           langFromDto: getAllNoticeQueryDto.lang,
           userUuid,
@@ -114,21 +104,9 @@ export class NoticeService {
     }
 
     try {
-      const resultReaction = await firstValueFrom(
-        from(notice.reactions).pipe(
-          groupBy(({ emoji }) => emoji),
-          mergeMap((group) => group.pipe(toArray())),
-          toArray(),
-        ),
-      );
-
       return new ExpandedGeneralNoticeDto({
         ...notice,
-        reactions: resultReaction.map((reactions) => ({
-          emoji: reactions[0].emoji,
-          count: reactions.length,
-          isReacted: reactions.some(({ userId }) => userId === userUuid),
-        })),
+        reactions: await this.getResultReaction(notice.reactions, userUuid),
         s3Url: this.s3Url,
         langFromDto: getNoticeDto.lang,
         userUuid,
@@ -354,5 +332,24 @@ export class NoticeService {
             .replaceAll(/\s+/gm, ' ')
         : undefined,
     };
+  }
+
+  async getResultReaction(
+    reactions: ReactionsDto[],
+    userUuid?: string,
+  ): Promise<GeneralReactionDto[]> {
+    const resultReaction = await firstValueFrom(
+      from(reactions).pipe(
+        groupBy(({ emoji }) => emoji),
+        mergeMap((group) => group.pipe(toArray())),
+        toArray(),
+      ),
+    );
+
+    return resultReaction.map((reactions) => ({
+      emoji: reactions[0].emoji,
+      count: reactions.length,
+      isReacted: reactions.some(({ userId }) => userId === userUuid),
+    }));
   }
 }

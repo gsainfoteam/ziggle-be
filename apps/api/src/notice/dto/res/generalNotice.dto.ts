@@ -15,15 +15,15 @@ export class GeneralNoticeDto {
   @Exclude()
   langFromDto?: string;
   @Exclude()
-  crawls: crawlsDto[];
+  crawls: CrawlsDto[];
   @Exclude()
-  contents: contentsDto[];
+  contents: ContentsDto[];
   @Exclude()
-  files: filesDto[];
+  files: FilesDto[];
   @Exclude()
   s3Url: string;
   @Exclude()
-  reminders: remindersDto[];
+  reminders: RemindersDto[];
   @Exclude()
   userUuid?: string;
   @Exclude()
@@ -35,7 +35,7 @@ export class GeneralNoticeDto {
   @Exclude()
   authorId: string;
   @Exclude()
-  group: groupDto | null;
+  group: GroupDto | null;
 
   @Expose()
   @ApiProperty()
@@ -184,7 +184,7 @@ export class GeneralNoticeListDto {
   list: GeneralNoticeDto[];
 }
 
-class crawlsDto {
+class CrawlsDto {
   id: number;
   title: string;
   body: string;
@@ -194,7 +194,7 @@ class crawlsDto {
   noticeId: number;
 }
 
-class contentsDto {
+class ContentsDto {
   id: number;
   lang: string;
   title: string | null;
@@ -204,7 +204,7 @@ class contentsDto {
   noticeId: number;
 }
 
-class filesDto {
+class FilesDto {
   uuid: string;
   order: number;
   name: string;
@@ -214,14 +214,22 @@ class filesDto {
   noticeId: number;
 }
 
-class remindersDto {
+class RemindersDto {
   uuid: string;
   name: string;
   createdAt: Date;
   consent: boolean;
 }
 
-class groupDto {
+export class ReactionsDto {
+  emoji: string;
+  createdAt: Date;
+  deletedAt: Date | null;
+  noticeId: number;
+  userId: string;
+}
+
+class GroupDto {
   uuid: string;
   name: string;
 }
