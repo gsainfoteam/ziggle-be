@@ -72,6 +72,14 @@ export class GeneralNoticeDto {
   reminders: remindersDto[];
   @Exclude()
   userUuid?: string;
+  @Exclude()
+  updatedAt: Date | null;
+  @Exclude()
+  lastEditedAt: Date | null;
+  @Exclude()
+  deletedAt: Date | null;
+  @Exclude()
+  authorId: string;
 
   @Expose()
   @ApiProperty()
