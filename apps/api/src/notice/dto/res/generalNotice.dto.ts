@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Category, FileType } from '@prisma/client';
 import { Exclude, Expose, Transform } from 'class-transformer';
 import { htmlToText } from 'html-to-text';
-import { firstValueFrom, from, groupBy, mergeMap, toArray } from 'rxjs';
 
 export class AuthorDto {
   @ApiProperty()
@@ -47,14 +46,6 @@ class remindersDto {
   name: string;
   createdAt: Date;
   consent: boolean;
-}
-
-class reactionsDto {
-  emoji: string;
-  createdAt: Date;
-  deletedAt: Date | null;
-  noticeId: number;
-  userId: string;
 }
 
 export class GeneralNoticeDto {
@@ -147,22 +138,8 @@ export class GeneralNoticeDto {
   content: string;
 
   @Expose()
-  @Transform(async ({ obj }: { obj: GeneralNoticeDto }) => {
-    const resultReaction = await firstValueFrom(
-      from(obj.reactions).pipe(
-        groupBy(({ emoji }) => emoji),
-        mergeMap((group) => group.pipe(toArray())),
-        toArray(),
-      ),
-    );
-    return resultReaction.map((reactions) => ({
-      emoji: reactions[0].emoji,
-      count: reactions.length,
-      isReacted: reactions.some(({ userId }) => userId === obj.userUuid),
-    }));
-  })
   @ApiProperty()
-  reactions: GeneralReactionDto[] | reactionsDto[];
+  reactions: GeneralReactionDto[];
 
   @Expose()
   @Transform(({ obj }: { obj: GeneralNoticeDto }) =>

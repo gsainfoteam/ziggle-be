@@ -34,6 +34,7 @@ import { FileService } from '../file/file.service';
 import { GroupService } from '../group/group.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
+import { firstValueFrom, from, groupBy, mergeMap, toArray } from 'rxjs';
 
 @Injectable()
 @Loggable()
@@ -61,9 +62,22 @@ export class NoticeService {
     const notices = (
       await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
     ).map(
-      (notice) => {
+      async (notice) => {
+        const resultReaction = await firstValueFrom(
+          from(notice.reactions).pipe(
+            groupBy(({ emoji }) => emoji),
+            mergeMap((group) => group.pipe(toArray())),
+            toArray(),
+          ),
+        );
+
         return new GeneralNoticeDto({
           ...notice,
+          reactions: resultReaction.map((reactions) => ({
+            emoji: reactions[0].emoji,
+            count: reactions.length,
+            isReacted: reactions.some(({ userId }) => userId === userUuid),
+          })),
           s3Url: this.s3Url,
           langFromDto: getAllNoticeQueryDto.lang,
           userUuid,
@@ -101,8 +115,22 @@ export class NoticeService {
     } else {
       notice = await this.noticeRepository.getNotice(id);
     }
+
+    const resultReaction = await firstValueFrom(
+      from(notice.reactions).pipe(
+        groupBy(({ emoji }) => emoji),
+        mergeMap((group) => group.pipe(toArray())),
+        toArray(),
+      ),
+    );
+
     return new ExpandedGeneralNoticeDto({
       ...notice,
+      reactions: resultReaction.map((reactions) => ({
+        emoji: reactions[0].emoji,
+        count: reactions.length,
+        isReacted: reactions.some(({ userId }) => userId === userUuid),
+      })),
       s3Url: this.s3Url,
       langFromDto: getNoticeDto.lang,
       userUuid,
