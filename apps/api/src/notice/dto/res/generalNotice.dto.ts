@@ -36,11 +36,11 @@ export class GeneralNoticeDto extends TransformNoticeDto {
   id: number;
 
   @Expose()
-  @Type(() => AuthorDto)
   @ApiProperty()
   groupId: string | null;
 
   @Expose()
+  @Type(() => AuthorDto)
   @ApiProperty()
   author: AuthorDto;
 
