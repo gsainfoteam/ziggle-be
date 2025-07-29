@@ -64,22 +64,14 @@ export class NoticeService {
     const notices = (
       await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
     ).map(async (notice) => {
-      try {
-        return new GeneralNoticeDto({
-          ...notice,
-          ...(await this.transformNotice(
-            notice,
-            getAllNoticeQueryDto.lang,
-            userUuid,
-          )),
-        });
-      } catch (error) {
-        this.logger.debug(`Notice ${notice.id} is not valid`);
-        this.logger.error(error);
-        throw new InternalServerErrorException(
-          `Notice ${notice.id} is not valid`,
-        );
-      }
+      return new GeneralNoticeDto({
+        ...notice,
+        ...(await this.transformNotice(
+          notice,
+          getAllNoticeQueryDto.lang,
+          userUuid,
+        )),
+      });
     });
     return {
       total: await this.noticeRepository.getTotalCount(
@@ -104,31 +96,23 @@ export class NoticeService {
       notice = await this.noticeRepository.getNotice(id);
     }
 
-    try {
-      return new ExpandedGeneralNoticeDto({
-        ...notice,
-        ...(await this.transformExpandedNotice(
-          notice,
-          getNoticeDto.lang,
-          userUuid,
-        )),
-        additionalContents: notice.contents
-          .filter(({ id }) => id !== 1)
-          .map(({ id, createdAt, body, deadline, lang }) => ({
-            id,
-            content: body,
-            deadline: deadline ?? null,
-            createdAt,
-            lang,
-          })),
-      });
-    } catch (error) {
-      this.logger.debug(`Notice ${notice.id} is not valid`);
-      this.logger.error(error);
-      throw new InternalServerErrorException(
-        `Notice ${notice.id} is not valid`,
-      );
-    }
+    return new ExpandedGeneralNoticeDto({
+      ...notice,
+      ...(await this.transformExpandedNotice(
+        notice,
+        getNoticeDto.lang,
+        userUuid,
+      )),
+      additionalContents: notice.contents
+        .filter(({ id }) => id !== 1)
+        .map(({ id, createdAt, body, deadline, lang }) => ({
+          id,
+          content: body,
+          deadline: deadline ?? null,
+          createdAt,
+          lang,
+        })),
+    });
   }
 
   async createNotice(
@@ -372,11 +356,15 @@ export class NoticeService {
     langFromDto?: string,
     userUuid?: string,
   ): Promise<TransformNoticeDto> {
-    const resultReaction = await firstValueFrom(
-      from(reactions).pipe(
-        groupBy(({ emoji }) => emoji),
-        mergeMap((group) => group.pipe(toArray())),
-        toArray(),
+    const resultReaction = Object.values(
+      reactions.reduce(
+        (acc, reaction) => {
+          const { emoji } = reaction;
+          if (!acc[emoji]) acc[emoji] = [];
+          acc[emoji].push(reaction);
+          return acc;
+        },
+        {} as Record<string, typeof reactions>,
       ),
     );
 
