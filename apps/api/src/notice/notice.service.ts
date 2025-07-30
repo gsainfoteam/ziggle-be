@@ -34,7 +34,6 @@ import { FileService } from '../file/file.service';
 import { GroupService } from '../group/group.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
-import { firstValueFrom, from, groupBy, mergeMap, toArray } from 'rxjs';
 import { FileType } from '@prisma/client';
 import { TransformNoticeDto } from './dto/res/transformNotice.dto';
 
@@ -63,14 +62,10 @@ export class NoticeService {
   ): Promise<GeneralNoticeListDto> {
     const notices = (
       await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
-    ).map(async (notice) => {
+    ).map((notice) => {
       return new GeneralNoticeDto({
         ...notice,
-        ...(await this.transformNotice(
-          notice,
-          getAllNoticeQueryDto.lang,
-          userUuid,
-        )),
+        ...this.transformNotice(notice, getAllNoticeQueryDto.lang, userUuid),
       });
     });
     return {
@@ -98,11 +93,7 @@ export class NoticeService {
 
     return new ExpandedGeneralNoticeDto({
       ...notice,
-      ...(await this.transformExpandedNotice(
-        notice,
-        getNoticeDto.lang,
-        userUuid,
-      )),
+      ...this.transformExpandedNotice(notice, getNoticeDto.lang, userUuid),
       additionalContents: notice.contents
         .filter(({ id }) => id !== 1)
         .map(({ id, createdAt, body, deadline, lang }) => ({
@@ -313,7 +304,7 @@ export class NoticeService {
     await this.noticeRepository.deleteNotice(id, userUuid);
   }
 
-  convertNotificationBodyToString(notification: Notification) {
+  private convertNotificationBodyToString(notification: Notification) {
     return {
       ...notification,
       body: notification.body
@@ -329,12 +320,12 @@ export class NoticeService {
     };
   }
 
-  async transformNotice(
+  private transformNotice(
     notice: NoticeFullContent,
     langFromDto?: string,
     userUuid?: string,
-  ): Promise<TransformNoticeDto> {
-    const { content, ...result } = await this.transformExpandedNotice(
+  ): TransformNoticeDto {
+    const { content, ...result } = this.transformExpandedNotice(
       notice,
       langFromDto,
       userUuid,
@@ -351,21 +342,18 @@ export class NoticeService {
     };
   }
 
-  async transformExpandedNotice(
+  private transformExpandedNotice(
     { crawls, contents, tags, reminders, files, reactions }: NoticeFullContent,
     langFromDto?: string,
     userUuid?: string,
-  ): Promise<TransformNoticeDto> {
+  ): TransformNoticeDto {
     const resultReaction = Object.values(
-      reactions.reduce(
-        (acc, reaction) => {
-          const { emoji } = reaction;
-          if (!acc[emoji]) acc[emoji] = [];
-          acc[emoji].push(reaction);
-          return acc;
-        },
-        {} as Record<string, typeof reactions>,
-      ),
+      reactions.reduce<Record<string, typeof reactions>>((acc, reaction) => {
+        const { emoji } = reaction;
+        if (!acc[emoji]) acc[emoji] = [];
+        acc[emoji].push(reaction);
+        return acc;
+      }, {}),
     );
 
     const mainContent =
