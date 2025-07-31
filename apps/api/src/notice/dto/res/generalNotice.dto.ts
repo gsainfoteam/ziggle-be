@@ -69,20 +69,6 @@ export class GeneralNoticeDto extends TransformNoticeDto {
   }
 }
 
-export class GeneralReactionDto {
-  @ApiProperty()
-  emoji: string;
-
-  @ApiProperty()
-  count: number;
-
-  @ApiProperty()
-  isReacted: boolean;
-
-  @ApiProperty()
-  userId?: string;
-}
-
 export class GeneralNoticeListDto {
   @ApiProperty()
   total: number;
