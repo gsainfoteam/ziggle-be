@@ -5,7 +5,23 @@ import { Expose } from 'class-transformer';
 export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   @Expose()
   @ApiProperty()
-  additionalContents: AdditionalNoticeDto[];
+  get additionalContents(): AdditionalNoticeDto[] {
+    return this.contents
+      .filter(({ id }) => id !== 1)
+      .map(({ id, createdAt, body, deadline, lang }) => ({
+        id,
+        content: body,
+        deadline: deadline ?? null,
+        createdAt,
+        lang,
+      }));
+  }
+
+  @Expose()
+  @ApiProperty()
+  get content(): string {
+    return this.crawls.length > 0 ? this.crawls[0].body : this.mainContent.body;
+  }
 
   constructor(partial: Partial<ExpandedGeneralNoticeDto>) {
     super(partial);

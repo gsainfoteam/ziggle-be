@@ -34,8 +34,6 @@ import { FileService } from '../file/file.service';
 import { GroupService } from '../group/group.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
-import { FileType } from '@prisma/client';
-import { TransformNoticeDto } from './dto/res/transformNotice.dto';
 
 @Injectable()
 @Loggable()
@@ -65,7 +63,9 @@ export class NoticeService {
     ).map((notice) => {
       return new GeneralNoticeDto({
         ...notice,
-        ...this.transformNotice(notice, getAllNoticeQueryDto.lang, userUuid),
+        langFromDto: getAllNoticeQueryDto.lang,
+        s3Url: this.s3Url,
+        userUuid,
       });
     });
     return {
@@ -93,16 +93,9 @@ export class NoticeService {
 
     return new ExpandedGeneralNoticeDto({
       ...notice,
-      ...this.transformExpandedNotice(notice, getNoticeDto.lang, userUuid),
-      additionalContents: notice.contents
-        .filter(({ id }) => id !== 1)
-        .map(({ id, createdAt, body, deadline, lang }) => ({
-          id,
-          content: body,
-          deadline: deadline ?? null,
-          createdAt,
-          lang,
-        })),
+      langFromDto: getNoticeDto.lang,
+      s3Url: this.s3Url,
+      userUuid,
     });
   }
 
@@ -318,75 +311,5 @@ export class NoticeService {
             .replaceAll(/\s+/gm, ' ')
         : undefined,
     };
-  }
-
-  private transformNotice(
-    notice: NoticeFullContent,
-    langFromDto?: string,
-    userUuid?: string,
-  ): TransformNoticeDto {
-    const { content, ...result } = this.transformExpandedNotice(
-      notice,
-      langFromDto,
-      userUuid,
-    );
-
-    return {
-      content: htmlToText(content, {
-        selectors: [
-          { selector: 'a', options: { ignoreHref: true } },
-          { selector: 'img', format: 'skip' },
-        ],
-      }).slice(0, 1000),
-      ...result,
-    };
-  }
-
-  private transformExpandedNotice(
-    { crawls, contents, tags, reminders, files, reactions }: NoticeFullContent,
-    langFromDto?: string,
-    userUuid?: string,
-  ): TransformNoticeDto {
-    const resultReaction = Object.values(
-      reactions.reduce<Record<string, typeof reactions>>((acc, reaction) => {
-        const { emoji } = reaction;
-        if (!acc[emoji]) acc[emoji] = [];
-        acc[emoji].push(reaction);
-        return acc;
-      }, {}),
-    );
-
-    const mainContent =
-      contents.filter(({ lang }) => lang === (langFromDto ?? 'ko'))[0] ??
-      contents[0];
-
-    return new TransformNoticeDto({
-      ...(crawls.length > 0
-        ? {
-            title: crawls[0].title,
-            langs: ['ko'],
-            content: crawls[0].body,
-            deadline: null,
-          }
-        : {
-            title: mainContent.title as string,
-            langs: Array.from(new Set(contents.map(({ lang }) => lang))),
-            content: mainContent.body,
-            deadline: mainContent.deadline ?? null,
-          }),
-      tags: tags.map(({ name }: { name: string }) => name),
-      isReminded: reminders.some(({ uuid }) => uuid === userUuid),
-      imageUrls: files
-        ?.filter(({ type }) => type === FileType.IMAGE)
-        .map(({ url }) => `${this.s3Url}${url}`),
-      documentUrls: files
-        ?.filter(({ type }) => type === FileType.DOCUMENT)
-        .map(({ url }) => `${this.s3Url}${url}`),
-      reactions: resultReaction.map((reactions) => ({
-        emoji: reactions[0].emoji,
-        count: reactions.length,
-        isReacted: reactions.some(({ userId }) => userId === userUuid),
-      })),
-    });
   }
 }

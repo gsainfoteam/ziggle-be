@@ -1,7 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Category, File, Group } from '@prisma/client';
-import { Exclude, Expose, Type } from 'class-transformer';
-import { TransformNoticeDto } from './transformNotice.dto';
+import {
+  Category,
+  Content,
+  Crawl,
+  File,
+  FileType,
+  Group,
+  Reaction,
+} from '@prisma/client';
+import { Exclude, Expose, Transform, Type } from 'class-transformer';
+import { htmlToText } from 'html-to-text';
 
 export class AuthorDto {
   @ApiProperty()
@@ -11,13 +19,29 @@ export class AuthorDto {
   name: string;
 }
 
-export class GeneralNoticeDto extends TransformNoticeDto {
+export class GeneralNoticeDto {
+  @Exclude()
+  langFromDto?: string;
+  @Exclude()
+  crawls: Crawl[];
+  @Exclude()
+  contents: Content[];
+  @Exclude()
+  get mainContent(): Content {
+    return (
+      this.contents.filter(
+        ({ lang }) => lang === (this.langFromDto ?? 'ko'),
+      )[0] ?? this.contents[0]
+    );
+  }
   @Exclude()
   files: File[];
   @Exclude()
-  crawls: any[];
+  s3Url: string;
   @Exclude()
-  reminders: any[];
+  reminders: RemindersDto[];
+  @Exclude()
+  userUuid?: string;
   @Exclude()
   updatedAt: Date | null;
   @Exclude()
@@ -28,12 +52,18 @@ export class GeneralNoticeDto extends TransformNoticeDto {
   authorId: string;
   @Exclude()
   group: Group | null;
-  @Exclude()
-  contents: any[];
 
   @Expose()
   @ApiProperty()
   id: number;
+
+  @Expose()
+  @ApiProperty()
+  get title(): string {
+    return this.crawls.length > 0
+      ? this.crawls[0].title
+      : (this.mainContent.title as string);
+  }
 
   @Expose()
   @ApiProperty()
@@ -49,12 +79,72 @@ export class GeneralNoticeDto extends TransformNoticeDto {
   createdAt: Date;
 
   @Expose()
+  @Transform(({ value }) => value.map(({ name }: { name: string }) => name))
+  @ApiProperty()
+  tags: string[] | object[];
+
+  @Expose()
   @ApiProperty()
   views: number;
 
   @Expose()
   @ApiProperty()
+  get langs(): string[] {
+    return this.crawls.length > 0
+      ? ['ko']
+      : Array.from(new Set(this.contents.map(({ lang }) => lang)));
+  }
+
+  @Expose()
+  @ApiProperty()
+  get content(): string {
+    const content =
+      this.crawls.length > 0 ? this.crawls[0].body : this.mainContent.body;
+    return htmlToText(content, {
+      selectors: [
+        { selector: 'a', options: { ignoreHref: true } },
+        { selector: 'img', format: 'skip' },
+      ],
+    }).slice(0, 1000);
+  }
+
+  @Expose()
+  @Transform(({ obj }: { obj: GeneralNoticeDto }) => {
+    const resultReaction = Object.values(
+      obj.reactions.reduce<Record<string, Reaction[]>>(
+        (acc, reaction: Reaction) => {
+          const { emoji } = reaction;
+          if (!acc[emoji]) acc[emoji] = [];
+          acc[emoji].push(reaction);
+          return acc;
+        },
+        {},
+      ),
+    );
+    return resultReaction.map((reactions) => ({
+      emoji: reactions[0].emoji,
+      count: reactions.length,
+      isReacted: reactions.some(({ userId }) => userId === obj.userUuid),
+    }));
+  })
+  @ApiProperty()
+  reactions: GeneralReactionDto[] | Reaction[];
+
+  @Expose()
+  @ApiProperty()
+  get isReminded(): boolean {
+    return this.reminders.some(({ uuid }) => uuid === this.userUuid);
+  }
+
+  @Expose()
+  @ApiProperty()
   category: Category;
+
+  @Expose()
+  @ApiProperty()
+  get deadline(): Date | null {
+    return this.crawls.length > 0 ? null : this.mainContent.deadline ?? null;
+  }
 
   @Expose()
   @ApiProperty()
@@ -64,9 +154,39 @@ export class GeneralNoticeDto extends TransformNoticeDto {
   @ApiProperty()
   publishedAt: Date;
 
-  constructor(partial: Partial<GeneralNoticeDto>) {
-    super(partial);
+  @Expose()
+  @ApiProperty()
+  get imageUrls(): string[] {
+    return this.files
+      ?.filter(({ type }) => type === FileType.IMAGE)
+      .map(({ url }) => `${this.s3Url}${url}`);
   }
+
+  @Expose()
+  @ApiProperty()
+  get documentUrls(): string[] {
+    return this.files
+      ?.filter(({ type }) => type === FileType.DOCUMENT)
+      .map(({ url }) => `${this.s3Url}${url}`);
+  }
+
+  constructor(partial: Partial<GeneralNoticeDto>) {
+    Object.assign(this, partial);
+  }
+}
+
+class GeneralReactionDto {
+  @ApiProperty()
+  emoji: string;
+
+  @ApiProperty()
+  count: number;
+
+  @ApiProperty()
+  isReacted: boolean;
+
+  @ApiProperty()
+  userId?: string;
 }
 
 export class GeneralNoticeListDto {
@@ -78,4 +198,11 @@ export class GeneralNoticeListDto {
     isArray: true,
   })
   list: GeneralNoticeDto[];
+}
+
+class RemindersDto {
+  uuid: string;
+  name: string;
+  createdAt: Date;
+  consent: boolean;
 }
