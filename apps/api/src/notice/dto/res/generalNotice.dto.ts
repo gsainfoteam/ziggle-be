@@ -7,6 +7,7 @@ import {
   FileType,
   Group,
   Reaction,
+  User,
 } from '@prisma/client';
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { htmlToText } from 'html-to-text';
@@ -39,7 +40,7 @@ export class GeneralNoticeDto {
   @Exclude()
   s3Url: string;
   @Exclude()
-  reminders: RemindersDto[];
+  reminders: User[];
   @Exclude()
   userUuid?: string;
   @Exclude()
@@ -198,11 +199,4 @@ export class GeneralNoticeListDto {
     isArray: true,
   })
   list: GeneralNoticeDto[];
-}
-
-class RemindersDto {
-  uuid: string;
-  name: string;
-  createdAt: Date;
-  consent: boolean;
 }
