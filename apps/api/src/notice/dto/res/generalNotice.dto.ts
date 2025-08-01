@@ -7,6 +7,7 @@ import {
   FileType,
   Group,
   Reaction,
+  Tag,
   User,
 } from '@prisma/client';
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
@@ -80,9 +81,9 @@ export class GeneralNoticeDto {
   createdAt: Date;
 
   @Expose()
-  @Transform(({ value }) => value.map(({ name }: { name: string }) => name))
+  @Transform(({ value }: { value: Tag[] }) => value.map(({ name }) => name))
   @ApiProperty()
-  tags: string[] | object[];
+  tags: string[] | Tag[];
 
   @Expose()
   @ApiProperty()
