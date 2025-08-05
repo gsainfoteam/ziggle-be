@@ -7,9 +7,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
-import { GeneralNoticeListDto } from './dto/res/generalNotice.dto';
+import {
+  GeneralNoticeDto,
+  GeneralNoticeListDto,
+} from './dto/res/generalNotice.dto';
 import { NoticeRepository } from './notice.repository';
-import { NoticeMapper } from './notice.mapper';
 import { GetNoticeDto } from './dto/req/getNotice.dto';
 import { ExpandedGeneralNoticeDto } from './dto/res/expandedGeneralNotice.dto';
 import { NoticeFullContent } from './types/noticeFullContent';
@@ -38,17 +40,18 @@ import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
 export class NoticeService {
   private readonly logger = new Logger(NoticeService.name);
   private fcmDelay: number;
+  private readonly s3Url: string;
   constructor(
     private readonly imageService: ImageService,
     private readonly documentService: DocumentService,
     private readonly fileService: FileService,
     private readonly noticeRepository: NoticeRepository,
-    private readonly noticeMapper: NoticeMapper,
     private readonly groupService: GroupService,
     private readonly fcmService: FcmService,
     private readonly customConfigService: CustomConfigService,
   ) {
     this.fcmDelay = Number(this.customConfigService.FCM_DELAY);
+    this.s3Url = `https://s3.${customConfigService.AWS_S3_REGION}.amazonaws.com/${customConfigService.AWS_S3_BUCKET_NAME}/`;
   }
 
   async getNoticeList(
@@ -57,21 +60,14 @@ export class NoticeService {
   ): Promise<GeneralNoticeListDto> {
     const notices = (
       await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
-    ).map((notice) =>
-      this.noticeMapper
-        .NoticeFullContentToGeneralNoticeList(
-          notice,
-          getAllNoticeQueryDto.lang,
-          userUuid,
-        )
-        .catch((error) => {
-          this.logger.debug(`Notice ${notice.id} is not valid`);
-          this.logger.error(error);
-          throw new InternalServerErrorException(
-            `Notice ${notice.id} is not valid`,
-          );
-        }),
-    );
+    ).map((notice) => {
+      return new GeneralNoticeDto({
+        ...notice,
+        langFromDto: getAllNoticeQueryDto.lang,
+        s3Url: this.s3Url,
+        userUuid,
+      });
+    });
     return {
       total: await this.noticeRepository.getTotalCount(
         getAllNoticeQueryDto,
@@ -94,19 +90,13 @@ export class NoticeService {
     } else {
       notice = await this.noticeRepository.getNotice(id);
     }
-    return this.noticeMapper
-      .NoticeFullContentToExpandedGeneralNoticeList(
-        notice,
-        getNoticeDto.lang,
-        userUuid,
-      )
-      .catch((error) => {
-        this.logger.debug(`Notice ${notice.id} is not valid`);
-        this.logger.error(error);
-        throw new InternalServerErrorException(
-          `Notice ${notice.id} is not valid`,
-        );
-      });
+
+    return new ExpandedGeneralNoticeDto({
+      ...notice,
+      langFromDto: getNoticeDto.lang,
+      s3Url: this.s3Url,
+      userUuid,
+    });
   }
 
   async createNotice(
@@ -307,7 +297,7 @@ export class NoticeService {
     await this.noticeRepository.deleteNotice(id, userUuid);
   }
 
-  convertNotificationBodyToString(notification: Notification) {
+  private convertNotificationBodyToString(notification: Notification) {
     return {
       ...notification,
       body: notification.body

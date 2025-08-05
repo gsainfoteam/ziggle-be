@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -10,6 +11,7 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -42,6 +44,7 @@ import { GetUser } from '../user/decorator/get-user.decorator';
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
+@UseInterceptors(ClassSerializerInterceptor)
 export class NoticeController {
   constructor(private readonly noticeService: NoticeService) {}
 

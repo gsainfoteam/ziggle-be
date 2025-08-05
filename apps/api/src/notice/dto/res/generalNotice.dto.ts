@@ -1,5 +1,17 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Category } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  Category,
+  Content,
+  Crawl,
+  File,
+  FileType,
+  Group,
+  Reaction,
+  Tag,
+  User,
+} from '@prisma/client';
+import { Exclude, Expose, Transform, Type } from 'class-transformer';
+import { htmlToText } from 'html-to-text';
 
 export class AuthorDto {
   @ApiProperty()
@@ -8,60 +20,164 @@ export class AuthorDto {
   @ApiProperty()
   name: string;
 }
+
 export class GeneralNoticeDto {
+  @Exclude()
+  langFromDto?: string;
+  @Exclude()
+  crawls: Crawl[];
+  @Exclude()
+  contents: Content[];
+  @Exclude()
+  get mainContent(): Content {
+    return (
+      this.contents.filter(
+        ({ lang }) => lang === (this.langFromDto ?? 'ko'),
+      )[0] ?? this.contents[0]
+    );
+  }
+  @Exclude()
+  files: File[];
+  @Exclude()
+  s3Url: string;
+  @Exclude()
+  reminders: User[];
+  @Exclude()
+  userUuid?: string;
+  @Exclude()
+  updatedAt: Date | null;
+  @Exclude()
+  lastEditedAt: Date | null;
+  @Exclude()
+  deletedAt: Date | null;
+  @Exclude()
+  authorId: string;
+  @Exclude()
+  group: Group | null;
+
+  @Expose()
   @ApiProperty()
   id: number;
 
+  @Expose()
   @ApiProperty()
-  title: string;
+  get title(): string {
+    return this.crawls.length > 0
+      ? this.crawls[0].title
+      : (this.mainContent.title as string);
+  }
 
+  @Expose()
   @ApiProperty()
   groupId: string | null;
 
+  @Expose()
+  @Type(() => AuthorDto)
   @ApiProperty()
   author: AuthorDto;
 
+  @Expose()
   @ApiProperty()
   createdAt: Date;
 
+  @Expose()
+  @Transform(({ value }: { value: Tag[] }) => value.map(({ name }) => name))
   @ApiProperty()
-  tags: string[];
+  tags: string[] | Tag[];
 
+  @Expose()
   @ApiProperty()
   views: number;
 
+  @Expose()
   @ApiProperty()
-  langs: string[];
+  get langs(): string[] {
+    return this.crawls.length > 0
+      ? ['ko']
+      : Array.from(new Set(this.contents.map(({ lang }) => lang)));
+  }
 
+  @Expose()
   @ApiProperty()
-  content: string;
+  get content(): string {
+    const content =
+      this.crawls.length > 0 ? this.crawls[0].body : this.mainContent.body;
+    return htmlToText(content, {
+      selectors: [
+        { selector: 'a', options: { ignoreHref: true } },
+        { selector: 'img', format: 'skip' },
+      ],
+    }).slice(0, 1000);
+  }
 
+  @Expose()
+  @Transform(({ obj }: { obj: GeneralNoticeDto }) => {
+    const resultReaction = Object.values(
+      obj.reactions.reduce<Record<string, Reaction[]>>(
+        (acc, reaction: Reaction) => {
+          const { emoji } = reaction;
+          if (!acc[emoji]) acc[emoji] = [];
+          acc[emoji].push(reaction);
+          return acc;
+        },
+        {},
+      ),
+    );
+    return resultReaction.map((reactions) => ({
+      emoji: reactions[0].emoji,
+      count: reactions.length,
+      isReacted: reactions.some(({ userId }) => userId === obj.userUuid),
+    }));
+  })
   @ApiProperty()
-  reactions: GeneralReactionDto[];
+  reactions: GeneralReactionDto[] | Reaction[];
 
+  @Expose()
   @ApiProperty()
-  isReminded: boolean;
+  get isReminded(): boolean {
+    return this.reminders.some(({ uuid }) => uuid === this.userUuid);
+  }
 
+  @Expose()
   @ApiProperty()
   category: Category;
 
+  @Expose()
   @ApiProperty()
-  deadline: Date | null;
+  get deadline(): Date | null {
+    return this.crawls.length > 0 ? null : this.mainContent.deadline ?? null;
+  }
 
+  @Expose()
   @ApiProperty()
   currentDeadline: Date | null;
 
+  @Expose()
   @ApiProperty()
   publishedAt: Date;
 
-  @ApiPropertyOptional()
-  imageUrls?: string[];
+  @Expose()
+  @ApiProperty()
+  get imageUrls(): string[] {
+    return this.files
+      ?.filter(({ type }) => type === FileType.IMAGE)
+      .map(({ url }) => `${this.s3Url}${url}`);
+  }
 
-  @ApiPropertyOptional()
-  documentUrls?: string[];
+  @Expose()
+  @ApiProperty()
+  get documentUrls(): string[] {
+    return this.files
+      ?.filter(({ type }) => type === FileType.DOCUMENT)
+      .map(({ url }) => `${this.s3Url}${url}`);
+  }
+
+  constructor(partial: Partial<GeneralNoticeDto>) {
+    Object.assign(this, partial);
+  }
 }
 
-export class GeneralReactionDto {
+class GeneralReactionDto {
   @ApiProperty()
   emoji: string;
 
@@ -70,6 +186,9 @@ export class GeneralReactionDto {
 
   @ApiProperty()
   isReacted: boolean;
+
+  @ApiProperty()
+  userId?: string;
 }
 
 export class GeneralNoticeListDto {
