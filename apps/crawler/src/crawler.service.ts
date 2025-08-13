@@ -59,7 +59,7 @@ export class CrawlerService {
       timeout(60e3),
       catchError((err) => {
         this.logger.error(err);
-        return throwError(() => err);
+        return throwError(() => new Error(err));
       }),
       map((res) => load(res.data)),
       map(($) => $('table > tbody > tr')),
@@ -93,7 +93,7 @@ export class CrawlerService {
       map((res) => load(res.data)),
       catchError((err) => {
         this.logger.error(err);
-        return throwError(() => err);
+        return throwError(() => new Error(err));
       }),
       map(($) => ({
         content: $('.bd_detail_content').html()?.trim(),
