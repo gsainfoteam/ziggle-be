@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Crawl } from '@prisma/client';
 import { load } from 'cheerio';
 import {
@@ -17,6 +17,7 @@ import { Loggable } from '@lib/logger/decorator/loggable';
 @Loggable()
 @Injectable()
 export class CrawlerService {
+  private readonly logger = new Logger(CrawlerService.name);
   private readonly targetUrl =
     'https://www.gist.ac.kr/kr/html/sub05/050209.html';
   constructor(
@@ -55,8 +56,7 @@ export class CrawlerService {
     id: number;
   }> {
     return this.httpService.get(this.targetUrl).pipe(
-      timeout(10 * 1000),
-      catchError(throwError),
+      timeout(60e3),
       map((res) => load(res.data)),
       map(($) => $('table > tbody > tr')),
       concatMap(($) => $.toArray().map((value: any) => load(value))),
@@ -73,6 +73,10 @@ export class CrawlerService {
         id: Number.parseInt(meta.link.split('no=')[1].split('&')[0]),
         ...meta,
       })),
+      catchError((err) => {
+        this.logger.error(err);
+        return throwError(() => new Error(err));
+      }),
     );
   }
 
@@ -85,9 +89,8 @@ export class CrawlerService {
     }[];
   }> {
     return this.httpService.get(link).pipe(
-      timeout(10 * 1000),
+      timeout(60e3),
       map((res) => load(res.data)),
-      catchError(throwError),
       map(($) => ({
         content: $('.bd_detail_content').html()?.trim(),
         files: $('.bd_detail_file > ul > li > a')
@@ -104,6 +107,10 @@ export class CrawlerService {
               | 'etc',
           })),
       })),
+      catchError((err) => {
+        this.logger.error(err);
+        return throwError(() => new Error(err));
+      }),
     );
   }
 }
