@@ -1,3 +1,6 @@
+<!-- markdownlint-disable MD041 -->
+![banner](./assets/infoteam.webp)
+
 # Ziggle-backend
 
 ## Description
@@ -6,7 +9,7 @@ Ziggle의 Backend
 
 ## Entity relation diagram
 
-https://dbdocs.io/INFOTEAM%20GIST/Ziggle
+현재, ERD는 다음 링크에서 mermaid로 구현되어 있습니다. [ERD 링크](./docs/erd.md)
 
 ## Installation
 
