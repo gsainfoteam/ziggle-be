@@ -78,6 +78,10 @@ async function bootstrap() {
     swaggerOptions: {
       oauth2RedirectUrl: `${customConfigService.API_URL}/api/oauth2-redirect.html`,
       displayRequestDuration: true,
+      initOAuth: {
+        usePkceWithAuthorizationCodeGrant: true,
+        additionalQueryStringParams: { nonce: 'help' },
+      },
     },
   });
   // start server
