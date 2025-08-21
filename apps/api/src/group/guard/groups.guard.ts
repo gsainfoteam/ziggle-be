@@ -4,21 +4,21 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groupsUserInfo.type';
+import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groups.type';
 
 @Injectable()
 export class GroupsGuard extends AuthGuard('groups') {
   handleRequest(
-    err: any,
+    err: Error,
     user: GroupsUserInfo,
-    info: any,
+    _: any,
     context: ExecutionContext,
   ): any {
-    if (err || !user) {
-      throw err || new UnauthorizedException();
+    if (err) {
+      throw new UnauthorizedException();
     }
     const request = context.switchToHttp().getRequest();
-    request.groupsUser = user;
+    request.groups = user;
     return true;
   }
 }

@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-http-bearer';
+import { Strategy } from 'passport-custom';
 import { InfoteamGroupsService } from 'libs/infoteam-groups/src/infoteam-groups.service';
-import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groupsUserInfo.type';
+import { Request } from 'express';
+import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groups.type';
 
 @Injectable()
 export class GroupsStrategy extends PassportStrategy(Strategy, 'groups') {
@@ -10,8 +11,10 @@ export class GroupsStrategy extends PassportStrategy(Strategy, 'groups') {
     super();
   }
 
-  async validate(token: string): Promise<GroupsUserInfo> {
-    const group = this.infoteamGroupsService.getGroupsUserInfo(token);
-    return group;
+  async validate(req: Request): Promise<GroupsUserInfo | void> {
+    const token = req.get('groupsauthorization');
+    if (!token) return;
+    const groups = await this.infoteamGroupsService.getGroupsUserInfo(token);
+    return { groups };
   }
 }

@@ -21,6 +21,7 @@ import {
   ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
+  ApiSecurity,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -39,9 +40,11 @@ import {
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { IdPGuard, IdPOptionalGuard } from '../user/guard/idp.guard';
 import { GetUser } from '../user/decorator/get-user.decorator';
+import { GroupsGuard } from '../group/guard/groups.guard';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
+@ApiSecurity('groups-auth')
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseInterceptors(ClassSerializerInterceptor)

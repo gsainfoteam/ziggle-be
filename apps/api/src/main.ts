@@ -72,6 +72,13 @@ async function bootstrap() {
       },
       'oauth2',
     )
+    .addSecurity('groups-auth', {
+      type: 'apiKey',
+      bearerFormat: 'token',
+      name: 'groupsAuthorization',
+      description: 'Enter groups token',
+      in: 'header',
+    })
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, {

@@ -6,7 +6,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CustomConfigService } from '@lib/custom-config';
-import { GroupsUserInfo } from './types/groupsUserInfo.type';
 import { catchError, firstValueFrom } from 'rxjs';
 import { GroupsUserInfoResponse } from './types/groups.type';
 import { AxiosError } from 'axios';
@@ -24,10 +23,12 @@ export class InfoteamGroupsService {
     this.groupsUrl = this.customConfigService.GROUPS_URL;
   }
 
-  async getGroupsUserInfo(accessToken: string): Promise<GroupsUserInfo> {
+  async getGroupsUserInfo(
+    accessToken: string,
+  ): Promise<GroupsUserInfoResponse> {
     const userInfoResponse = await firstValueFrom(
       this.httpService
-        .get<GroupsUserInfoResponse>(this.groupsUrl + '/userinfo', {
+        .get<GroupsUserInfoResponse>(this.groupsUrl + '/third-party/userinfo', {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },

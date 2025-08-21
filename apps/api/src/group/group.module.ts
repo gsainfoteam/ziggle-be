@@ -6,6 +6,9 @@ import { PrismaModule } from '@lib/prisma';
 import { LoggerModule } from '@lib/logger';
 import { CustomConfigModule } from '@lib/custom-config';
 import { UserModule } from '../user/user.module';
+import { GroupsGuard } from './guard/groups.guard';
+import { GroupsStrategy } from './guard/groups.strategy';
+import { InfoteamGroupsModule } from 'libs/infoteam-groups/src/infoteam-groups.module';
 
 @Module({
   imports: [
@@ -14,9 +17,10 @@ import { UserModule } from '../user/user.module';
     CustomConfigModule,
     UserModule,
     LoggerModule,
+    InfoteamGroupsModule,
   ],
-  providers: [GroupService],
-  exports: [GroupService],
+  providers: [GroupService, GroupsGuard, GroupsStrategy],
+  exports: [GroupService, GroupsGuard],
   controllers: [GroupController],
 })
 export class GroupModule {}
