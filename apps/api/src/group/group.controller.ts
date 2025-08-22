@@ -2,14 +2,12 @@ import {
   Controller,
   Get,
   Headers,
-  Post,
   Query,
   Param,
   UseGuards,
 } from '@nestjs/common';
 import { GroupService } from './group.service';
 import {
-  ApiCreatedResponse,
   ApiHeader,
   ApiInternalServerErrorResponse,
   ApiOAuth2,
@@ -18,11 +16,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { GroupsTokenRes } from './dto/res/GroupsTokenRes.dto';
 import { GroupListResDto, GroupResDto } from './dto/res/GroupsRes.dto';
 import { GetGroupByNameQueryDto } from './dto/req/getGroup.dto';
 import { IdPGuard } from '../user/guard/idp.guard';
-import { GetToken } from '../user/decorator/get-token.decorator';
 import { GroupInfo } from './types/groupInfo.type';
 
 @ApiTags('Group')
@@ -30,22 +26,6 @@ import { GroupInfo } from './types/groupInfo.type';
 @Controller('group')
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}
-
-  @ApiOperation({
-    summary: 'Get groups token',
-    description: 'Get groups token',
-  })
-  @ApiCreatedResponse({
-    type: GroupsTokenRes,
-    description: 'Groups token',
-  })
-  @ApiUnauthorizedResponse()
-  @ApiInternalServerErrorResponse()
-  @Post('token')
-  @UseGuards(IdPGuard)
-  async getGroupsToken(@GetToken() token: string): Promise<GroupsTokenRes> {
-    return this.groupService.getExternalTokenFromGroups(token);
-  }
 
   @ApiOperation({
     summary: 'Searching group list',
