@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import {
@@ -34,6 +35,7 @@ import { FileService } from '../file/file.service';
 import { GroupService } from '../group/group.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
+import { GroupsUserInfoResponse } from 'libs/infoteam-groups/src/types/groups.type';
 
 @Injectable()
 @Loggable()
@@ -102,19 +104,16 @@ export class NoticeService {
   async createNotice(
     createNoticeDto: CreateNoticeDto,
     userUuid: string,
-    groupsToken?: string,
+    groups?: GroupsUserInfoResponse,
   ): Promise<ExpandedGeneralNoticeDto> {
     let groupName;
 
-    if (createNoticeDto.groupId !== undefined && groupsToken !== undefined) {
-      const getGroupResult =
-        await this.groupService.getGroupInfoFromGroups(groupsToken);
-
-      const matchingGroup = getGroupResult.find(
+    if (createNoticeDto.groupId !== undefined && groups !== undefined) {
+      const matchingGroup = groups.find(
         (group) =>
-          group.uuid === createNoticeDto.groupId &&
-          group.role.some((role) =>
-            role.externalAuthority.includes(Authority.WRITE),
+          group.groupUuid === createNoticeDto.groupId &&
+          group.RoleExternalPermission.some((role) =>
+            role.permission.includes(Authority.WRITE),
           ),
       );
 
@@ -123,6 +122,8 @@ export class NoticeService {
       }
 
       groupName = matchingGroup.name;
+    } else if (createNoticeDto.groupId) {
+      throw new UnauthorizedException();
     }
 
     if (createNoticeDto.images.length) {

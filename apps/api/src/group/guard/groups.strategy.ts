@@ -12,7 +12,7 @@ export class GroupsStrategy extends PassportStrategy(Strategy, 'groups') {
   }
 
   async validate(req: Request): Promise<GroupsUserInfo | void> {
-    const token = req.get('groupsauthorization');
+    const token = req.get('groups-token');
     if (!token) return;
     const groups = await this.infoteamGroupsService.getGroupsUserInfo(token);
     return { groups };

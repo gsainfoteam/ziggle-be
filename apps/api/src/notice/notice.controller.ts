@@ -4,7 +4,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   Param,
   ParseIntPipe,
   Patch,
@@ -16,7 +15,6 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import {
-  ApiHeader,
   ApiInternalServerErrorResponse,
   ApiOAuth2,
   ApiOkResponse,
@@ -28,7 +26,7 @@ import {
 import { NoticeService } from './notice.service';
 import { GeneralNoticeListDto } from './dto/res/generalNotice.dto';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
-import { User } from '@prisma/client';
+import { Group, User } from '@prisma/client';
 import { ExpandedGeneralNoticeDto } from './dto/res/expandedGeneralNotice.dto';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
@@ -41,6 +39,8 @@ import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { IdPGuard, IdPOptionalGuard } from '../user/guard/idp.guard';
 import { GetUser } from '../user/decorator/get-user.decorator';
 import { GroupsGuard } from '../group/guard/groups.guard';
+import { GetGroups } from '../user/decorator/get-groups.decorator';
+import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groups.type';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -100,23 +100,15 @@ export class NoticeController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @ApiHeader({
-    name: 'Groups-Token',
-    description: 'Groups-Token',
-    required: false,
-  })
   @Post()
   @UseGuards(IdPGuard)
+  @UseGuards(GroupsGuard)
   async createNotice(
     @GetUser() user: User,
+    @GetGroups() { groups }: GroupsUserInfo,
     @Body() createNoticeDto: CreateNoticeDto,
-    @Headers('Groups-Token') groupToken?: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    return this.noticeService.createNotice(
-      createNoticeDto,
-      user.uuid,
-      groupToken,
-    );
+    return this.noticeService.createNotice(createNoticeDto, user.uuid, groups);
   }
 
   @ApiOperation({

@@ -75,7 +75,7 @@ async function bootstrap() {
     .addSecurity('groups-auth', {
       type: 'apiKey',
       bearerFormat: 'token',
-      name: 'groupsAuthorization',
+      name: 'groups-token',
       description: 'Enter groups token',
       in: 'header',
     })
