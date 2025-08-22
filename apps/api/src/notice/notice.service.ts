@@ -265,8 +265,26 @@ export class NoticeService {
     query: UpdateNoticeQueryDto,
     id: number,
     userUuid: string,
+    groups?: GroupsUserInfoResponse,
   ): Promise<ExpandedGeneralNoticeDto> {
     const notice = await this.noticeRepository.getNotice(id);
+
+    if (notice.groupId !== undefined && groups !== undefined) {
+      const matchingGroup = groups.find(
+        (group) =>
+          group.groupUuid === notice.groupId &&
+          group.RoleExternalPermission.some((role) =>
+            role.permission.includes(Authority.WRITE),
+          ),
+      );
+
+      if (!matchingGroup) {
+        throw new ForbiddenException();
+      }
+    } else if (notice.groupId) {
+      throw new UnauthorizedException();
+    }
+
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException();
     }
@@ -288,9 +306,30 @@ export class NoticeService {
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
-  async deleteNotice(id: number, userUuid: string): Promise<void> {
+  async deleteNotice(
+    id: number,
+    userUuid: string,
+    groups?: GroupsUserInfoResponse,
+  ): Promise<void> {
     await this.fcmService.deleteMessageJobIdPattern(id.toString());
     const notice = await this.noticeRepository.getNotice(id);
+
+    if (notice.groupId !== undefined && groups !== undefined) {
+      const matchingGroup = groups.find(
+        (group) =>
+          group.groupUuid === notice.groupId &&
+          group.RoleExternalPermission.some((role) =>
+            role.permission.includes(Authority.WRITE),
+          ),
+      );
+
+      if (!matchingGroup) {
+        throw new ForbiddenException();
+      }
+    } else if (notice.groupId) {
+      throw new UnauthorizedException();
+    }
+
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException();
     }

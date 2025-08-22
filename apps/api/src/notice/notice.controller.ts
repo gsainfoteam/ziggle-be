@@ -209,13 +209,15 @@ export class NoticeController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Patch(':id')
   @UseGuards(IdPGuard)
+  @UseGuards(GroupsGuard)
   async updateNotice(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
+    @GetGroups() { groups }: GroupsUserInfo,
     @Query() query: UpdateNoticeQueryDto,
     @Body() body: UpdateNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
-    return this.noticeService.updateNotice(body, query, id, user.uuid);
+    return this.noticeService.updateNotice(body, query, id, user.uuid, groups);
   }
 
   @ApiOperation({
@@ -247,10 +249,13 @@ export class NoticeController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Delete(':id')
   @UseGuards(IdPGuard)
+  @UseGuards(GroupsGuard)
   async deleteNotice(
     @GetUser() user: User,
-    @Param('id', ParseIntPipe) id: number,
+    @GetGroups() { groups }: GroupsUserInfo,
+    @Param('id', ParseIntPipe)
+    id: number,
   ) {
-    return this.noticeService.deleteNotice(id, user.uuid);
+    return this.noticeService.deleteNotice(id, user.uuid, groups);
   }
 }
