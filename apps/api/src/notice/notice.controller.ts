@@ -26,7 +26,7 @@ import {
 import { NoticeService } from './notice.service';
 import { GeneralNoticeListDto } from './dto/res/generalNotice.dto';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
-import { Group, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import { ExpandedGeneralNoticeDto } from './dto/res/expandedGeneralNotice.dto';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
@@ -105,7 +105,7 @@ export class NoticeController {
   @UseGuards(GroupsGuard)
   async createNotice(
     @GetUser() user: User,
-    @GetGroups() { groups }: GroupsUserInfo,
+    @GetGroups() groups: GroupsUserInfo,
     @Body() createNoticeDto: CreateNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.createNotice(createNoticeDto, user.uuid, groups);
@@ -213,7 +213,7 @@ export class NoticeController {
   async updateNotice(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
-    @GetGroups() { groups }: GroupsUserInfo,
+    @GetGroups() groups: GroupsUserInfo,
     @Query() query: UpdateNoticeQueryDto,
     @Body() body: UpdateNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
@@ -252,7 +252,7 @@ export class NoticeController {
   @UseGuards(GroupsGuard)
   async deleteNotice(
     @GetUser() user: User,
-    @GetGroups() { groups }: GroupsUserInfo,
+    @GetGroups() groups: GroupsUserInfo,
     @Param('id', ParseIntPipe)
     id: number,
   ) {

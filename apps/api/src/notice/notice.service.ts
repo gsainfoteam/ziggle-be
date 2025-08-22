@@ -35,7 +35,7 @@ import { FileService } from '../file/file.service';
 import { GroupService } from '../group/group.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
-import { GroupsUserInfoResponse } from 'libs/infoteam-groups/src/types/groups.type';
+import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groups.type';
 
 @Injectable()
 @Loggable()
@@ -104,7 +104,7 @@ export class NoticeService {
   async createNotice(
     createNoticeDto: CreateNoticeDto,
     userUuid: string,
-    groups?: GroupsUserInfoResponse,
+    groups?: GroupsUserInfo,
   ): Promise<ExpandedGeneralNoticeDto> {
     let groupName;
 
@@ -265,7 +265,7 @@ export class NoticeService {
     query: UpdateNoticeQueryDto,
     id: number,
     userUuid: string,
-    groups?: GroupsUserInfoResponse,
+    groups?: GroupsUserInfo,
   ): Promise<ExpandedGeneralNoticeDto> {
     const notice = await this.noticeRepository.getNotice(id);
 
@@ -309,7 +309,7 @@ export class NoticeService {
   async deleteNotice(
     id: number,
     userUuid: string,
-    groups?: GroupsUserInfoResponse,
+    groups?: GroupsUserInfo,
   ): Promise<void> {
     await this.fcmService.deleteMessageJobIdPattern(id.toString());
     const notice = await this.noticeRepository.getNotice(id);

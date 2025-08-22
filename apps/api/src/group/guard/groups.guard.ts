@@ -10,7 +10,7 @@ import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groups.type';
 export class GroupsGuard extends AuthGuard('groups') {
   handleRequest(
     err: Error,
-    user: GroupsUserInfo,
+    user: { groups: GroupsUserInfo },
     _: any,
     context: ExecutionContext,
   ): any {
@@ -18,7 +18,7 @@ export class GroupsGuard extends AuthGuard('groups') {
       throw new UnauthorizedException();
     }
     const request = context.switchToHttp().getRequest();
-    request.groups = user;
+    request.groups = user.groups;
     return true;
   }
 }
