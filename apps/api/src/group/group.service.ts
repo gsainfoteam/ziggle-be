@@ -30,33 +30,6 @@ export class GroupService {
     this.groupsClientSecret = this.customConfigService.GROUPS_CLIENT_SECRET;
   }
 
-  async getGroupInfoFromGroups(groupsToken: string): Promise<GroupInfo[]> {
-    const groupResponse = await firstValueFrom(
-      this.httpService.get<{ list: GroupInfo[] }>(
-        this.groupsUrl + '/external/info',
-        {
-          headers: {
-            Authorization: `Bearer ${groupsToken}`,
-          },
-        },
-      ),
-    ).catch((error) => {
-      if (error instanceof AxiosError) {
-        if (error.response?.status === 401) {
-          this.logger.debug('Unauthorized');
-          throw new UnauthorizedException();
-        } else if (error.response?.status === 500) {
-          this.logger.error('Internal Server Error');
-          throw new InternalServerErrorException();
-        }
-      }
-      this.logger.error(error);
-      throw new InternalServerErrorException();
-    });
-
-    return groupResponse.data.list;
-  }
-
   async getGroupListByNamequeryFromGroups(
     groupNameQuery: GetGroupByNameQueryDto,
   ): Promise<GroupListResDto> {

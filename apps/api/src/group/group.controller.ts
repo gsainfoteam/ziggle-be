@@ -1,14 +1,6 @@
-import {
-  Controller,
-  Get,
-  Headers,
-  Query,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, Param, UseGuards } from '@nestjs/common';
 import { GroupService } from './group.service';
 import {
-  ApiHeader,
   ApiInternalServerErrorResponse,
   ApiOAuth2,
   ApiOkResponse,
@@ -20,6 +12,8 @@ import { GroupListResDto, GroupResDto } from './dto/res/GroupsRes.dto';
 import { GetGroupByNameQueryDto } from './dto/req/getGroup.dto';
 import { IdPGuard } from '../user/guard/idp.guard';
 import { GroupInfo } from './types/groupInfo.type';
+import { GetGroups } from '../user/decorator/get-groups.decorator';
+import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groups.type';
 
 @ApiTags('Group')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -54,17 +48,12 @@ export class GroupController {
   })
   @ApiUnauthorizedResponse()
   @ApiInternalServerErrorResponse()
-  @ApiHeader({
-    name: 'Groups-Token',
-    description: 'Groups-Token',
-    required: false,
-  })
   @Get('my')
   @UseGuards(IdPGuard)
   async getGroupInfoFromGroups(
-    @Headers('Groups-Token') groupToken: string,
-  ): Promise<GroupInfo[]> {
-    return this.groupService.getGroupInfoFromGroups(groupToken);
+    @GetGroups() groups: GroupsUserInfo,
+  ): Promise<GroupsUserInfo> {
+    return groups;
   }
 
   @ApiOperation({
