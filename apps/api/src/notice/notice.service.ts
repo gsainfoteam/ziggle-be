@@ -26,16 +26,17 @@ import {
 } from './dto/req/updateNotice.dto';
 import { htmlToText } from 'html-to-text';
 import { Notification } from 'firebase-admin/messaging';
-import { Authority } from '../group/types/groupInfo.type';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
 import { ImageService } from '../image/image.service';
 import { DocumentService } from '../document/document.service';
 import { FileService } from '../file/file.service';
-import { GroupService } from '../group/group.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
-import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groups.type';
+import {
+  GroupsUserInfo,
+  Permission,
+} from 'libs/infoteam-groups/src/types/groups.type';
 
 @Injectable()
 @Loggable()
@@ -48,7 +49,6 @@ export class NoticeService {
     private readonly documentService: DocumentService,
     private readonly fileService: FileService,
     private readonly noticeRepository: NoticeRepository,
-    private readonly groupService: GroupService,
     private readonly fcmService: FcmService,
     private readonly customConfigService: CustomConfigService,
   ) {
@@ -113,7 +113,7 @@ export class NoticeService {
         (group) =>
           group.groupUuid === createNoticeDto.groupId &&
           group.RoleExternalPermission.some((role) =>
-            role.permission.includes(Authority.WRITE),
+            role.permission.includes(Permission.WRITE),
           ),
       );
 
@@ -274,7 +274,7 @@ export class NoticeService {
         (group) =>
           group.groupUuid === notice.groupId &&
           group.RoleExternalPermission.some((role) =>
-            role.permission.includes(Authority.WRITE),
+            role.permission.includes(Permission.WRITE),
           ),
       );
 
@@ -319,7 +319,7 @@ export class NoticeService {
         (group) =>
           group.groupUuid === notice.groupId &&
           group.RoleExternalPermission.some((role) =>
-            role.permission.includes(Authority.WRITE),
+            role.permission.includes(Permission.WRITE),
           ),
       );
 

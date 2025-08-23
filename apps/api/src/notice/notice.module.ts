@@ -9,8 +9,8 @@ import { UserModule } from '../user/user.module';
 import { ImageModule } from '../image/image.module';
 import { DocumentModule } from '../document/document.module';
 import { FileModule } from '../file/file.module';
-import { GroupModule } from '../group/group.module';
 import { FcmModule } from '../fcm/fcm.module';
+import { InfoteamGroupsModule } from 'libs/infoteam-groups/src/infoteam-groups.module';
 
 @Module({
   imports: [
@@ -20,9 +20,9 @@ import { FcmModule } from '../fcm/fcm.module';
     ImageModule,
     DocumentModule,
     FileModule,
-    GroupModule,
     FcmModule,
     LoggerModule,
+    InfoteamGroupsModule,
   ],
   controllers: [NoticeController],
   providers: [NoticeService, NoticeRepository],

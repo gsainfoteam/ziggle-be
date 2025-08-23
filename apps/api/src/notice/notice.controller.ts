@@ -38,7 +38,7 @@ import {
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { IdPGuard, IdPOptionalGuard } from '../user/guard/idp.guard';
 import { GetUser } from '../user/decorator/get-user.decorator';
-import { GroupsGuard } from '../group/guard/groups.guard';
+import { GroupsGuard } from 'libs/infoteam-groups/src/guard/groups.guard';
 import { GetGroups } from '../user/decorator/get-groups.decorator';
 import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groups.type';
 

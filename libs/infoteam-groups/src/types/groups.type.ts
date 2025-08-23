@@ -1,7 +1,12 @@
+export enum Permission {
+  WRITE = 'WRITE',
+  DELETE = 'DELETE',
+}
+
 export type GroupsUserInfo = {
   RoleExternalPermission: {
     clientUuid: string;
-    permission: string;
+    permission: Permission;
     roleId: number;
     roleGroupUuid: string;
   }[];
