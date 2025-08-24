@@ -36,7 +36,7 @@ import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
 import {
   GroupsUserInfo,
   Permission,
-} from 'libs/infoteam-groups/src/types/groups.type';
+} from '@lib/infoteam-groups/types/groups.type';
 
 @Injectable()
 @Loggable()

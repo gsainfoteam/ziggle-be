@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groups.type';
+import { GroupsUserInfo } from '../types/groups.type';
 
 @Injectable()
 export class GroupsGuard extends AuthGuard('groups') {

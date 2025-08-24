@@ -10,7 +10,7 @@ import { ImageModule } from '../image/image.module';
 import { DocumentModule } from '../document/document.module';
 import { FileModule } from '../file/file.module';
 import { FcmModule } from '../fcm/fcm.module';
-import { InfoteamGroupsModule } from 'libs/infoteam-groups/src/infoteam-groups.module';
+import { InfoteamGroupsModule } from '@lib/infoteam-groups/infoteam-groups.module';
 
 @Module({
   imports: [

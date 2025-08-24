@@ -38,9 +38,9 @@ import {
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { IdPGuard, IdPOptionalGuard } from '../user/guard/idp.guard';
 import { GetUser } from '../user/decorator/get-user.decorator';
-import { GroupsGuard } from 'libs/infoteam-groups/src/guard/groups.guard';
+import { GroupsGuard } from '@lib/infoteam-groups/guard/groups.guard';
 import { GetGroups } from '../user/decorator/get-groups.decorator';
-import { GroupsUserInfo } from 'libs/infoteam-groups/src/types/groups.type';
+import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
