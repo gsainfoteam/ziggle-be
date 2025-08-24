@@ -4,7 +4,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   Param,
   ParseIntPipe,
   Patch,
@@ -16,11 +15,11 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import {
-  ApiHeader,
   ApiInternalServerErrorResponse,
   ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
+  ApiSecurity,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -39,9 +38,13 @@ import {
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { IdPGuard, IdPOptionalGuard } from '../user/guard/idp.guard';
 import { GetUser } from '../user/decorator/get-user.decorator';
+import { GroupsGuard } from '@lib/infoteam-groups/guard/groups.guard';
+import { GetGroups } from '../user/decorator/get-groups.decorator';
+import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
+@ApiSecurity('groups-auth')
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseInterceptors(ClassSerializerInterceptor)
@@ -97,23 +100,15 @@ export class NoticeController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @ApiHeader({
-    name: 'Groups-Token',
-    description: 'Groups-Token',
-    required: false,
-  })
   @Post()
   @UseGuards(IdPGuard)
+  @UseGuards(GroupsGuard)
   async createNotice(
     @GetUser() user: User,
+    @GetGroups() groups: GroupsUserInfo,
     @Body() createNoticeDto: CreateNoticeDto,
-    @Headers('Groups-Token') groupToken?: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    return this.noticeService.createNotice(
-      createNoticeDto,
-      user.uuid,
-      groupToken,
-    );
+    return this.noticeService.createNotice(createNoticeDto, user.uuid, groups);
   }
 
   @ApiOperation({
@@ -214,13 +209,15 @@ export class NoticeController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Patch(':id')
   @UseGuards(IdPGuard)
+  @UseGuards(GroupsGuard)
   async updateNotice(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
+    @GetGroups() groups: GroupsUserInfo,
     @Query() query: UpdateNoticeQueryDto,
     @Body() body: UpdateNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
-    return this.noticeService.updateNotice(body, query, id, user.uuid);
+    return this.noticeService.updateNotice(body, query, id, user.uuid, groups);
   }
 
   @ApiOperation({
@@ -252,10 +249,13 @@ export class NoticeController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Delete(':id')
   @UseGuards(IdPGuard)
+  @UseGuards(GroupsGuard)
   async deleteNotice(
     @GetUser() user: User,
-    @Param('id', ParseIntPipe) id: number,
+    @GetGroups() groups: GroupsUserInfo,
+    @Param('id', ParseIntPipe)
+    id: number,
   ) {
-    return this.noticeService.deleteNotice(id, user.uuid);
+    return this.noticeService.deleteNotice(id, user.uuid, groups);
   }
 }

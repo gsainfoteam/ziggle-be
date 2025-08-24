@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import {
@@ -25,15 +26,17 @@ import {
 } from './dto/req/updateNotice.dto';
 import { htmlToText } from 'html-to-text';
 import { Notification } from 'firebase-admin/messaging';
-import { Authority } from '../group/types/groupInfo.type';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
 import { ImageService } from '../image/image.service';
 import { DocumentService } from '../document/document.service';
 import { FileService } from '../file/file.service';
-import { GroupService } from '../group/group.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
+import {
+  GroupsUserInfo,
+  Permission,
+} from '@lib/infoteam-groups/types/groups.type';
 
 @Injectable()
 @Loggable()
@@ -46,7 +49,6 @@ export class NoticeService {
     private readonly documentService: DocumentService,
     private readonly fileService: FileService,
     private readonly noticeRepository: NoticeRepository,
-    private readonly groupService: GroupService,
     private readonly fcmService: FcmService,
     private readonly customConfigService: CustomConfigService,
   ) {
@@ -102,19 +104,16 @@ export class NoticeService {
   async createNotice(
     createNoticeDto: CreateNoticeDto,
     userUuid: string,
-    groupsToken?: string,
+    groups?: GroupsUserInfo,
   ): Promise<ExpandedGeneralNoticeDto> {
     let groupName;
 
-    if (createNoticeDto.groupId !== undefined && groupsToken !== undefined) {
-      const getGroupResult =
-        await this.groupService.getGroupInfoFromGroups(groupsToken);
-
-      const matchingGroup = getGroupResult.find(
+    if (createNoticeDto.groupId !== undefined && groups !== undefined) {
+      const matchingGroup = groups.find(
         (group) =>
-          group.uuid === createNoticeDto.groupId &&
-          group.role.some((role) =>
-            role.externalAuthority.includes(Authority.WRITE),
+          group.groupUuid === createNoticeDto.groupId &&
+          group.RoleExternalPermission.some((role) =>
+            role.permission.includes(Permission.WRITE),
           ),
       );
 
@@ -123,6 +122,8 @@ export class NoticeService {
       }
 
       groupName = matchingGroup.name;
+    } else if (createNoticeDto.groupId) {
+      throw new UnauthorizedException();
     }
 
     if (createNoticeDto.images.length) {
@@ -264,8 +265,26 @@ export class NoticeService {
     query: UpdateNoticeQueryDto,
     id: number,
     userUuid: string,
+    groups?: GroupsUserInfo,
   ): Promise<ExpandedGeneralNoticeDto> {
     const notice = await this.noticeRepository.getNotice(id);
+
+    if (notice.groupId !== undefined && groups !== undefined) {
+      const matchingGroup = groups.find(
+        (group) =>
+          group.groupUuid === notice.groupId &&
+          group.RoleExternalPermission.some((role) =>
+            role.permission.includes(Permission.WRITE),
+          ),
+      );
+
+      if (!matchingGroup) {
+        throw new ForbiddenException();
+      }
+    } else if (notice.groupId) {
+      throw new UnauthorizedException();
+    }
+
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException();
     }
@@ -287,9 +306,30 @@ export class NoticeService {
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
-  async deleteNotice(id: number, userUuid: string): Promise<void> {
+  async deleteNotice(
+    id: number,
+    userUuid: string,
+    groups?: GroupsUserInfo,
+  ): Promise<void> {
     await this.fcmService.deleteMessageJobIdPattern(id.toString());
     const notice = await this.noticeRepository.getNotice(id);
+
+    if (notice.groupId !== undefined && groups !== undefined) {
+      const matchingGroup = groups.find(
+        (group) =>
+          group.groupUuid === notice.groupId &&
+          group.RoleExternalPermission.some((role) =>
+            role.permission.includes(Permission.WRITE),
+          ),
+      );
+
+      if (!matchingGroup) {
+        throw new ForbiddenException();
+      }
+    } else if (notice.groupId) {
+      throw new UnauthorizedException();
+    }
+
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException();
     }

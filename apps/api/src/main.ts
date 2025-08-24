@@ -72,12 +72,23 @@ async function bootstrap() {
       },
       'oauth2',
     )
+    .addSecurity('groups-auth', {
+      type: 'apiKey',
+      bearerFormat: 'token',
+      name: 'groups-token',
+      description: 'Enter groups token',
+      in: 'header',
+    })
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
       oauth2RedirectUrl: `${customConfigService.API_URL}/api/oauth2-redirect.html`,
       displayRequestDuration: true,
+      initOAuth: {
+        usePkceWithAuthorizationCodeGrant: true,
+        additionalQueryStringParams: { nonce: 'help' },
+      },
     },
   });
   // start server
