@@ -112,7 +112,7 @@ export class NoticeService {
       const matchingGroup = groups.find(
         (group) =>
           group.uuid === createNoticeDto.groupId &&
-          group.Role.find((role) =>
+          group.Role.some((role) =>
             role.RoleExternalPermission.some(
               ({ permission }) => permission === Permission.WRITE,
             ),
@@ -275,7 +275,7 @@ export class NoticeService {
       const matchingGroup = groups.find(
         (group) =>
           group.uuid === notice.groupId &&
-          group.Role.find((role) =>
+          group.Role.some((role) =>
             role.RoleExternalPermission.some(
               ({ permission }) => permission === Permission.WRITE,
             ),
@@ -322,7 +322,7 @@ export class NoticeService {
       const matchingGroup = groups.find(
         (group) =>
           group.uuid === notice.groupId &&
-          group.Role.find((role) =>
+          group.Role.some((role) =>
             role.RoleExternalPermission.some(
               ({ permission }) => permission === Permission.DELETE,
             ),
