@@ -111,9 +111,11 @@ export class NoticeService {
     if (createNoticeDto.groupId !== undefined && groups !== undefined) {
       const matchingGroup = groups.find(
         (group) =>
-          group.groupUuid === createNoticeDto.groupId &&
-          group.RoleExternalPermission.some((role) =>
-            role.permission.includes(Permission.WRITE),
+          group.uuid === createNoticeDto.groupId &&
+          group.Role.some((role) =>
+            role.RoleExternalPermission.some(
+              ({ permission }) => permission === Permission.WRITE,
+            ),
           ),
       );
 
@@ -272,9 +274,11 @@ export class NoticeService {
     if (notice.groupId !== undefined && groups !== undefined) {
       const matchingGroup = groups.find(
         (group) =>
-          group.groupUuid === notice.groupId &&
-          group.RoleExternalPermission.some((role) =>
-            role.permission.includes(Permission.WRITE),
+          group.uuid === notice.groupId &&
+          group.Role.some((role) =>
+            role.RoleExternalPermission.some(
+              ({ permission }) => permission === Permission.WRITE,
+            ),
           ),
       );
 
@@ -317,9 +321,11 @@ export class NoticeService {
     if (notice.groupId !== undefined && groups !== undefined) {
       const matchingGroup = groups.find(
         (group) =>
-          group.groupUuid === notice.groupId &&
-          group.RoleExternalPermission.some((role) =>
-            role.permission.includes(Permission.WRITE),
+          group.uuid === notice.groupId &&
+          group.Role.some((role) =>
+            role.RoleExternalPermission.some(
+              ({ permission }) => permission === Permission.DELETE,
+            ),
           ),
       );
 
