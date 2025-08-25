@@ -4,13 +4,14 @@ export enum Permission {
 }
 
 export type GroupsUserInfo = {
-  RoleExternalPermission: {
-    clientUuid: string;
-    permission: Permission;
-    roleId: number;
-    roleGroupUuid: string;
+  Role: {
+    RoleExternalPermission: {
+      clientUuid: string;
+      permission: Permission;
+      roleId: number;
+      roleGroupUuid: string;
+    }[];
   }[];
+  uuid: string;
   name: string;
-  id: number;
-  groupUuid: string;
 }[];
