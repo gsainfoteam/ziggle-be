@@ -106,10 +106,10 @@ export class NoticeService {
     userUuid: string,
     groups?: GroupsUserInfo[],
   ): Promise<ExpandedGeneralNoticeDto> {
-    let groupName;
+    let matchingGroup;
 
     if (createNoticeDto.groupId !== undefined && groups !== undefined) {
-      const matchingGroup = groups.find(
+      matchingGroup = groups.find(
         (group) =>
           group.uuid === createNoticeDto.groupId &&
           group.Role.some((role) =>
@@ -122,8 +122,6 @@ export class NoticeService {
       if (!matchingGroup) {
         throw new ForbiddenException();
       }
-
-      groupName = matchingGroup.name;
     } else if (createNoticeDto.groupId) {
       throw new UnauthorizedException();
     }
@@ -140,7 +138,7 @@ export class NoticeService {
         userUuid,
         publishedAt: new Date(new Date().getTime() + this.fcmDelay),
         createdAt: undefined,
-        groupName,
+        group: matchingGroup,
       },
     );
 

@@ -58,8 +58,9 @@ model UserRecord {
 }
 
 model Group {
-  uuid String @id @db.Uuid
-  name String
+  uuid            String @id @db.Uuid
+  name            String
+  profileImageUrl String?
 
   Notice Notice[]
 
