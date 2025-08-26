@@ -104,7 +104,7 @@ export class NoticeService {
   async createNotice(
     createNoticeDto: CreateNoticeDto,
     userUuid: string,
-    groups?: GroupsUserInfo,
+    groups?: GroupsUserInfo[],
   ): Promise<ExpandedGeneralNoticeDto> {
     let groupName;
 
@@ -267,7 +267,7 @@ export class NoticeService {
     query: UpdateNoticeQueryDto,
     id: number,
     userUuid: string,
-    groups?: GroupsUserInfo,
+    groups?: GroupsUserInfo[],
   ): Promise<ExpandedGeneralNoticeDto> {
     const notice = await this.noticeRepository.getNotice(id);
 
@@ -313,7 +313,7 @@ export class NoticeService {
   async deleteNotice(
     id: number,
     userUuid: string,
-    groups?: GroupsUserInfo,
+    groups?: GroupsUserInfo[],
   ): Promise<void> {
     await this.fcmService.deleteMessageJobIdPattern(id.toString());
     const notice = await this.noticeRepository.getNotice(id);
