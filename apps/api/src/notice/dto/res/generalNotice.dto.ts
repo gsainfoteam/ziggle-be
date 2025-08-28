@@ -53,7 +53,7 @@ export class GeneralNoticeDto {
   @Exclude()
   authorId: string;
   @Exclude()
-  group: Group | null;
+  groupId: string | null;
 
   @Expose()
   @ApiProperty()
@@ -69,7 +69,7 @@ export class GeneralNoticeDto {
 
   @Expose()
   @ApiProperty()
-  groupId: string | null;
+  group: Group | null;
 
   @Expose()
   @Type(() => AuthorDto)

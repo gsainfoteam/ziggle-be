@@ -105,7 +105,7 @@ export class NoticeController {
   @UseGuards(GroupsGuard)
   async createNotice(
     @GetUser() user: User,
-    @GetGroups() groups: GroupsUserInfo,
+    @GetGroups() groups: GroupsUserInfo[],
     @Body() createNoticeDto: CreateNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.createNotice(createNoticeDto, user.uuid, groups);
@@ -213,7 +213,7 @@ export class NoticeController {
   async updateNotice(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
-    @GetGroups() groups: GroupsUserInfo,
+    @GetGroups() groups: GroupsUserInfo[],
     @Query() query: UpdateNoticeQueryDto,
     @Body() body: UpdateNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
@@ -252,7 +252,7 @@ export class NoticeController {
   @UseGuards(GroupsGuard)
   async deleteNotice(
     @GetUser() user: User,
-    @GetGroups() groups: GroupsUserInfo,
+    @GetGroups() groups: GroupsUserInfo[],
     @Param('id', ParseIntPipe)
     id: number,
   ) {

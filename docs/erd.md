@@ -41,6 +41,7 @@ ETC ETC
   "group" {
     String uuid "🗝️"
     String name 
+    String profileImageUrl "❓"
     }
   
 

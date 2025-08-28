@@ -104,12 +104,12 @@ export class NoticeService {
   async createNotice(
     createNoticeDto: CreateNoticeDto,
     userUuid: string,
-    groups?: GroupsUserInfo,
+    groups?: GroupsUserInfo[],
   ): Promise<ExpandedGeneralNoticeDto> {
-    let groupName;
+    let matchingGroup;
 
     if (createNoticeDto.groupId !== undefined && groups !== undefined) {
-      const matchingGroup = groups.find(
+      matchingGroup = groups.find(
         (group) =>
           group.uuid === createNoticeDto.groupId &&
           group.Role.some((role) =>
@@ -122,8 +122,6 @@ export class NoticeService {
       if (!matchingGroup) {
         throw new ForbiddenException();
       }
-
-      groupName = matchingGroup.name;
     } else if (createNoticeDto.groupId) {
       throw new UnauthorizedException();
     }
@@ -140,7 +138,7 @@ export class NoticeService {
         userUuid,
         publishedAt: new Date(new Date().getTime() + this.fcmDelay),
         createdAt: undefined,
-        groupName,
+        group: matchingGroup,
       },
     );
 
@@ -267,7 +265,7 @@ export class NoticeService {
     query: UpdateNoticeQueryDto,
     id: number,
     userUuid: string,
-    groups?: GroupsUserInfo,
+    groups?: GroupsUserInfo[],
   ): Promise<ExpandedGeneralNoticeDto> {
     const notice = await this.noticeRepository.getNotice(id);
 
@@ -313,7 +311,7 @@ export class NoticeService {
   async deleteNotice(
     id: number,
     userUuid: string,
-    groups?: GroupsUserInfo,
+    groups?: GroupsUserInfo[],
   ): Promise<void> {
     await this.fcmService.deleteMessageJobIdPattern(id.toString());
     const notice = await this.noticeRepository.getNotice(id);

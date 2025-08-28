@@ -18,6 +18,7 @@ import {
 } from './dto/req/updateNotice.dto';
 import { PrismaService } from '@lib/prisma';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
 
 @Injectable()
 @Loggable()
@@ -335,12 +336,12 @@ export class NoticeRepository {
       userUuid,
       publishedAt,
       createdAt,
-      groupName,
+      group,
     }: {
       userUuid: string;
       publishedAt: Date;
       createdAt?: Date;
-      groupName?: string;
+      group?: GroupsUserInfo;
     },
   ): Promise<NoticeFullContent> {
     const findTags = await this.prismaService.tag.findMany({
@@ -351,7 +352,7 @@ export class NoticeRepository {
       },
     });
 
-    if (groupId && groupName) {
+    if (groupId && group) {
       await this.prismaService.group.upsert({
         where: {
           uuid: groupId,
@@ -359,7 +360,8 @@ export class NoticeRepository {
         update: {},
         create: {
           uuid: groupId,
-          name: groupName,
+          name: group?.name,
+          profileImageUrl: group?.profileImageUrl,
         },
       });
     }
@@ -404,7 +406,7 @@ export class NoticeRepository {
           },
           category,
           group:
-            groupId === undefined || groupName === undefined
+            groupId === undefined || group === undefined
               ? undefined
               : {
                   connect: { uuid: groupId },

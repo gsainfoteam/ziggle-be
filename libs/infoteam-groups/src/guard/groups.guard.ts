@@ -10,7 +10,7 @@ import { GroupsUserInfo } from '../types/groups.type';
 export class GroupsGuard extends AuthGuard('groups') {
   handleRequest(
     err: Error,
-    user: { groups: GroupsUserInfo },
+    user: { groups: GroupsUserInfo[] },
     _: any,
     context: ExecutionContext,
   ): any {

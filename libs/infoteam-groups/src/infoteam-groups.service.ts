@@ -23,10 +23,10 @@ export class InfoteamGroupsService {
     this.groupsUrl = this.customConfigService.GROUPS_URL;
   }
 
-  async getGroupsUserInfo(accessToken: string): Promise<GroupsUserInfo> {
+  async getGroupsUserInfo(accessToken: string): Promise<GroupsUserInfo[]> {
     const userInfoResponse = await firstValueFrom(
       this.httpService
-        .get<GroupsUserInfo>(this.groupsUrl + '/third-party/userinfo', {
+        .get<GroupsUserInfo[]>(this.groupsUrl + '/third-party/userinfo', {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },

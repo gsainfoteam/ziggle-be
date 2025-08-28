@@ -14,4 +14,5 @@ export type GroupsUserInfo = {
   }[];
   uuid: string;
   name: string;
-}[];
+  profileImageUrl: string;
+};
