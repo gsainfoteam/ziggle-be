@@ -13,6 +13,14 @@ import {
 import { CrawlerRepository } from './crawler.repository';
 import { UserService } from './user/user.service';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
+import { CustomConfigService } from '@lib/custom-config';
+import { htmlToText } from 'html-to-text';
+import {
+  CrawlerFcmService,
+  FcmTargetUser,
+} from './crawler-fcm/crawler-fcm.service';
 
 @Loggable()
 @Injectable()
@@ -21,13 +29,28 @@ export class CrawlerService {
   private readonly targetUrl =
     'https://www.gist.ac.kr/kr/html/sub05/050209.html';
   constructor(
+    @InjectQueue('fcm') private readonly fcmQueue: Queue,
+    private readonly customConfigService: CustomConfigService,
     private readonly userService: UserService,
     private readonly httpService: HttpService,
     private readonly crawlerRepository: CrawlerRepository,
+    private readonly crawlerFcmService: CrawlerFcmService,
   ) {}
 
   async checkCrawlData(url: string): Promise<Crawl | null> {
     return this.crawlerRepository.checkCrawlData(url);
+  }
+
+  private toPlainText(html?: string): string | undefined {
+    if (!html) return undefined;
+    return htmlToText(html, {
+      selectors: [
+        { selector: 'a', options: { ignoreHref: true } },
+        { selector: 'img', format: 'skip' },
+      ],
+    })
+      .slice(0, 1000)
+      .replace(/\s+/gm, ' ');
   }
 
   async createCrawl(
@@ -37,7 +60,24 @@ export class CrawlerService {
     deadline?: Date,
   ): Promise<Crawl> {
     const user = await this.userService.findOrCreateTempUser(userName);
-    return this.crawlerRepository.createCrawl(data, createdAt, user, deadline);
+    const created = await this.crawlerRepository.createCrawl(
+      data,
+      createdAt,
+      user,
+      deadline,
+    );
+
+    await this.crawlerFcmService.postMessageWithDelay(
+      created.noticeId.toString(),
+      {
+        title: data.title,
+        body: this.toPlainText(data.body),
+      },
+      FcmTargetUser.All,
+      { path: `/crawl/${created.id}` },
+    );
+
+    return created;
   }
 
   async updateCrawl(
