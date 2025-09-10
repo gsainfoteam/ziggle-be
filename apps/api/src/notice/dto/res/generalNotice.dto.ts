@@ -5,7 +5,6 @@ import {
   Crawl,
   File,
   FileType,
-  Group,
   Reaction,
   Tag,
   User,
@@ -19,6 +18,17 @@ export class AuthorDto {
 
   @ApiProperty()
   name: string;
+}
+
+class GroupDto {
+  @ApiProperty()
+  uuid: string;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  profileImageUrl: string | null;
 }
 
 export class GeneralNoticeDto {
@@ -68,8 +78,9 @@ export class GeneralNoticeDto {
   }
 
   @Expose()
-  @ApiProperty()
-  group: Group | null;
+  @Type(() => GroupDto)
+  @ApiProperty({ type: GroupDto })
+  group: GroupDto | null;
 
   @Expose()
   @Type(() => AuthorDto)
