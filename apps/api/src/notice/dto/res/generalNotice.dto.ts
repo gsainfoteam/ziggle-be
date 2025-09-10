@@ -78,7 +78,8 @@ export class GeneralNoticeDto {
   }
 
   @Expose()
-  @ApiProperty()
+  @Type(() => GroupDto)
+  @ApiProperty({ type: GroupDto })
   group: GroupDto | null;
 
   @Expose()
