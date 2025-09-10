@@ -28,7 +28,7 @@ class GroupDto {
   name: string;
 
   @ApiProperty()
-  profileImageUrl: string;
+  profileImageUrl: string | null;
 }
 
 export class GeneralNoticeDto {
