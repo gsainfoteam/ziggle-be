@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   Category,
   Content,
@@ -27,8 +27,22 @@ class GroupDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ type: String })
   profileImageUrl: string | null;
+}
+
+class GeneralReactionDto {
+  @ApiProperty()
+  emoji: string;
+
+  @ApiProperty()
+  count: number;
+
+  @ApiProperty()
+  isReacted: boolean;
+
+  @ApiProperty()
+  userId?: string;
 }
 
 export class GeneralNoticeDto {
@@ -79,7 +93,7 @@ export class GeneralNoticeDto {
 
   @Expose()
   @Type(() => GroupDto)
-  @ApiProperty({ type: GroupDto })
+  @ApiPropertyOptional({ type: GroupDto })
   group: GroupDto | null;
 
   @Expose()
@@ -140,7 +154,7 @@ export class GeneralNoticeDto {
       isReacted: reactions.some(({ userId }) => userId === obj.userUuid),
     }));
   })
-  @ApiProperty()
+  @ApiProperty({ type: GeneralReactionDto })
   reactions: GeneralReactionDto[] | Reaction[];
 
   @Expose()
@@ -154,13 +168,13 @@ export class GeneralNoticeDto {
   category: Category;
 
   @Expose()
-  @ApiProperty()
+  @ApiPropertyOptional({ type: Date })
   get deadline(): Date | null {
     return this.crawls.length > 0 ? null : this.mainContent.deadline ?? null;
   }
 
   @Expose()
-  @ApiProperty()
+  @ApiPropertyOptional({ type: Date })
   currentDeadline: Date | null;
 
   @Expose()
@@ -186,20 +200,6 @@ export class GeneralNoticeDto {
   constructor(partial: Partial<GeneralNoticeDto>) {
     Object.assign(this, partial);
   }
-}
-
-class GeneralReactionDto {
-  @ApiProperty()
-  emoji: string;
-
-  @ApiProperty()
-  count: number;
-
-  @ApiProperty()
-  isReacted: boolean;
-
-  @ApiProperty()
-  userId?: string;
 }
 
 export class GeneralNoticeListDto {

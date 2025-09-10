@@ -1,11 +1,28 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GeneralNoticeDto } from './generalNotice.dto';
 import { Expose } from 'class-transformer';
 
+class AdditionalContentsDto {
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
+  lang: string;
+
+  @ApiPropertyOptional({ type: Date })
+  deadline: Date | null;
+
+  @ApiProperty()
+  content: string;
+
+  @ApiProperty()
+  createdAt: Date;
+}
+
 export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   @Expose()
-  @ApiProperty()
-  get additionalContents(): AdditionalNoticeDto[] {
+  @ApiProperty({ type: [AdditionalContentsDto] })
+  get additionalContents(): AdditionalContentsDto[] {
     return this.contents
       .filter(({ id }) => id !== 1)
       .map(({ id, createdAt, body, deadline, lang }) => ({
@@ -26,21 +43,4 @@ export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   constructor(partial: Partial<ExpandedGeneralNoticeDto>) {
     super(partial);
   }
-}
-
-class AdditionalNoticeDto {
-  @ApiProperty()
-  id: number;
-
-  @ApiProperty()
-  lang: string;
-
-  @ApiProperty()
-  deadline: Date | null;
-
-  @ApiProperty()
-  content: string;
-
-  @ApiProperty()
-  createdAt: Date;
 }
