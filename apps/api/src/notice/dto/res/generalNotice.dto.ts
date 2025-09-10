@@ -154,7 +154,7 @@ export class GeneralNoticeDto {
       isReacted: reactions.some(({ userId }) => userId === obj.userUuid),
     }));
   })
-  @ApiProperty({ type: GeneralReactionDto })
+  @ApiProperty({ type: [GeneralReactionDto] })
   reactions: GeneralReactionDto[] | Reaction[];
 
   @Expose()
