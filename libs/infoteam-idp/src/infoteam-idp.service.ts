@@ -25,51 +25,6 @@ export class InfoteamIdpService {
   }
 
   /**
-   * this method is used to get the access token from the infoteam idp
-   * @param code it is the code that is returned from the idp
-   * @param redirectUri this is the redirect uri that is used to get the code
-   * @returns accessToken and refreshToken
-   * @throws UnauthorizedException if the code is invalid
-   * @throws InternalServerErrorException if there is an unknown error while getting the access token
-   */
-  async getAccessToken(
-    code: string,
-    redirectUri: string,
-  ): Promise<IdpJwtResponse> {
-    const accessTokenResponse = await firstValueFrom(
-      this.httpService
-        .post<IdpJwtResponse>(
-          this.idpUrl + '/token',
-          {
-            code,
-            grant_type: 'authorization_code',
-            redirect_uri: redirectUri,
-          },
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            auth: {
-              username: this.customConfigService.CLIENT_ID,
-              password: this.customConfigService.CLIENT_SECRET,
-            },
-          },
-        )
-        .pipe(
-          catchError((error: AxiosError) => {
-            if (error instanceof AxiosError && error.response?.status === 401) {
-              this.logger.debug('Invalid code');
-              throw new UnauthorizedException();
-            }
-            this.logger.error(error.message);
-            throw new InternalServerErrorException();
-          }),
-        ),
-    );
-    return accessTokenResponse.data;
-  }
-
-  /**
    * this method is used to get the user info from the idp
    * @param accessToken it is the access token that is returned from the idp
    * @returns userInfo
