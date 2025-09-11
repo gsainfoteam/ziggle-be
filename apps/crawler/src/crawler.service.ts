@@ -21,6 +21,7 @@ import {
   CrawlerFcmService,
   FcmTargetUser,
 } from './crawler-fcm/crawler-fcm.service';
+import { Notification } from 'firebase-admin/messaging';
 
 @Loggable()
 @Injectable()
@@ -67,15 +68,19 @@ export class CrawlerService {
       deadline,
     );
 
-    await this.crawlerFcmService.postMessageWithDelay(
-      created.noticeId.toString(),
-      {
-        title: data.title,
-        body: this.toPlainText(data.body),
-      },
-      FcmTargetUser.All,
-      { path: `/crawl/${created.id}` },
-    );
+    void this.crawlerFcmService
+      .postMessageWithDelay(
+        created.noticeId.toString(),
+        this.convertNotificationBodyToString({
+          title: data.title,
+          body: data.body ?? undefined,
+        }),
+        FcmTargetUser.All,
+        { path: `/notice/${created.noticeId}` },
+      )
+      .catch((err) =>
+        this.logger.error('FCM enqueue failed', err?.stack ?? String(err)),
+      );
 
     return created;
   }
@@ -164,5 +169,21 @@ export class CrawlerService {
           return throwError(() => new Error(err));
         }),
       );
+  }
+
+  private convertNotificationBodyToString(notification: Notification) {
+    return {
+      ...notification,
+      body: notification.body
+        ? htmlToText(notification.body, {
+            selectors: [
+              { selector: 'a', options: { ignoreHref: true } },
+              { selector: 'img', format: 'skip' },
+            ],
+          })
+            .slice(0, 1000)
+            .replaceAll(/\s+/gm, ' ')
+        : undefined,
+    };
   }
 }

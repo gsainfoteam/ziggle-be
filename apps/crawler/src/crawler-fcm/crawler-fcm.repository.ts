@@ -9,16 +9,13 @@ import { FcmToken } from '@prisma/client';
 @Injectable()
 export class CrawlerFcmRepository {
   private readonly logger = new Logger(CrawlerFcmRepository.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async getAllFcmTokens(): Promise<FcmToken[]> {
-    // API의 FcmRepository와 동일한 쿼리
-    try {
-      return await this.prisma.fcmToken.findMany();
-    } catch (err) {
+    return this.prismaService.fcmToken.findMany().catch((err) => {
       this.logger.error('getAllFcmTokens');
       this.logger.debug(err);
       throw new InternalServerErrorException('Database error');
-    }
+    });
   }
 }
