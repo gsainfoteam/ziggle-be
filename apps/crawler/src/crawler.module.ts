@@ -5,7 +5,6 @@ import { HttpModule } from '@nestjs/axios';
 import { CrawlerRepository } from './crawler.repository';
 import { UserModule } from './user/user.module';
 import { LoggerModule } from '@lib/logger';
-import { BullModule } from '@nestjs/bull';
 import { CrawlerFcmModule } from './crawler-fcm/crawler-fcm.module';
 
 @Module({
@@ -14,7 +13,6 @@ import { CrawlerFcmModule } from './crawler-fcm/crawler-fcm.module';
     HttpModule,
     UserModule,
     LoggerModule,
-    BullModule.registerQueue({ name: 'fcm' }),
     CrawlerFcmModule,
   ],
   providers: [CrawlerService, CrawlerRepository],

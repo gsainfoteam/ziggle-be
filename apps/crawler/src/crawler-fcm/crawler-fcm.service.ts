@@ -99,8 +99,4 @@ export class CrawlerFcmService {
       await this.processBatches(failedBatches, noticeId, notification, 2, data);
     }
   }
-
-  async deleteMessageJobIdPattern(name: string): Promise<void> {
-    await this.fcmQueue.removeJobs(`${name}-*`);
-  }
 }
