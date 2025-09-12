@@ -13,6 +13,12 @@ import {
 import { CrawlerRepository } from './crawler.repository';
 import { UserService } from './user/user.service';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { htmlToText } from 'html-to-text';
+import {
+  CrawlerFcmService,
+  FcmTargetUser,
+} from './crawler-fcm/crawler-fcm.service';
+import { Notification } from 'firebase-admin/messaging';
 
 @Loggable()
 @Injectable()
@@ -24,6 +30,7 @@ export class CrawlerService {
     private readonly userService: UserService,
     private readonly httpService: HttpService,
     private readonly crawlerRepository: CrawlerRepository,
+    private readonly crawlerFcmService: CrawlerFcmService,
   ) {}
 
   async checkCrawlData(url: string): Promise<Crawl | null> {
@@ -37,7 +44,28 @@ export class CrawlerService {
     deadline?: Date,
   ): Promise<Crawl> {
     const user = await this.userService.findOrCreateTempUser(userName);
-    return this.crawlerRepository.createCrawl(data, createdAt, user, deadline);
+    const created = await this.crawlerRepository.createCrawl(
+      data,
+      createdAt,
+      user,
+      deadline,
+    );
+
+    void this.crawlerFcmService
+      .postMessageWithDelay(
+        created.noticeId.toString(),
+        this.convertNotificationBodyToString({
+          title: data.title,
+          body: data.body ?? undefined,
+        }),
+        FcmTargetUser.All,
+        { path: `/notice/${created.noticeId}` },
+      )
+      .catch((err) =>
+        this.logger.error('FCM enqueue failed', err?.stack ?? String(err)),
+      );
+
+    return created;
   }
 
   async updateCrawl(
@@ -124,5 +152,21 @@ export class CrawlerService {
           return throwError(() => new Error(err));
         }),
       );
+  }
+
+  private convertNotificationBodyToString(notification: Notification) {
+    return {
+      ...notification,
+      body: notification.body
+        ? htmlToText(notification.body, {
+            selectors: [
+              { selector: 'a', options: { ignoreHref: true } },
+              { selector: 'img', format: 'skip' },
+            ],
+          })
+            .slice(0, 1000)
+            .replaceAll(/\s+/gm, ' ')
+        : undefined,
+    };
   }
 }

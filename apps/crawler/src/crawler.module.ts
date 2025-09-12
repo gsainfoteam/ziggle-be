@@ -5,9 +5,16 @@ import { HttpModule } from '@nestjs/axios';
 import { CrawlerRepository } from './crawler.repository';
 import { UserModule } from './user/user.module';
 import { LoggerModule } from '@lib/logger';
+import { CrawlerFcmModule } from './crawler-fcm/crawler-fcm.module';
 
 @Module({
-  imports: [PrismaModule, HttpModule, UserModule, LoggerModule],
+  imports: [
+    PrismaModule,
+    HttpModule,
+    UserModule,
+    LoggerModule,
+    CrawlerFcmModule,
+  ],
   providers: [CrawlerService, CrawlerRepository],
   exports: [CrawlerService],
 })
