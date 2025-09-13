@@ -17,12 +17,14 @@ export class CrawlerFcmService {
   constructor(
     @InjectQueue('fcm') private readonly fcmQueue: Queue,
     private readonly customConfigService: CustomConfigService,
-    private readonly repo: CrawlerFcmRepository,
+    private readonly crawlFcmRepository: CrawlerFcmRepository,
   ) {}
 
   private createBatches<T>(arr: T[], size: number): T[][] {
     const out: T[][] = [];
-    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    for (let i = 0; i < arr.length; i += size) {
+      out.push(arr.slice(i, i + size));
+    }
     return out;
   }
 
@@ -31,8 +33,8 @@ export class CrawlerFcmService {
   ): Promise<string[][]> {
     const tokens =
       target === FcmTargetUser.All
-        ? await this.repo.getAllFcmTokens()
-        : await this.repo.getAllFcmTokens();
+        ? await this.crawlFcmRepository.getAllFcmTokens()
+        : await this.crawlFcmRepository.getAllFcmTokens();
     const totalTokens = tokens.map(({ fcmTokenId }) => fcmTokenId);
     const BATCH_SIZE = 100;
     return this.createBatches(totalTokens, BATCH_SIZE);
@@ -76,6 +78,7 @@ export class CrawlerFcmService {
     );
     return failedBatches;
   }
+
   async postMessageWithDelay(
     noticeId: string,
     notification: Notification,
