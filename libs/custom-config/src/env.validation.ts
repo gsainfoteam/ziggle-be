@@ -117,6 +117,10 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   DEEPL_API_KEY: string;
+
+  @IsString()
+  @IsNotEmpty()
+  CRAWLING_UPTIME_URI: string;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;

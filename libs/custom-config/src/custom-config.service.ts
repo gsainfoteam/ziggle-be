@@ -125,4 +125,8 @@ export class CustomConfigService {
   get DEEPL_API_KEY(): string {
     return this.getEnvVariable('DEEPL_API_KEY');
   }
+
+  get CRAWLING_UPTIME_URI(): string {
+    return this.getEnvVariable('CRAWLING_UPTIME_URI');
+  }
 }
