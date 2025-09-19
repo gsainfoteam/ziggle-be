@@ -54,10 +54,9 @@ export class InfoteamIdpService {
       sub: uuid,
       name,
       email,
-      phone_number: phoneNumber,
       student_id: studentNumber,
     } = userInfoResponse.data;
-    return { uuid, name, email, phoneNumber, studentNumber };
+    return { uuid, name, email, studentNumber };
   }
 
   /**
