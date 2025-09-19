@@ -36,7 +36,7 @@ import {
   UpdateNoticeQueryDto,
 } from './dto/req/updateNotice.dto';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
-import { IdPGuard, IdPOptionalGuard } from '../user/guard/idp.guard';
+import { IdPGuard } from '../user/guard/idp.guard';
 import { GetUser } from '../user/decorator/get-user.decorator';
 import { GroupsGuard } from '@lib/infoteam-groups/guard/groups.guard';
 import { GetGroups } from '../user/decorator/get-groups.decorator';
@@ -62,10 +62,10 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get()
-  @UseGuards(IdPOptionalGuard)
+  @UseGuards(IdPGuard)
   async getNoticeList(
     @Query() query: GetAllNoticeQueryDto,
-    @GetUser() user?: User,
+    @GetUser() user: User,
   ): Promise<GeneralNoticeListDto> {
     return this.noticeService.getNoticeList(query, user?.uuid);
   }
@@ -81,11 +81,11 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get(':id')
-  @UseGuards(IdPOptionalGuard)
+  @UseGuards(IdPGuard)
   async getNotice(
     @Param('id', ParseIntPipe) id: number,
     @Query() query: GetAllNoticeQueryDto,
-    @GetUser() user?: User,
+    @GetUser() user: User,
   ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.getNotice(id, query, user?.uuid);
   }

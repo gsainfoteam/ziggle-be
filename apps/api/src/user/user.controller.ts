@@ -106,8 +106,11 @@ export class UserController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get('info')
   @UseGuards(IdPGuard)
-  async getUserInfo(@GetIdPUser() user: UserInfo): Promise<UserInfoRes> {
-    return user;
+  async getUserInfo(
+    @GetIdPUser() userInfo: UserInfo,
+    @GetUser() user: User,
+  ): Promise<UserInfoRes> {
+    return { ...userInfo, consent: user.consent };
   }
 
   @ApiOperation({

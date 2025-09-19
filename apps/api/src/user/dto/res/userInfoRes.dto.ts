@@ -21,14 +21,14 @@ export class UserInfoRes implements UserInfo {
   name: string;
 
   @ApiPropertyOptional({
-    description: 'User phone number',
-    example: '01012345678',
-  })
-  phoneNumber?: string;
-
-  @ApiPropertyOptional({
     description: 'Student number',
     example: '20212345',
   })
   studentNumber?: string;
+
+  @ApiProperty({
+    description: 'Consent or not',
+    example: true,
+  })
+  consent: boolean;
 }
