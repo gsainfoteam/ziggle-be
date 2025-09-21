@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Post,
   Req,
@@ -124,5 +125,18 @@ export class UserController {
   @UseGuards(IdPOptionalGuard)
   async setFcmToken(@GetUser() user: User, @Body() fcmToken: setFcmTokenReq) {
     return this.userService.setFcmToken(user?.uuid, fcmToken);
+  }
+
+  @ApiOperation({
+    summary: 'delete user',
+    description: 'delete user and all data related to the user',
+  })
+  @ApiCreatedResponse({ description: 'user deleted' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @UseGuards(IdPGuard)
+  @Delete()
+  async deleteUser(@GetUser() user: User): Promise<void> {
+    return this.userService.deleteUser(user);
   }
 }

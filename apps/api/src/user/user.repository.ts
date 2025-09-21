@@ -172,6 +172,12 @@ export class UserRepository {
     return { message: 'success', fcmToken: fcmToken };
   }
 
+  async deleteUserByUuid(userUuid: string): Promise<void> {
+    await this.prismaService.user.delete({
+      where: { uuid: userUuid },
+    });
+  }
+
   async deleteFcmTokens(fcmTokens: string[]): Promise<void> {
     await this.prismaService.fcmToken
       .deleteMany({
