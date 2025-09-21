@@ -78,6 +78,10 @@ export class UserService {
     return this.userRepository.setFcmToken(userUuid, fcmToken);
   }
 
+  async deleteUser(user: User): Promise<void> {
+    return this.userRepository.deleteUserByUuid(user.uuid);
+  }
+
   async deleteFcmTokens(fcmTokens: string[]) {
     return this.userRepository.deleteFcmTokens(fcmTokens);
   }

@@ -172,6 +172,25 @@ export class UserRepository {
     return { message: 'success', fcmToken: fcmToken };
   }
 
+  async deleteUserByUuid(userUuid: string): Promise<void> {
+    await this.prismaService.user
+      .delete({
+        where: { uuid: userUuid },
+      })
+      .catch((err) => {
+        if (err instanceof PrismaClientKnownRequestError) {
+          if (err.code === 'P2025') {
+            this.logger.debug('user not found');
+            throw new NotFoundException();
+          }
+          this.logger.error(err.message);
+          throw new InternalServerErrorException();
+        }
+        this.logger.error(err);
+        throw new InternalServerErrorException();
+      });
+  }
+
   async deleteFcmTokens(fcmTokens: string[]): Promise<void> {
     await this.prismaService.fcmToken
       .deleteMany({
