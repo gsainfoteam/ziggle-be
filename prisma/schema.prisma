@@ -51,7 +51,7 @@ model UserRecord {
   noticeId  Int      @map("notice_id")
 
   user   User   @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
-  notice Notice @relation(fields: [noticeId], references: [id])
+  notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
 
   @@id([userUuid, noticeId])
   @@map("user_record")
@@ -76,7 +76,7 @@ model File {
   type      FileType
 
   noticeId Int    @map("notice_id")
-  notice   Notice @relation(fields: [noticeId], references: [id])
+  notice   Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
 
   @@map("file")
 }
@@ -91,7 +91,7 @@ model Content {
   createdAt DateTime  @default(now()) @map("created_at")
 
   noticeId Int    @map("notice_id")
-  notice   Notice @relation(fields: [noticeId], references: [id])
+  notice   Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
 
   @@id([id, lang, noticeId])
   @@map("content")
@@ -106,7 +106,7 @@ model Crawl {
   crawledAt DateTime  @default(now()) @map("crawled_at")
 
   noticeId Int    @map("notice_id")
-  notice   Notice @relation(fields: [noticeId], references: [id])
+  notice   Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
 
   @@map("crawl")
 }
@@ -155,7 +155,7 @@ model Reaction {
   deletedAt DateTime? @map("deleted_at")
 
   noticeId Int    @map("notice_id")
-  notice   Notice @relation(fields: [noticeId], references: [id])
+  notice   Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
   userId   String @map("user_uuid") @db.Uuid
   user     User   @relation(fields: [userId], references: [uuid], onDelete: Cascade)
 
