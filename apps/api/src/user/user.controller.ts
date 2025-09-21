@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Post,
   Req,
   Res,
@@ -32,6 +34,7 @@ import { GetIdPUser } from './decorator/get-idp-user.decorator';
 import { setFcmTokenRes } from './dto/res/setFcmTokenRes.dto';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
+import { GetToken } from './decorator/get-token.decorator';
 
 @ApiTags('user')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -135,8 +138,18 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @UseGuards(IdPGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete()
-  async deleteUser(@GetUser() user: User): Promise<void> {
-    return this.userService.deleteUser(user);
+  async deleteUser(
+    @Req() req: Request,
+    @GetUser() user: User,
+    @GetToken() token: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    const refreshToken: string = req.cookies['refresh_token'];
+    if (!refreshToken) throw new UnauthorizedException();
+    await this.userService.logout(token, refreshToken);
+    await this.userService.deleteUser(user);
+    res.clearCookie('refresh_token');
   }
 }
