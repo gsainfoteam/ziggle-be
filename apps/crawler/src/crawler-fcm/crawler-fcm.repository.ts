@@ -12,10 +12,18 @@ export class CrawlerFcmRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getAllFcmTokens(): Promise<FcmToken[]> {
-    return this.prismaService.fcmToken.findMany().catch((err) => {
-      this.logger.error('getAllFcmTokens');
-      this.logger.debug(err);
-      throw new InternalServerErrorException('Database error');
-    });
+    return this.prismaService.fcmToken
+      .findMany({
+        where: {
+          userUuid: {
+            not: null,
+          },
+        },
+      })
+      .catch((err) => {
+        this.logger.error('getAllFcmTokens');
+        this.logger.debug(err);
+        throw new InternalServerErrorException('Database error');
+      });
   }
 }
