@@ -121,6 +121,10 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   CRAWLING_UPTIME_URI: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  CACHE_TTL_SECONDS: number;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;
