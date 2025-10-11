@@ -11,6 +11,7 @@ import { DocumentModule } from '../document/document.module';
 import { FileModule } from '../file/file.module';
 import { FcmModule } from '../fcm/fcm.module';
 import { InfoteamGroupsModule } from '@lib/infoteam-groups/infoteam-groups.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { InfoteamGroupsModule } from '@lib/infoteam-groups/infoteam-groups.modul
     FcmModule,
     LoggerModule,
     InfoteamGroupsModule,
+    CacheModule.register(),
   ],
   controllers: [NoticeController],
   providers: [NoticeService, NoticeRepository],
