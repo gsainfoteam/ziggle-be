@@ -40,7 +40,7 @@ import { ApiController } from './api.controller';
         store: redisStore,
         host: customConfigService.REDIS_HOST,
         port: customConfigService.REDIS_PORT,
-        ttl: Number(process.env.CACHE_TTL_SECONDS || 60), 
+        ttl: customConfigService.CACHE_TTL_SECONDS || 60, 
       }),
     }),
     RedisModule.forRootAsync({
