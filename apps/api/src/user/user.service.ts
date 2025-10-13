@@ -63,6 +63,7 @@ export class UserService {
    * @returns user
    */
   async findUserOrCreate(user: Pick<User, 'uuid' | 'name'>): Promise<User> {
+    //TODO consent true로 강제로 바꾼 것 없애기
     const newUser = this.userRepository.findUserOrCreate(user);
     (await newUser).consent = true;
     return newUser;
@@ -71,9 +72,11 @@ export class UserService {
   async findOrCreateTempUser(user: Pick<User, 'name'>): Promise<User> {
     const foundUser = await this.userRepository.findUserByName(user);
     if (foundUser) {
+      //TODO cosent true로 강제로 바꾼 것 없애기
       foundUser.consent = true;
       return foundUser;
     }
+    //TODO cosent true로 강제로 바꾼 것 없애기
     const newUser = await this.userRepository.createTempUser(user);
     newUser.consent = true;
     return newUser;

@@ -113,6 +113,7 @@ export class UserController {
     @GetIdPUser() userInfo: UserInfo,
     //@GetUser() user: User,
   ): Promise<UserInfoRes> {
+    //TODO consent : user.consent로 수정하기
     return { ...userInfo, consent: true };
   }
 
