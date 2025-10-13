@@ -63,15 +63,23 @@ export class UserService {
    * @returns user
    */
   async findUserOrCreate(user: Pick<User, 'uuid' | 'name'>): Promise<User> {
-    return this.userRepository.findUserOrCreate(user);
+    //TODO consent true로 강제로 바꾼 것 없애기
+    const newUser = this.userRepository.findUserOrCreate(user);
+    (await newUser).consent = true;
+    return newUser;
   }
 
   async findOrCreateTempUser(user: Pick<User, 'name'>): Promise<User> {
     const foundUser = await this.userRepository.findUserByName(user);
     if (foundUser) {
+      //TODO cosent true로 강제로 바꾼 것 없애기
+      foundUser.consent = true;
       return foundUser;
     }
-    return this.userRepository.createTempUser(user);
+    //TODO cosent true로 강제로 바꾼 것 없애기
+    const newUser = await this.userRepository.createTempUser(user);
+    newUser.consent = true;
+    return newUser;
   }
 
   async setFcmToken(userUuid: string, fcmToken: setFcmTokenReq) {
