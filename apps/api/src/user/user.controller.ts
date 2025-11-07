@@ -111,10 +111,9 @@ export class UserController {
   @UseGuards(IdPGuard)
   async getUserInfo(
     @GetIdPUser() userInfo: UserInfo,
-    //@GetUser() user: User,
+    @GetUser() user: User,
   ): Promise<UserInfoRes> {
-    //TODO consent : user.consent로 수정하기
-    return { ...userInfo, consent: true };
+    return { ...userInfo, consent: user.consent };
   }
 
   @ApiOperation({
