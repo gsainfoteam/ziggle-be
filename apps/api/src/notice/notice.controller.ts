@@ -41,6 +41,7 @@ import { GetUser } from '../user/decorator/get-user.decorator';
 import { GroupsGuard } from '@lib/infoteam-groups/guard/groups.guard';
 import { GetGroups } from '../user/decorator/get-groups.decorator';
 import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
+import { UserAwareCacheInterceptor } from '../common/interceptors/user-aware-cache.interceptor';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -63,6 +64,7 @@ export class NoticeController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get()
   @UseGuards(IdPGuard)
+  @UseInterceptors(UserAwareCacheInterceptor)
   async getNoticeList(
     @Query() query: GetAllNoticeQueryDto,
     @GetUser() user: User,
@@ -82,6 +84,8 @@ export class NoticeController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get(':id')
   @UseGuards(IdPGuard)
+  @UseInterceptors(UserAwareCacheInterceptor)
+ 
   async getNotice(
     @Param('id', ParseIntPipe) id: number,
     @Query() query: GetAllNoticeQueryDto,

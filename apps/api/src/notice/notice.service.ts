@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -37,6 +38,8 @@ import {
   GroupsUserInfo,
   Permission,
 } from '@lib/infoteam-groups/types/groups.type';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 @Loggable()
@@ -44,7 +47,20 @@ export class NoticeService {
   private readonly logger = new Logger(NoticeService.name);
   private fcmDelay: number;
   private readonly s3Url: string;
+
+  private static readonly NOTICE_LIST_CACHE_PATTERNS = [
+    'GET:/notice:user:*',
+    'GET:/notice?*:user:*',
+  ];
+
+  private static getNoticeDetailCachePatterns(id: number): string[] {
+    return [
+      `GET:/notice/${id}:user:*`,
+      `GET:/notice/${id}?*:user:*`,
+    ];
+  }
   constructor(
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly imageService: ImageService,
     private readonly documentService: DocumentService,
     private readonly fileService: FileService,
@@ -158,6 +174,8 @@ export class NoticeService {
         path: `/notice/${createdNotice.id}`,
       },
     );
+
+    await this.invalidateNoticeListCache();
 
     return notice;
   }
@@ -295,6 +313,9 @@ export class NoticeService {
     }
     await this.noticeRepository.updateNotice(body, query, id, userUuid);
 
+    await this.invalidateNoticeDetailCache(id);
+    await this.invalidateNoticeListCache();
+
     return this.getNotice(id, { isViewed: false });
   }
 
@@ -339,6 +360,9 @@ export class NoticeService {
     }
     await this.fileService.deleteFiles(notice.files.map(({ url }) => url));
     await this.noticeRepository.deleteNotice(id, userUuid);
+
+    await this.invalidateNoticeDetailCache(id);
+    await this.invalidateNoticeListCache();
   }
 
   private convertNotificationBodyToString(notification: Notification) {
@@ -355,5 +379,29 @@ export class NoticeService {
             .replaceAll(/\s+/gm, ' ')
         : undefined,
     };
+  }
+
+  private async invalidateNoticeListCache(): Promise<void> {
+    try {
+      await Promise.all(
+        NoticeService.NOTICE_LIST_CACHE_PATTERNS.map(pattern =>
+          this.cacheManager.del(pattern)
+        )
+      );
+    } catch (error) {
+      this.logger.warn('Failed to invalidate notice list cache:', error);
+    }
+  }
+
+  private async invalidateNoticeDetailCache(id: number): Promise<void> {
+    try {
+      await Promise.all(
+        NoticeService.getNoticeDetailCachePatterns(id).map(pattern =>
+          this.cacheManager.del(pattern)
+        )
+      );
+    } catch (error) {
+      this.logger.warn(`Failed to invalidate notice ${id} cache:`, error);
+    }
   }
 }

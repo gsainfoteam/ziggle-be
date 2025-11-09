@@ -129,4 +129,8 @@ export class CustomConfigService {
   get CRAWLING_UPTIME_URI(): string {
     return this.getEnvVariable('CRAWLING_UPTIME_URI');
   }
+
+  get CACHE_TTL_SECONDS(): number {
+    return this.getEnvVariable('CACHE_TTL_SECONDS')
+  }
 }

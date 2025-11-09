@@ -10,6 +10,8 @@ import { BullModule } from '@nestjs/bull';
 import { CustomConfigModule, CustomConfigService } from '@lib/custom-config';
 import { HealthModule } from './health/health.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-ioredis';
 import { ApiController } from './api.controller';
 
 @Module({
@@ -29,6 +31,16 @@ import { ApiController } from './api.controller';
           host: customConfigService.REDIS_HOST,
           port: customConfigService.REDIS_PORT,
         },
+      }),
+    }),
+    CacheModule.registerAsync({
+      imports: [CustomConfigModule],
+      inject: [CustomConfigService],
+      useFactory: (customConfigService: CustomConfigService) => ({
+        store: redisStore,
+        host: customConfigService.REDIS_HOST,
+        port: customConfigService.REDIS_PORT,
+        ttl: customConfigService.CACHE_TTL_SECONDS || 60, 
       }),
     }),
     RedisModule.forRootAsync({

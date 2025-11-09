@@ -28,9 +28,9 @@ export class FcmConsumer {
   }
 
   @OnQueueError()
-  onError(job: Job, error: Error) {
-    this.logger.error(`Error occurs in job ${job.id} : ${error}`);
-    this.logger.error(job.data);
+  onError(error: Error) {
+    this.logger.error(`Error occurs in queue: ${error.message}`);
+    this.logger.error(error.stack);
   }
 
   @OnQueueFailed()
