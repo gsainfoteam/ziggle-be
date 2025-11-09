@@ -51,7 +51,7 @@ export class CrawlerService {
       deadline,
     );
 
-    void this.crawlerFcmService
+    await this.crawlerFcmService
       .postMessageWithDelay(
         created.noticeId.toString(),
         this.convertNotificationBodyToString({
