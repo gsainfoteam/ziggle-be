@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { JwtTokenType } from './types/jwtToken.type';
 import { User } from '@prisma/client';
@@ -15,6 +15,14 @@ export class UserService {
     private readonly infoteamIdpService: InfoteamIdpService,
     private readonly userRepository: UserRepository,
   ) {}
+
+  async login(idpAccessToken: string): Promise<any> {
+    const { uuid, name } =
+      await this.infoteamIdpService.getUserInfo(idpAccessToken);
+    await this.userRepository.findUserOrCreate({ uuid, name }).catch(() => {
+      throw new UnauthorizedException();
+    });
+  }
 
   /**
    * this method is used to refresh the access token.

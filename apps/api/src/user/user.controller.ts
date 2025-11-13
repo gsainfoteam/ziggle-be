@@ -34,6 +34,7 @@ import { GetIdPUser } from './decorator/get-idp-user.decorator';
 import { setFcmTokenRes } from './dto/res/setFcmTokenRes.dto';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
+import { LoginDto } from './dto/req/login.dto';
 
 @ApiTags('user')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -41,6 +42,18 @@ import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
 @UsePipes(ValidationPipe)
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @ApiOperation({
+    summary: 'Login',
+    description: 'Issue ziggle JWT token',
+  })
+  @ApiOkResponse({ description: 'Return jwt token' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @Post('login')
+  async login(@Body() { idpAccessToken }: LoginDto): Promise<any> {
+    await this.userService.login(idpAccessToken);
+  }
 
   @ApiOperation({
     summary: 'Refresh token',
