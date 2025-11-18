@@ -30,10 +30,8 @@ import { LogoutDto } from './dto/req/logout.dto';
 import { User } from '@prisma/client';
 import { GetUser } from './decorator/get-user.decorator';
 import { UserInfoRes } from './dto/res/userInfoRes.dto';
-import { GetIdPUser } from './decorator/get-idp-user.decorator';
 import { setFcmTokenRes } from './dto/res/setFcmTokenRes.dto';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
-import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
 import { JwtGuard, JwtOptionalGuard } from './guard/jwt.guard';
 
 @ApiTags('user')
@@ -140,11 +138,8 @@ export class UserController {
   @ApiBearerAuth('jwt')
   @Get('info')
   @UseGuards(JwtGuard)
-  async getUserInfo(
-    @GetIdPUser() userInfo: UserInfo,
-    @GetUser() user: User,
-  ): Promise<UserInfoRes> {
-    return { ...userInfo, consent: user.consent };
+  async getUserInfo(@GetUser() user: User): Promise<UserInfoRes> {
+    return user;
   }
 
   @ApiOperation({

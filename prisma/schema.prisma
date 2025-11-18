@@ -32,6 +32,7 @@ enum Category {
 model User {
   uuid      String   @id @db.Uuid
   name      String
+  email     String?
   createdAt DateTime @default(now()) @map("created_at")
   consent   Boolean
 

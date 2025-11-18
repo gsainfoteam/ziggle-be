@@ -20,7 +20,8 @@ export class UserRepository {
   async findUserOrCreate({
     uuid,
     name,
-  }: Pick<User, 'uuid' | 'name'>): Promise<User> {
+    email,
+  }: Pick<User, 'uuid' | 'name' | 'email'>): Promise<User> {
     return await this.prismaService.user
       .upsert({
         where: { uuid },
@@ -31,6 +32,7 @@ export class UserRepository {
         },
         update: {
           name,
+          email,
         },
       })
       .catch((err) => {

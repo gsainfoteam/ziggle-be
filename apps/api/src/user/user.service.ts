@@ -22,9 +22,10 @@ export class UserService {
 
   async login(auth: string): Promise<JwtTokenType> {
     const idpToken = auth.split(' ')[1];
-    const { uuid, name } = await this.infoteamIdpService.getUserInfo(idpToken);
+    const { uuid, name, email } =
+      await this.infoteamIdpService.getUserInfo(idpToken);
     const user = await this.userRepository
-      .findUserOrCreate({ uuid, name })
+      .findUserOrCreate({ uuid, name, email })
       .catch(() => {
         throw new UnauthorizedException();
       });
@@ -43,10 +44,7 @@ export class UserService {
     const userData = await this.infoteamIdpService.getUserInfo(
       tokens.access_token,
     );
-    const user = await this.userRepository.findUserOrCreate({
-      uuid: userData.uuid,
-      name: userData.name,
-    });
+    const user = await this.userRepository.findUserByUuid(userData.uuid);
     return {
       ...tokens,
       consent_required: !user?.consent,
@@ -78,7 +76,9 @@ export class UserService {
    * @param user
    * @returns user
    */
-  async findUserOrCreate(user: Pick<User, 'uuid' | 'name'>): Promise<User> {
+  async findUserOrCreate(
+    user: Pick<User, 'uuid' | 'name' | 'email'>,
+  ): Promise<User> {
     return this.userRepository.findUserOrCreate(user);
   }
 
