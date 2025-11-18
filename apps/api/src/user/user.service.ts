@@ -16,9 +16,9 @@ export class UserService {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async login(idpAccessToken: string): Promise<any> {
-    const { uuid, name } =
-      await this.infoteamIdpService.getUserInfo(idpAccessToken);
+  async login(auth: string): Promise<any> {
+    const token = auth.split(' ')[1];
+    const { uuid, name } = await this.infoteamIdpService.getUserInfo(token);
     await this.userRepository.findUserOrCreate({ uuid, name }).catch(() => {
       throw new UnauthorizedException();
     });

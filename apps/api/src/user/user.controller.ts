@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Post,
@@ -17,6 +18,7 @@ import { Request, Response } from 'express';
 import { JwtToken } from './dto/res/jwtToken.dto';
 import { UserService } from './user.service';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
   ApiOAuth2,
@@ -33,11 +35,9 @@ import { GetIdPUser } from './decorator/get-idp-user.decorator';
 import { setFcmTokenRes } from './dto/res/setFcmTokenRes.dto';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
-import { LoginDto } from './dto/req/login.dto';
 import { JwtGuard, JwtOptionalGuard } from './guard/jwt.guard';
 
 @ApiTags('user')
-@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
 @Controller('user')
 @UsePipes(ValidationPipe)
 export class UserController {
@@ -50,9 +50,12 @@ export class UserController {
   @ApiOkResponse({ description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
   @Post('login')
-  async login(@Body() { idpAccessToken }: LoginDto): Promise<any> {
-    await this.userService.login(idpAccessToken);
+  async login(@Req() req: Request): Promise<any> {
+    const auth = req.headers['authorization'];
+    if (!auth) throw new UnauthorizedException();
+    return await this.userService.login(auth);
   }
 
   @ApiOperation({
@@ -62,6 +65,7 @@ export class UserController {
   @ApiCreatedResponse({ type: JwtToken, description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @ApiBearerAuth('jwt')
   @Post('refresh')
   async refreshToken(
     @Req() req: Request,
@@ -88,6 +92,7 @@ export class UserController {
   @ApiCreatedResponse({ description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @ApiBearerAuth('jwt')
   @Post('logout')
   async logout(
     @Body() { access_token }: LogoutDto,
@@ -107,6 +112,7 @@ export class UserController {
   @ApiCreatedResponse({ description: 'update consent true' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @ApiBearerAuth('jwt')
   @Post('consent')
   @UseGuards(JwtGuard)
   async setConsent(@GetUser() user: User): Promise<void> {
@@ -120,6 +126,7 @@ export class UserController {
   @ApiOkResponse({ type: UserInfoRes, description: 'Return user info' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @ApiBearerAuth('jwt')
   @Get('info')
   @UseGuards(JwtGuard)
   async getUserInfo(
@@ -136,6 +143,7 @@ export class UserController {
   @ApiOkResponse({ type: setFcmTokenRes, description: 'Return FCM token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @ApiBearerAuth('jwt')
   @Post('fcm')
   @UseGuards(JwtOptionalGuard)
   async setFcmToken(@GetUser() user: User, @Body() fcmToken: setFcmTokenReq) {
@@ -149,6 +157,7 @@ export class UserController {
   @ApiCreatedResponse({ description: 'user deleted' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @ApiBearerAuth('jwt')
   @UseGuards(JwtGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete()
