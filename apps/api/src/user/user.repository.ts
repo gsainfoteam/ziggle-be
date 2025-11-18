@@ -111,6 +111,24 @@ export class UserRepository {
       });
   }
 
+  async findUserByUuid(uuid: string): Promise<User> {
+    return await this.prismaService.user
+      .findUniqueOrThrow({
+        where: { uuid },
+      })
+      .catch((error) => {
+        if (error instanceof PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            throw new NotFoundException();
+          }
+          this.logger.error(error.message);
+          throw new InternalServerErrorException();
+        }
+        this.logger.error(error.message);
+        throw new InternalServerErrorException();
+      });
+  }
+
   async findUserByName({ name }: Pick<User, 'name'>): Promise<User | null> {
     return this.prismaService.user
       .findFirst({

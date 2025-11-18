@@ -121,6 +121,18 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   CRAWLING_UPTIME_URI: string;
+
+  @IsString()
+  @IsNotEmpty()
+  JWT_SECRET: string;
+
+  @IsString()
+  @IsNotEmpty()
+  JWT_ISSUER: string;
+
+  @IsString()
+  @IsNotEmpty()
+  JWT_AUDIENCE: string;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;

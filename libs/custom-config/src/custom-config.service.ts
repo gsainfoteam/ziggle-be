@@ -129,4 +129,16 @@ export class CustomConfigService {
   get CRAWLING_UPTIME_URI(): string {
     return this.getEnvVariable('CRAWLING_UPTIME_URI');
   }
+
+  get JWT_SECRET(): string {
+    return this.getEnvVariable('JWT_SECRET');
+  }
+
+  get JWT_ISSUER(): string {
+    return this.getEnvVariable('JWT_ISSUER');
+  }
+
+  get JWT_AUDIENCE(): string {
+    return this.getEnvVariable('JWT_AUDIENCE');
+  }
 }

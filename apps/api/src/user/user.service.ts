@@ -74,6 +74,10 @@ export class UserService {
     return this.userRepository.findUserOrCreate(user);
   }
 
+  async findUserByUuid(uuid: string): Promise<User> {
+    return await this.userRepository.findUserByUuid(uuid);
+  }
+
   async findOrCreateTempUser(user: Pick<User, 'name'>): Promise<User> {
     const foundUser = await this.userRepository.findUserByName(user);
     if (foundUser) {
