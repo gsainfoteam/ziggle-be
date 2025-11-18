@@ -15,8 +15,8 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiInternalServerErrorResponse,
-  ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
   ApiSecurity,
@@ -43,7 +43,7 @@ import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
 import { JwtGuard } from '../user/guard/jwt.guard';
 
 @ApiTags('notice')
-@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
+@ApiBearerAuth('jwt')
 @ApiSecurity('groups-auth')
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))

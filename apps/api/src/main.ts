@@ -56,6 +56,7 @@ async function bootstrap() {
       {
         type: 'oauth2',
         scheme: 'bearer',
+        name: 'idp-token',
         in: 'header',
         bearerFormat: 'token',
         flows: {
@@ -71,6 +72,15 @@ async function bootstrap() {
         },
       },
       'oauth2',
+    )
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        name: 'JWT',
+        in: 'header',
+      },
+      'jwt',
     )
     .addSecurity('groups-auth', {
       type: 'apiKey',

@@ -10,9 +10,9 @@ import {
 } from '@nestjs/common';
 import { TagService } from './tag.service';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
-  ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -24,7 +24,7 @@ import { TagResDto } from './dto/res/TagRes.dto';
 import { JwtGuard } from '../user/guard/jwt.guard';
 
 @ApiTags('tag')
-@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
+@ApiBearerAuth('jwt')
 @Controller('tag')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class TagController {
