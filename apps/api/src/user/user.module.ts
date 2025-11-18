@@ -7,10 +7,11 @@ import { UserService } from './user.service';
 import { PrismaModule } from '@lib/prisma';
 import { InfoteamIdpModule } from '@lib/infoteam-idp';
 import { LoggerModule } from '@lib/logger';
-import { CustomConfigModule } from '@lib/custom-config';
+import { CustomConfigModule, CustomConfigService } from '@lib/custom-config';
 import { JwtGuard, JwtOptionalGuard } from './guard/jwt.guard';
 import { JwtOptionalStrategy } from './guard/jwtOptional.strategy';
 import { JwtStrategy } from './guard/jwt.strategy';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -19,6 +20,19 @@ import { JwtStrategy } from './guard/jwt.strategy';
     PrismaModule,
     InfoteamIdpModule,
     LoggerModule,
+    JwtModule.registerAsync({
+      imports: [CustomConfigModule],
+      inject: [CustomConfigService],
+      useFactory: (customConfigService: CustomConfigService) => ({
+        secret: customConfigService.JWT_SECRET,
+        signOptions: {
+          expiresIn: customConfigService.JWT_EXPIRE,
+          algorithm: 'HS256',
+          audience: customConfigService.JWT_AUDIENCE,
+          issuer: customConfigService.JWT_ISSUER,
+        },
+      }),
+    }),
   ],
   providers: [
     UserService,

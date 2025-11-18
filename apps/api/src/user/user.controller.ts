@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Post,
@@ -52,10 +51,22 @@ export class UserController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
   @Post('login')
-  async login(@Req() req: Request): Promise<any> {
+  async login(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<JwtToken> {
     const auth = req.headers['authorization'];
     if (!auth) throw new UnauthorizedException();
-    return await this.userService.login(auth);
+    const { access_token, refresh_token, consent_required } =
+      await this.userService.login(auth);
+    res.cookie('refreshToken', refresh_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+      path: '/auth',
+    });
+    return { access_token, consent_required };
   }
 
   @ApiOperation({

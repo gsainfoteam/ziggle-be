@@ -1,11 +1,14 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
-import { JwtTokenType } from './types/jwtToken.type';
+import { IssueTokenType, JwtTokenType } from './types/jwtToken.type';
 import { User } from '@prisma/client';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { InfoteamIdpService } from '@lib/infoteam-idp';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
+import { JwtService } from '@nestjs/jwt';
+import * as crypto from 'crypto';
+
 @Injectable()
 @Loggable()
 export class UserService {
@@ -14,14 +17,19 @@ export class UserService {
     private readonly customConfigService: CustomConfigService,
     private readonly infoteamIdpService: InfoteamIdpService,
     private readonly userRepository: UserRepository,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async login(auth: string): Promise<any> {
-    const token = auth.split(' ')[1];
-    const { uuid, name } = await this.infoteamIdpService.getUserInfo(token);
-    await this.userRepository.findUserOrCreate({ uuid, name }).catch(() => {
-      throw new UnauthorizedException();
-    });
+  async login(auth: string): Promise<JwtTokenType> {
+    const idpToken = auth.split(' ')[1];
+    const { uuid, name } = await this.infoteamIdpService.getUserInfo(idpToken);
+    const user = await this.userRepository
+      .findUserOrCreate({ uuid, name })
+      .catch(() => {
+        throw new UnauthorizedException();
+      });
+    const tokens = await this.issueTokens(uuid);
+    return { ...tokens, consent_required: user.consent };
   }
 
   /**
@@ -96,5 +104,20 @@ export class UserService {
 
   async deleteFcmTokens(fcmTokens: string[]) {
     return this.userRepository.deleteFcmTokens(fcmTokens);
+  }
+
+  private generateOpaqueToken() {
+    return crypto
+      .randomBytes(32)
+      .toString('base64')
+      .replace(/[+//=]/g, '');
+  }
+
+  private async issueTokens(uuid: string): Promise<IssueTokenType> {
+    const refresh_token: string = this.generateOpaqueToken();
+    return {
+      access_token: this.jwtService.sign({}, { subject: uuid }),
+      refresh_token,
+    };
   }
 }

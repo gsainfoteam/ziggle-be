@@ -133,6 +133,10 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   JWT_AUDIENCE: string;
+
+  @IsString()
+  @IsNotEmpty()
+  JWT_EXPIRE: string;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;
