@@ -21,7 +21,7 @@ import {
 import { GetTagDto } from './dto/req/getTag.dto';
 import { CreateTagDto } from './dto/req/createTag.dto';
 import { TagResDto } from './dto/res/TagRes.dto';
-import { IdPGuard } from '../user/guard/idp.guard';
+import { JwtGuard } from '../user/guard/jwt.guard';
 
 @ApiTags('tag')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -61,7 +61,7 @@ export class TagController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   @Post()
   async create(@Body() body: CreateTagDto) {
     return this.tagService.createTag(body);

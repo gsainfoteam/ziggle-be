@@ -26,7 +26,6 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { LogoutDto } from './dto/req/logout.dto';
-import { IdPGuard, IdPOptionalGuard } from './guard/idp.guard';
 import { User } from '@prisma/client';
 import { GetUser } from './decorator/get-user.decorator';
 import { UserInfoRes } from './dto/res/userInfoRes.dto';
@@ -35,6 +34,7 @@ import { setFcmTokenRes } from './dto/res/setFcmTokenRes.dto';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
 import { LoginDto } from './dto/req/login.dto';
+import { JwtGuard, JwtOptionalGuard } from './guard/jwt.guard';
 
 @ApiTags('user')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -108,7 +108,7 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post('consent')
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   async setConsent(@GetUser() user: User): Promise<void> {
     return this.userService.setConsent(user);
   }
@@ -121,7 +121,7 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get('info')
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   async getUserInfo(
     @GetIdPUser() userInfo: UserInfo,
     @GetUser() user: User,
@@ -137,7 +137,7 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post('fcm')
-  @UseGuards(IdPOptionalGuard)
+  @UseGuards(JwtOptionalGuard)
   async setFcmToken(@GetUser() user: User, @Body() fcmToken: setFcmTokenReq) {
     return this.userService.setFcmToken(user?.uuid, fcmToken);
   }
@@ -149,7 +149,7 @@ export class UserController {
   @ApiCreatedResponse({ description: 'user deleted' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete()
   async deleteUser(@GetUser() user: User): Promise<void> {

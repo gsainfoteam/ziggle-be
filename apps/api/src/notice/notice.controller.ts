@@ -36,11 +36,11 @@ import {
   UpdateNoticeQueryDto,
 } from './dto/req/updateNotice.dto';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
-import { IdPGuard } from '../user/guard/idp.guard';
 import { GetUser } from '../user/decorator/get-user.decorator';
 import { GroupsGuard } from '@lib/infoteam-groups/guard/groups.guard';
 import { GetGroups } from '../user/decorator/get-groups.decorator';
 import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
+import { JwtGuard } from '../user/guard/jwt.guard';
 
 @ApiTags('notice')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
@@ -62,7 +62,7 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get()
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   async getNoticeList(
     @Query() query: GetAllNoticeQueryDto,
     @GetUser() user: User,
@@ -81,7 +81,7 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get(':id')
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   async getNotice(
     @Param('id', ParseIntPipe) id: number,
     @Query() query: GetAllNoticeQueryDto,
@@ -101,7 +101,7 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post()
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   @UseGuards(GroupsGuard)
   async createNotice(
     @GetUser() user: User,
@@ -119,7 +119,7 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post(':id/alarm')
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   async sendNotice(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
@@ -138,7 +138,7 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post(':id/additional')
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   async createAdditionalNotice(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
@@ -162,7 +162,7 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post(':id/:contentIdx/foreign')
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   async addForeignContent(
     @Param('id', ParseIntPipe) id: number,
     @Param('contentIdx', ParseIntPipe) contentIdx: number,
@@ -188,7 +188,7 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post(':id/reaction')
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   async addReaction(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
@@ -208,7 +208,7 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Patch(':id')
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   @UseGuards(GroupsGuard)
   async updateNotice(
     @Param('id', ParseIntPipe) id: number,
@@ -231,7 +231,7 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Delete(':id/reaction')
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   async deleteReaction(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
@@ -248,7 +248,7 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Delete(':id')
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   @UseGuards(GroupsGuard)
   async deleteNotice(
     @GetUser() user: User,
