@@ -137,6 +137,10 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   JWT_EXPIRE: string;
+
+  @IsString()
+  @IsNotEmpty()
+  REFRESH_TOKEN_EXPIRE: string;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;

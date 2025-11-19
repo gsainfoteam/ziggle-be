@@ -8,17 +8,26 @@ import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
+import { RedisService } from 'libs/redis/src';
+import ms, { StringValue } from 'ms';
 
 @Injectable()
 @Loggable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
+  private readonly refreshTokenPrefix = 'ziggleRefreshToken';
+  private readonly refreshTokenExpire: number;
   constructor(
     private readonly customConfigService: CustomConfigService,
     private readonly infoteamIdpService: InfoteamIdpService,
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly redisService: RedisService,
+  ) {
+    this.refreshTokenExpire = ms(
+      customConfigService.REFRESH_TOKEN_EXPIRE as StringValue,
+    );
+  }
 
   async login(auth: string): Promise<JwtTokenType> {
     const idpToken = auth.split(' ')[1];
@@ -40,14 +49,14 @@ export class UserService {
    * @returns accessToken, refreshToken and the information that is  the user consent required
    */
   async refresh(refreshToken: string): Promise<JwtTokenType> {
-    const tokens = await this.infoteamIdpService.refresh(refreshToken);
-    const userData = await this.infoteamIdpService.getUserInfo(
-      tokens.access_token,
-    );
-    const user = await this.userRepository.findUserByUuid(userData.uuid);
+    const uuid = await this.redisService.getOrThrow<string>(refreshToken, {
+      prefix: this.refreshTokenPrefix,
+    });
+    const user = await this.userRepository.findUserByUuid(uuid);
     return {
-      ...tokens,
-      consent_required: !user?.consent,
+      access_token: this.jwtService.sign({}, { subject: uuid }),
+      refresh_token: refreshToken,
+      consent_required: user.consent,
     };
   }
 
@@ -57,9 +66,10 @@ export class UserService {
    * @param refreshToken
    * @returns void
    */
-  async logout(accessToken: string, refreshToken: string): Promise<void> {
-    await this.infoteamIdpService.revoke(accessToken);
-    await this.infoteamIdpService.revoke(refreshToken);
+  async logout(refreshToken: string): Promise<void> {
+    await this.redisService.del(refreshToken, {
+      prefix: this.refreshTokenPrefix,
+    });
   }
 
   /**
@@ -115,6 +125,10 @@ export class UserService {
 
   private async issueTokens(uuid: string): Promise<IssueTokenType> {
     const refresh_token: string = this.generateOpaqueToken();
+    this.redisService.set<string>(refresh_token, uuid, {
+      prefix: this.refreshTokenPrefix,
+      ttl: this.refreshTokenExpire,
+    });
     return {
       access_token: this.jwtService.sign({}, { subject: uuid }),
       refresh_token,

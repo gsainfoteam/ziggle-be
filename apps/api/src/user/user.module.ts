@@ -12,6 +12,8 @@ import { JwtGuard, JwtOptionalGuard } from './guard/jwt.guard';
 import { JwtOptionalStrategy } from './guard/jwtOptional.strategy';
 import { JwtStrategy } from './guard/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
+import { RedisModule } from 'libs/redis/src';
+import ms, { StringValue } from 'ms';
 
 @Module({
   imports: [
@@ -26,13 +28,14 @@ import { JwtModule } from '@nestjs/jwt';
       useFactory: (customConfigService: CustomConfigService) => ({
         secret: customConfigService.JWT_SECRET,
         signOptions: {
-          expiresIn: customConfigService.JWT_EXPIRE,
+          expiresIn: ms(customConfigService.JWT_EXPIRE as StringValue),
           algorithm: 'HS256',
           audience: customConfigService.JWT_AUDIENCE,
           issuer: customConfigService.JWT_ISSUER,
         },
       }),
     }),
+    RedisModule,
   ],
   providers: [
     UserService,

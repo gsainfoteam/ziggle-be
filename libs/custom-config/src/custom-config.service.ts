@@ -142,7 +142,11 @@ export class CustomConfigService {
     return this.getEnvVariable('JWT_AUDIENCE');
   }
 
-  get JWT_EXPIRE(): number {
+  get JWT_EXPIRE(): string {
     return this.getEnvVariable('JWT_EXPIRE');
+  }
+
+  get REFRESH_TOKEN_EXPIRE(): string {
+    return this.getEnvVariable('REFRESH_TOKEN_EXPIRE');
   }
 }

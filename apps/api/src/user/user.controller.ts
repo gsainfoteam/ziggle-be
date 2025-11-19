@@ -26,19 +26,28 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { LogoutDto } from './dto/req/logout.dto';
 import { User } from '@prisma/client';
 import { GetUser } from './decorator/get-user.decorator';
 import { UserInfoRes } from './dto/res/userInfoRes.dto';
 import { setFcmTokenRes } from './dto/res/setFcmTokenRes.dto';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { JwtGuard, JwtOptionalGuard } from './guard/jwt.guard';
+import ms, { StringValue } from 'ms';
+import { CustomConfigService } from '@lib/custom-config';
 
 @ApiTags('user')
 @Controller('user')
 @UsePipes(ValidationPipe)
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  private readonly refreshTokenExpire: number;
+  constructor(
+    private readonly userService: UserService,
+    private readonly customConfigService: CustomConfigService,
+  ) {
+    this.refreshTokenExpire = ms(
+      customConfigService.REFRESH_TOKEN_EXPIRE as StringValue,
+    );
+  }
 
   @ApiOperation({
     summary: 'Login',
@@ -57,12 +66,12 @@ export class UserController {
     if (!auth) throw new UnauthorizedException();
     const { access_token, refresh_token, consent_required } =
       await this.userService.login(auth);
-    res.cookie('refreshToken', refresh_token, {
+    res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-      path: '/auth',
+      expires: new Date(Date.now() + this.refreshTokenExpire),
+      path: '/user',
     });
     return { access_token, consent_required };
   }
@@ -74,13 +83,13 @@ export class UserController {
   @ApiCreatedResponse({ type: JwtToken, description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @ApiBearerAuth('jwt')
   @Post('refresh')
   async refreshToken(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<JwtToken> {
     const refreshToken = req.cookies['refresh_token'];
+    console.log(refreshToken);
     if (!refreshToken) throw new UnauthorizedException();
     const { refresh_token, ...token } =
       await this.userService.refresh(refreshToken);
@@ -104,14 +113,12 @@ export class UserController {
   @ApiBearerAuth('jwt')
   @Post('logout')
   async logout(
-    @Body() { access_token }: LogoutDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     const refreshToken = req.cookies['refresh_token'];
-    if (!refreshToken) throw new UnauthorizedException();
     res.clearCookie('refresh_token');
-    return this.userService.logout(access_token, refreshToken);
+    return this.userService.logout(refreshToken);
   }
 
   @ApiOperation({
