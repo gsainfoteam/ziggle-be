@@ -9,7 +9,7 @@ import { CustomConfigService } from '@lib/custom-config';
 @Injectable()
 export class JwtOptionalStrategy extends PassportStrategy(
   Strategy,
-  'idp-optional',
+  'jwt-optional',
 ) {
   constructor(
     private readonly userService: UserService,
