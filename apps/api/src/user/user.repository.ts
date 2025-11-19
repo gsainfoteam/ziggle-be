@@ -28,6 +28,7 @@ export class UserRepository {
         create: {
           uuid,
           name,
+          email,
           consent: false,
         },
         update: {
