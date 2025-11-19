@@ -84,23 +84,11 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post('refresh')
-  async refreshToken(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<JwtToken> {
+  async refreshToken(@Req() req: Request): Promise<JwtToken> {
     const refreshToken = req.cookies['refresh_token'];
-    console.log(refreshToken);
     if (!refreshToken) throw new UnauthorizedException();
-    const { refresh_token, ...token } =
-      await this.userService.refresh(refreshToken);
-    if (refresh_token) {
-      res.cookie('refresh_token', refresh_token, {
-        httpOnly: true,
-        sameSite: 'none',
-        secure: true,
-      });
-    }
-    return { ...token };
+    const tokens = await this.userService.refresh(refreshToken);
+    return tokens;
   }
 
   @ApiOperation({

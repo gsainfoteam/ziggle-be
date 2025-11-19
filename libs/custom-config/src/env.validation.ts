@@ -141,6 +141,10 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   REFRESH_TOKEN_EXPIRE: string;
+
+  @IsString()
+  @IsNotEmpty()
+  REDIS_URL: string;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;

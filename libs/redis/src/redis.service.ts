@@ -1,17 +1,17 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
 import { CacheNotFoundException } from './exceptions/cacheNotFound.exception';
 import { CacheConfig } from './types/cacheConfig.type';
+import { CustomConfigService } from '@lib/custom-config';
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
   private readonly redisClient: Redis;
   private readonly logger = new Logger(RedisService.name);
 
-  constructor(private readonly configService: ConfigService) {
-    this.redisClient = new Redis(configService.getOrThrow<string>('REDIS_URL'));
+  constructor(private readonly customConfigService: CustomConfigService) {
+    this.redisClient = new Redis(customConfigService.REDIS_URL);
   }
 
   async ping(): Promise<'PONG'> {

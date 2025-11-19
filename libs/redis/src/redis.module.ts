@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
 
 import { RedisService } from './redis.service';
+import { CustomConfigModule } from '@lib/custom-config';
 
 @Module({
-  imports: [ConfigModule, TerminusModule],
+  imports: [CustomConfigModule, TerminusModule],
   providers: [RedisService],
   exports: [RedisService],
 })

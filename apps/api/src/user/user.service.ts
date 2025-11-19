@@ -125,7 +125,7 @@ export class UserService {
 
   private async issueTokens(uuid: string): Promise<IssueTokenType> {
     const refresh_token: string = this.generateOpaqueToken();
-    this.redisService.set<string>(refresh_token, uuid, {
+    await this.redisService.set<string>(refresh_token, uuid, {
       prefix: this.refreshTokenPrefix,
       ttl: this.refreshTokenExpire,
     });

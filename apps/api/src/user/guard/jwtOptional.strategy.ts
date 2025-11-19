@@ -26,7 +26,7 @@ export class JwtOptionalStrategy extends PassportStrategy(
   async validate({ sub }: JwtPayload): Promise<User | void> {
     if (!sub) return undefined;
     return this.userService.findUserByUuid(sub).catch(() => {
-      undefined;
+      return undefined;
     });
   }
 }

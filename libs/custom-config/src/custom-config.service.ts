@@ -149,4 +149,8 @@ export class CustomConfigService {
   get REFRESH_TOKEN_EXPIRE(): string {
     return this.getEnvVariable('REFRESH_TOKEN_EXPIRE');
   }
+
+  get REDIS_URL(): string {
+    return this.getEnvVariable('REDIS_URL');
+  }
 }

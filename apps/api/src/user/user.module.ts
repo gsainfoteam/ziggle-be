@@ -28,7 +28,7 @@ import ms, { StringValue } from 'ms';
       useFactory: (customConfigService: CustomConfigService) => ({
         secret: customConfigService.JWT_SECRET,
         signOptions: {
-          expiresIn: ms(customConfigService.JWT_EXPIRE as StringValue),
+          expiresIn: ms(customConfigService.JWT_EXPIRE as StringValue) / 1000,
           algorithm: 'HS256',
           audience: customConfigService.JWT_AUDIENCE,
           issuer: customConfigService.JWT_ISSUER,
