@@ -100,6 +100,7 @@ export class UserController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @ApiBearerAuth('jwt')
   @Post('logout')
+  @UseGuards(JwtGuard)
   async logout(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,

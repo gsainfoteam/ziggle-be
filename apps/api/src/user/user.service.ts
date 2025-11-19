@@ -127,7 +127,7 @@ export class UserService {
     const refresh_token: string = this.generateOpaqueToken();
     await this.redisService.set<string>(refresh_token, uuid, {
       prefix: this.refreshTokenPrefix,
-      ttl: this.refreshTokenExpire,
+      ttl: this.refreshTokenExpire / 1000,
     });
     return {
       access_token: this.jwtService.sign({}, { subject: uuid }),
