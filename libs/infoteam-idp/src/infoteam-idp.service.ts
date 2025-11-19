@@ -5,7 +5,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { IdpJwtResponse, IdpUserInfoResponse } from './types/idp.type';
+import { IdpUserInfoResponse } from './types/idp.type';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { UserInfo } from './types/userInfo.type';
@@ -57,82 +57,5 @@ export class InfoteamIdpService {
       student_id: studentNumber,
     } = userInfoResponse.data;
     return { uuid, name, email, studentNumber };
-  }
-
-  /**
-   * this method is used to refresh the access token
-   * @param refreshToken it is the refresh token that is returned from the idp
-   * @returns accessToken and refreshToken
-   * @throws UnauthorizedException if the refresh token is invalid
-   * @throws InternalServerErrorException if there is an unknown error while refreshing the token
-   */
-  async refresh(refreshToken: string): Promise<IdpJwtResponse> {
-    const accessTokenResponse = await firstValueFrom(
-      this.httpService
-        .post<IdpJwtResponse>(
-          this.idpUrl + '/token',
-          {
-            refresh_token: refreshToken,
-            grant_type: 'refresh_token',
-          },
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            auth: {
-              username: this.customConfigService.CLIENT_ID,
-              password: this.customConfigService.CLIENT_SECRET,
-            },
-          },
-        )
-        .pipe(
-          catchError((error: AxiosError) => {
-            if (error instanceof AxiosError && error.response?.status === 401) {
-              this.logger.debug('Invalid refresh token');
-              throw new UnauthorizedException();
-            }
-            this.logger.error(error.message);
-            throw new InternalServerErrorException();
-          }),
-        ),
-    );
-    return accessTokenResponse.data;
-  }
-
-  /**
-   * this method is used to revoke the token
-   * @param token it is the token that is returned from the idp
-   * @throws UnauthorizedException if the token is invalid
-   * @throws InternalServerErrorException if there is an unknown error while revoking the token
-   */
-  async revoke(token: string): Promise<void> {
-    await firstValueFrom(
-      this.httpService
-        .post(
-          this.idpUrl + '/revoke',
-          {
-            token,
-          },
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            auth: {
-              username: this.customConfigService.CLIENT_ID,
-              password: this.customConfigService.CLIENT_SECRET,
-            },
-          },
-        )
-        .pipe(
-          catchError((error: AxiosError) => {
-            if (error instanceof AxiosError && error.response?.status === 401) {
-              this.logger.debug('Invalid token');
-              throw new UnauthorizedException();
-            }
-            this.logger.error(error.message);
-            throw new InternalServerErrorException();
-          }),
-        ),
-    );
   }
 }
