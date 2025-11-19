@@ -21,7 +21,7 @@ import {
 import { GetTagDto } from './dto/req/getTag.dto';
 import { CreateTagDto } from './dto/req/createTag.dto';
 import { TagResDto } from './dto/res/TagRes.dto';
-import { JwtGuard } from '../user/guard/jwt.guard';
+import { JwtGuard } from '../auth/guard/jwt.guard';
 
 @ApiTags('tag')
 @ApiBearerAuth('jwt')

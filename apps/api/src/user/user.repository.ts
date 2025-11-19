@@ -17,81 +17,6 @@ export class UserRepository {
   private readonly logger = new Logger(UserRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findUserOrCreate({
-    uuid,
-    name,
-    email,
-  }: Pick<User, 'uuid' | 'name' | 'email'>): Promise<User> {
-    return await this.prismaService.user
-      .upsert({
-        where: { uuid },
-        create: {
-          uuid,
-          name,
-          email,
-          consent: false,
-        },
-        update: {
-          name,
-          email,
-        },
-      })
-      .catch((err) => {
-        this.logger.debug(err);
-        if (err instanceof PrismaClientKnownRequestError) {
-          this.logger.error('findUserOrCreate Prisma error');
-          throw new InternalServerErrorException('Database Error');
-        }
-        this.logger.error('findUserOrCreate error');
-        throw new InternalServerErrorException('Unknown Error');
-      });
-  }
-
-  async findUserAndUpdate({
-    uuid,
-    name,
-  }: Pick<User, 'uuid' | 'name'>): Promise<User> {
-    const user = await this.prismaService.user
-      .findUniqueOrThrow({
-        where: { uuid },
-      })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2016') {
-            this.logger.debug('user not found');
-            throw new NotFoundException();
-          }
-          this.logger.error(err.message);
-          throw new InternalServerErrorException();
-        }
-        this.logger.error(err);
-        throw new InternalServerErrorException();
-      });
-    if (user.name === name) {
-      return user;
-    }
-    return this.prismaService.user
-      .update({
-        where: { uuid },
-        data: { name },
-      })
-      .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-          if (err.code === 'P2025') {
-            this.logger.debug('user not found');
-            throw new NotFoundException();
-          }
-          this.logger.error(err.message);
-          throw new InternalServerErrorException();
-        }
-        this.logger.error(err);
-        throw new InternalServerErrorException();
-      })
-      .then((user) => {
-        return user;
-      });
-  }
-
   async setConsent(user: User): Promise<User> {
     return this.prismaService.user
       .update({
@@ -111,24 +36,6 @@ export class UserRepository {
       })
       .then((user) => {
         return user;
-      });
-  }
-
-  async findUserByUuid(uuid: string): Promise<User> {
-    return await this.prismaService.user
-      .findUniqueOrThrow({
-        where: { uuid },
-      })
-      .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
-          if (error.code === 'P2025') {
-            throw new NotFoundException();
-          }
-          this.logger.error(error.message);
-          throw new InternalServerErrorException();
-        }
-        this.logger.error(error.message);
-        throw new InternalServerErrorException();
       });
   }
 
