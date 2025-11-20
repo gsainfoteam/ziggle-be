@@ -10,9 +10,9 @@ import {
 } from '@nestjs/common';
 import { TagService } from './tag.service';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
-  ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -21,10 +21,10 @@ import {
 import { GetTagDto } from './dto/req/getTag.dto';
 import { CreateTagDto } from './dto/req/createTag.dto';
 import { TagResDto } from './dto/res/TagRes.dto';
-import { IdPGuard } from '../user/guard/idp.guard';
+import { JwtGuard } from '../auth/guard/jwt.guard';
 
 @ApiTags('tag')
-@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
+@ApiBearerAuth('jwt')
 @Controller('tag')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class TagController {
@@ -61,7 +61,7 @@ export class TagController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @UseGuards(IdPGuard)
+  @UseGuards(JwtGuard)
   @Post()
   async create(@Body() body: CreateTagDto) {
     return this.tagService.createTag(body);

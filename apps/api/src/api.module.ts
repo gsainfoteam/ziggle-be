@@ -11,9 +11,11 @@ import { CustomConfigModule, CustomConfigService } from '@lib/custom-config';
 import { HealthModule } from './health/health.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { ApiController } from './api.controller';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     FileModule,
     UserModule,
     TagModule,

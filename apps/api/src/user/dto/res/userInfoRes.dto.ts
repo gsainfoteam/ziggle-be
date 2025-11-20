@@ -9,10 +9,11 @@ export class UserInfoRes implements UserInfo {
   uuid: string;
 
   @ApiProperty({
+    type: String,
     description: 'User email id',
     example: 'johnDoe@gm.gist.ac.kr',
   })
-  email: string;
+  email: string | null;
 
   @ApiProperty({
     description: 'User name',
