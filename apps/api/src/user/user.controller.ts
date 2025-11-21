@@ -44,6 +44,7 @@ export class UserController {
   @ApiOperation({
     summary: 'Refresh token',
     description: 'Refresh the access token from idp',
+    deprecated: true,
   })
   @ApiCreatedResponse({ type: JwtToken, description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -71,6 +72,7 @@ export class UserController {
   @ApiOperation({
     summary: 'Logout',
     description: 'Logout the user from the cookie and idp',
+    deprecated: true,
   })
   @ApiCreatedResponse({ description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
