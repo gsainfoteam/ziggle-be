@@ -4,6 +4,7 @@ import { User } from '@prisma/client';
 export const GetUser = createParamDecorator(
   (_data, ctx: ExecutionContext): User | undefined => {
     const req = ctx.switchToHttp().getRequest();
+    console.log(req);
     return req.user;
   },
 );
