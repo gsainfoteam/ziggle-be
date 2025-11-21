@@ -11,6 +11,7 @@ import { DocumentModule } from '../document/document.module';
 import { FileModule } from '../file/file.module';
 import { FcmModule } from '../fcm/fcm.module';
 import { InfoteamGroupsModule } from '@lib/infoteam-groups/infoteam-groups.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { InfoteamGroupsModule } from '@lib/infoteam-groups/infoteam-groups.modul
     FcmModule,
     LoggerModule,
     InfoteamGroupsModule,
+    AuthModule,
   ],
   controllers: [NoticeController],
   providers: [NoticeService, NoticeRepository],
