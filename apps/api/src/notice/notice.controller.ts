@@ -45,7 +45,7 @@ import { JwtGuard } from '../auth/guard/jwt.guard';
 
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
-@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
+@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2') // deprecated
 @ApiSecurity('groups-auth')
 @UseGuards(JwtGuard)
 @Controller('notice')
@@ -108,7 +108,6 @@ export class NoticeController {
     @GetGroups() groups: GroupsUserInfo[],
     @Body() createNoticeDto: CreateNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
-    console.log(user);
     return this.noticeService.createNotice(createNoticeDto, user.uuid, groups);
   }
 

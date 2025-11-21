@@ -26,7 +26,7 @@ import { JwtGuard } from '../auth/guard/jwt.guard';
 
 @ApiTags('tag')
 @ApiBearerAuth('jwt')
-@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
+@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2') // deprecated
 @Controller('tag')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class TagController {

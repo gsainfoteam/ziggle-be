@@ -34,7 +34,7 @@ export class IdPOptionalStrategy extends PassportStrategy(
         email: idp.email,
       })
       .catch(() => {
-        undefined;
+        return undefined;
       });
     if (!ziggle) return undefined;
     return { ziggle, idp };

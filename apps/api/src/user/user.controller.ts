@@ -111,7 +111,7 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @ApiBearerAuth('jwt')
-  @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
+  @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2') // deprecated
   @Get('info')
   @UseGuards(JwtGuard)
   async getUserInfo(@GetUser() user: User): Promise<UserInfoRes> {
@@ -126,7 +126,7 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @ApiBearerAuth('jwt')
-  @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
+  @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2') // deprecated
   @Post('fcm')
   @UseGuards(JwtOptionalGuard)
   async setFcmToken(@GetUser() user: User, @Body() fcmToken: setFcmTokenReq) {
@@ -141,7 +141,7 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @ApiBearerAuth('jwt')
-  @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
+  @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2') // deprecated
   @UseGuards(JwtGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete()
