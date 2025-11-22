@@ -5,7 +5,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { IdpUserInfoResponse } from './types/idp.type';
+import { IdpJwtResponse, IdpUserInfoResponse } from './types/idp.type';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { UserInfo } from './types/userInfo.type';
@@ -57,5 +57,71 @@ export class InfoteamIdpService {
       student_id: studentNumber,
     } = userInfoResponse.data;
     return { uuid, name, email, studentNumber };
+  }
+
+  //deprecated
+  async refresh(refreshToken: string): Promise<IdpJwtResponse> {
+    const accessTokenResponse = await firstValueFrom(
+      this.httpService
+        .post<IdpJwtResponse>(
+          this.idpUrl + '/token',
+          {
+            refresh_token: refreshToken,
+            grant_type: 'refresh_token',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            auth: {
+              username: this.customConfigService.CLIENT_ID,
+              password: this.customConfigService.CLIENT_SECRET,
+            },
+          },
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            if (error instanceof AxiosError && error.response?.status === 401) {
+              this.logger.debug('Invalid refresh token');
+              throw new UnauthorizedException();
+            }
+            this.logger.error(error.message);
+            throw new InternalServerErrorException();
+          }),
+        ),
+    );
+    return accessTokenResponse.data;
+  }
+
+  // deprecated
+  async revoke(token: string): Promise<void> {
+    await firstValueFrom(
+      this.httpService
+        .post(
+          this.idpUrl + '/revoke',
+          {
+            token,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            auth: {
+              username: this.customConfigService.CLIENT_ID,
+              password: this.customConfigService.CLIENT_SECRET,
+            },
+          },
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            if (error instanceof AxiosError && error.response?.status === 401) {
+              this.logger.debug('Invalid token');
+              throw new UnauthorizedException();
+            }
+            this.logger.error(error.message);
+            throw new InternalServerErrorException();
+          }),
+        ),
+    );
   }
 }

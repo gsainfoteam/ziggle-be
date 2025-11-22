@@ -19,6 +19,6 @@ export class GroupsGuard extends AuthGuard('groups') {
     }
     const request = context.switchToHttp().getRequest();
     request.groups = user.groups;
-    return true;
+    return request.user;
   }
 }
