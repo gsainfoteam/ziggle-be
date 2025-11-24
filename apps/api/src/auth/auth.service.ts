@@ -30,14 +30,13 @@ export class AuthService {
 
   async login(auth: string): Promise<JwtTokenType> {
     const idpToken = auth.split(' ')[1];
-    const { uuid, name, email } =
-      await this.infoteamIdpService.getUserInfo(idpToken);
+    const userinfo = await this.infoteamIdpService.getUserInfo(idpToken);
     const user = await this.authRepository
-      .findUserOrCreate({ uuid, name, email })
+      .findUserOrCreate(userinfo)
       .catch(() => {
         throw new UnauthorizedException();
       });
-    const tokens = await this.issueTokens(uuid);
+    const tokens = await this.issueTokens(userinfo.uuid);
     return { ...tokens, consent_required: user.consent };
   }
 

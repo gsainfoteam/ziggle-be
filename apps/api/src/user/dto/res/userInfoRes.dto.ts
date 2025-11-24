@@ -21,6 +21,12 @@ export class UserInfoRes implements UserInfo {
   })
   name: string;
 
+  @ApiProperty({
+    description: 'User profile image',
+    example: 'https://bucket.s3.ap-northeast-2.amazonaws.com/1626740269.webp',
+  })
+  picture: string | null;
+
   @ApiPropertyOptional({
     description: 'Student number',
     example: '20212345',

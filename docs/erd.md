@@ -26,6 +26,7 @@ ETC ETC
     String uuid "🗝️"
     String name 
     String email "❓"
+    String picture "❓"
     DateTime created_at 
     Boolean consent 
     }
