@@ -57,7 +57,7 @@ export class InfoteamIdpService {
       picture,
       student_id: studentNumber,
     } = userInfoResponse.data;
-    return { uuid, name, email, picture, studentNumber };
+    return { uuid, name, email, picture: picture ?? null, studentNumber };
   }
 
   //deprecated
