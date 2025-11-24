@@ -19,7 +19,8 @@ export class AuthRepository {
     uuid,
     name,
     email,
-  }: Pick<User, 'uuid' | 'name' | 'email'>): Promise<User> {
+    picture,
+  }: Pick<User, 'uuid' | 'name' | 'email' | 'picture'>): Promise<User> {
     return await this.prismaService.user
       .upsert({
         where: { uuid },
@@ -27,11 +28,13 @@ export class AuthRepository {
           uuid,
           name,
           email,
+          picture,
           consent: false,
         },
         update: {
           name,
           email,
+          picture,
         },
       })
       .catch((err) => {
