@@ -11,7 +11,9 @@ export class RedisService implements OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
 
   constructor(private readonly customConfigService: CustomConfigService) {
-    this.redisClient = new Redis(customConfigService.REDIS_URL);
+    this.redisClient = new Redis(
+      `redis://${customConfigService.REDIS_HOST}:${customConfigService.REDIS_PORT}`,
+    );
   }
 
   async ping(): Promise<'PONG'> {

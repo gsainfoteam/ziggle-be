@@ -62,14 +62,6 @@ export class CustomConfigService {
     return this.getEnvVariable('AWS_S3_REGION');
   }
 
-  get AWS_ACCESS_KEY_ID(): string {
-    return this.getEnvVariable('AWS_ACCESS_KEY_ID');
-  }
-
-  get AWS_SECRET_ACCESS_KEY(): string {
-    return this.getEnvVariable('AWS_SECRET_ACCESS_KEY');
-  }
-
   get CLIENT_ID(): string {
     return this.getEnvVariable('CLIENT_ID');
   }
@@ -90,40 +82,8 @@ export class CustomConfigService {
     return this.getEnvVariable('FCM_DELAY');
   }
 
-  get OPENAI_API_KEY(): string {
-    return this.getEnvVariable('OPENAI_API_KEY');
-  }
-
   get GROUPS_URL(): string {
     return this.getEnvVariable('GROUPS_URL');
-  }
-
-  get GROUPS_CLIENT_ID(): string {
-    return this.getEnvVariable('GROUPS_CLIENT_ID');
-  }
-
-  get GROUPS_CLIENT_SECRET(): string {
-    return this.getEnvVariable('GROUPS_CLIENT_SECRET');
-  }
-
-  get CRAWL_PASSWORD(): string {
-    return this.getEnvVariable('CRAWL_PASSWORD');
-  }
-
-  get FLUTTER_REDIRECT_URI(): string {
-    return this.getEnvVariable('FLUTTER_REDIRECT_URI');
-  }
-
-  get LOCAL_REDIRECT_URI(): string {
-    return this.getEnvVariable('LOCAL_REDIRECT_URI');
-  }
-
-  get WEB_REDIRECT_URI(): string {
-    return this.getEnvVariable('WEB_REDIRECT_URI');
-  }
-
-  get DEEPL_API_KEY(): string {
-    return this.getEnvVariable('DEEPL_API_KEY');
   }
 
   get CRAWLING_UPTIME_URI(): string {
@@ -148,9 +108,5 @@ export class CustomConfigService {
 
   get REFRESH_TOKEN_EXPIRE(): string {
     return this.getEnvVariable('REFRESH_TOKEN_EXPIRE');
-  }
-
-  get REDIS_URL(): string {
-    return this.getEnvVariable('REDIS_URL');
   }
 }

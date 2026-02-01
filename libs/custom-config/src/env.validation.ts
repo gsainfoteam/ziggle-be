@@ -52,14 +52,6 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsNotEmpty()
-  AWS_ACCESS_KEY_ID: string;
-
-  @IsString()
-  @IsNotEmpty()
-  AWS_SECRET_ACCESS_KEY: string;
-
-  @IsString()
-  @IsNotEmpty()
   CLIENT_ID: string;
 
   @IsString()
@@ -80,43 +72,11 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsNotEmpty()
-  OPENAI_API_KEY: string;
-
-  @IsString()
-  @IsNotEmpty()
   GROUPS_URL: string;
 
   @IsString()
   @IsNotEmpty()
-  GROUPS_CLIENT_ID: string;
-
-  @IsString()
-  @IsNotEmpty()
-  GROUPS_CLIENT_SECRET: string;
-
-  @IsString()
-  @IsNotEmpty()
   API_URL: string;
-
-  @IsString()
-  @IsNotEmpty()
-  CRAWL_PASSWORD: string;
-
-  @IsString()
-  @IsNotEmpty()
-  FLUTTER_REDIRECT_URI: string;
-
-  @IsString()
-  @IsNotEmpty()
-  LOCAL_REDIRECT_URI: string;
-
-  @IsString()
-  @IsNotEmpty()
-  WEB_REDIRECT_URI: string;
-
-  @IsString()
-  @IsNotEmpty()
-  DEEPL_API_KEY: string;
 
   @IsString()
   @IsNotEmpty()
@@ -141,10 +101,6 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   REFRESH_TOKEN_EXPIRE: string;
-
-  @IsString()
-  @IsNotEmpty()
-  REDIS_URL: string;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;
