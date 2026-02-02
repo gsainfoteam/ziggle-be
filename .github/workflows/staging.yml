@@ -4,7 +4,11 @@ on:
   push:
     paths:
       - apps/api/**
+      - libs/**
       - prisma/schema.prisma
+      - prisma/migrations/**
+      - package.json
+      - package-lock.json
     branches:
       - main
 
