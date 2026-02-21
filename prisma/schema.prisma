@@ -147,7 +147,9 @@ model Notice {
   groupId    String?      @map("group_id") @db.Uuid
   UserRecord UserRecord[]
 
-  @@index([deletedAt])
+  @@index([deletedAt, lastEditedAt(sort: Desc)])
+  @@index([deletedAt, currentDeadline])
+  @@index([deletedAt, createdAt(sort: Desc), views(sort: Desc)])
   @@map("notice")
 }
 
@@ -162,6 +164,7 @@ model Reaction {
   user     User   @relation(fields: [userId], references: [uuid], onDelete: Cascade)
 
   @@id([emoji, noticeId, userId])
+  @@index([noticeId, deletedAt])
   @@map("reaction")
 }
 
