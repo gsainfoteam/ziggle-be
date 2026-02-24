@@ -41,13 +41,13 @@ import { GetUser } from '../user/decorator/get-user.decorator';
 import { GroupsGuard } from '@lib/infoteam-groups/guard/groups.guard';
 import { GetGroups } from '../user/decorator/get-groups.decorator';
 import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
-import { JwtGuard } from '../auth/guard/jwt.guard';
+// import { JwtGuard } from '../auth/guard/jwt.guard';
 
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2') // deprecated
 @ApiSecurity('groups-auth')
-@UseGuards(JwtGuard)
+// @UseGuards(JwtGuard)
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseInterceptors(ClassSerializerInterceptor)
