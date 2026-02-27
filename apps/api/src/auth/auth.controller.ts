@@ -43,7 +43,7 @@ export class AuthController {
     summary: 'Login',
     description: 'Issue ziggle JWT token',
   })
-  @ApiOkResponse({ description: 'Return jwt token' })
+  @ApiOkResponse({ type: JwtToken, description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
