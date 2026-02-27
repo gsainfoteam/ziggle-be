@@ -41,7 +41,7 @@ import { GetUser } from '../user/decorator/get-user.decorator';
 import { GroupsGuard } from '@lib/infoteam-groups/guard/groups.guard';
 import { GetGroups } from '../user/decorator/get-groups.decorator';
 import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
-import { JwtGuard } from '../auth/guard/jwt.guard';
+import { JwtGuard, JwtOptionalGuard } from '../auth/guard/jwt.guard';
 
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
@@ -64,6 +64,7 @@ export class NoticeController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @UseGuards(JwtOptionalGuard)
   @Get()
   async getNoticeList(
     @Query() query: GetAllNoticeQueryDto,
@@ -82,6 +83,7 @@ export class NoticeController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @UseGuards(JwtOptionalGuard)
   @Get(':id')
   async getNotice(
     @Param('id', ParseIntPipe) id: number,
