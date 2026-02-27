@@ -208,7 +208,6 @@ export class GeneralNoticeListDto {
 
   @ApiProperty({
     type: [GeneralNoticeDto],
-    isArray: true,
   })
   list: GeneralNoticeDto[];
 }
