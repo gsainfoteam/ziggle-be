@@ -1,7 +1,7 @@
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { Injectable, Logger } from '@nestjs/common';
 import path from 'path';
-import { FileService } from '../file/file.service';
+import { FileService } from '@lib/file/file.service';
 
 @Injectable()
 @Loggable()

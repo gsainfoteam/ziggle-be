@@ -30,7 +30,7 @@ import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
 import { ImageService } from '../image/image.service';
 import { DocumentService } from '../document/document.service';
-import { FileService } from '../file/file.service';
+import { FileService } from '@lib/file/file.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
 import {
