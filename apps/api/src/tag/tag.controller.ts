@@ -45,7 +45,11 @@ export class TagController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get()
-  async findAll(@Query() query: GetTagDto): Promise<TagResDto[]> {
+  async findAll(@Query() query: GetTagDto): Promise<TagResDto[] | TagResDto> {
+    // deprecated 49 ~ 52
+    if (query.name) {
+      return this.tagService.findTag(query.name);
+    }
     if (query.search) {
       return this.tagService.searchTags({ search: query.search });
     }
