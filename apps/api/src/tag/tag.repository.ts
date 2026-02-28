@@ -40,7 +40,7 @@ export class TagRepository {
       });
   }
 
-  async searchTags({ name }: Pick<Tag, 'name'>): Promise<Tag[]> {
+  async searchTags(name: string): Promise<Tag[]> {
     return this.prismaService.tag
       .findMany({
         where: {

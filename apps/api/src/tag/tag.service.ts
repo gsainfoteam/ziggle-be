@@ -33,12 +33,8 @@ export class TagService {
    * @param search
    * @returns list of tags
    */
-  async searchTags({ search }: Pick<GetTagDto, 'search'>): Promise<Tag[]> {
-    if (!search) {
-      this.logger.debug('search is required');
-      throw new BadRequestException('search is required');
-    }
-    return this.tagRepository.searchTags({ name: search });
+  async searchTags(search: string): Promise<Tag[]> {
+    return this.tagRepository.searchTags(search);
   }
 
   /**

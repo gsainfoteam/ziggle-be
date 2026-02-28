@@ -51,7 +51,7 @@ export class TagController {
       return this.tagService.findTag(query.name);
     }
     if (query.search) {
-      return this.tagService.searchTags({ search: query.search });
+      return this.tagService.searchTags(query.search);
     }
     return this.tagService.findAllTags();
   }
