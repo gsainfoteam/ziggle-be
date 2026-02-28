@@ -1,7 +1,7 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class UploadImageDto {
-  @ApiPropertyOptional({
+  @ApiProperty({
     type: 'array',
     items: {
       type: 'string',
@@ -9,5 +9,5 @@ export class UploadImageDto {
     },
     description: 'The image files to upload',
   })
-  images?: Express.Multer.File[];
+  images: Express.Multer.File[];
 }
