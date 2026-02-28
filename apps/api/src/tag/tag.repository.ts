@@ -16,18 +16,13 @@ export class TagRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findAllTags(): Promise<Tag[]> {
-    return this.prismaService.tag
-      .findMany()
-      .catch((err) => {
-        this.logger.error(err);
-        throw new InternalServerErrorException();
-      })
-      .then((tags) => {
-        return tags;
-      });
+    return this.prismaService.tag.findMany().catch((err) => {
+      this.logger.error(err);
+      throw new InternalServerErrorException();
+    });
   }
 
-  async findTag({ name }: Pick<Tag, 'name'>): Promise<Tag> {
+  async findTag(name: string): Promise<Tag> {
     return this.prismaService.tag
       .findUniqueOrThrow({
         where: { name },
@@ -42,9 +37,6 @@ export class TagRepository {
         this.logger.error('findTag error');
         this.logger.debug(err);
         throw new InternalServerErrorException();
-      })
-      .then((tag) => {
-        return tag;
       });
   }
 
@@ -60,9 +52,6 @@ export class TagRepository {
       .catch((err) => {
         this.logger.error(err);
         throw new InternalServerErrorException();
-      })
-      .then((tags) => {
-        return tags;
       });
   }
 
@@ -76,9 +65,6 @@ export class TagRepository {
       .catch((err) => {
         this.logger.error(err);
         throw new InternalServerErrorException();
-      })
-      .then((tag) => {
-        return tag;
       });
   }
 
