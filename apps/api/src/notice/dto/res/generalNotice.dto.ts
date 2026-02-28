@@ -40,9 +40,6 @@ class GeneralReactionDto {
 
   @ApiProperty()
   isReacted: boolean;
-
-  @ApiProperty()
-  userId?: string;
 }
 
 export class GeneralNoticeDto {
