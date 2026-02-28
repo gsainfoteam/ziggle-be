@@ -1,7 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UploadImageDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: 'array',
     items: {
       type: 'string',
