@@ -98,6 +98,7 @@ async function bootstrap() {
       initOAuth: {
         usePkceWithAuthorizationCodeGrant: true,
         additionalQueryStringParams: { nonce: 'help' },
+        clientId: customConfigService.CLIENT_ID,
       },
     },
   });

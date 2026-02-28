@@ -37,6 +37,7 @@ import {
   GroupsUserInfo,
   Permission,
 } from '@lib/infoteam-groups/types/groups.type';
+import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
 
 @Injectable()
 @Loggable()
@@ -105,7 +106,7 @@ export class NoticeService {
     createNoticeDto: CreateNoticeDto,
     userUuid: string,
     groups?: GroupsUserInfo[],
-  ): Promise<ExpandedGeneralNoticeDto> {
+  ): Promise<CreateNoticeResDto> {
     let matchingGroup;
 
     if (createNoticeDto.groupId !== undefined && groups !== undefined) {
@@ -142,7 +143,10 @@ export class NoticeService {
       },
     );
 
-    const notice = await this.getNotice(createdNotice.id, { isViewed: false });
+    const notice = new CreateNoticeResDto({
+      ...createdNotice,
+      s3Url: this.s3Url,
+    });
 
     const notification = {
       title: notice.title,
@@ -151,7 +155,7 @@ export class NoticeService {
     };
 
     await this.fcmService.postMessageWithDelay(
-      notice.id.toString(),
+      createdNotice.id.toString(),
       this.convertNotificationBodyToString(notification),
       FcmTargetUser.All,
       {

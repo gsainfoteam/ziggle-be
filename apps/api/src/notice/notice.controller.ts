@@ -42,6 +42,7 @@ import { GroupsGuard } from '@lib/infoteam-groups/guard/groups.guard';
 import { GetGroups } from '../user/decorator/get-groups.decorator';
 import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
 import { JwtGuard, JwtOptionalGuard } from '../auth/guard/jwt.guard';
+import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
 
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
@@ -98,7 +99,7 @@ export class NoticeController {
     description: 'Create notice',
   })
   @ApiOkResponse({
-    type: ExpandedGeneralNoticeDto,
+    type: CreateNoticeResDto,
     description: 'Return notice',
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -110,7 +111,7 @@ export class NoticeController {
     @GetUser() user: User,
     @GetGroups() groups: GroupsUserInfo[],
     @Body() createNoticeDto: CreateNoticeDto,
-  ): Promise<ExpandedGeneralNoticeDto> {
+  ): Promise<CreateNoticeResDto> {
     return this.noticeService.createNotice(createNoticeDto, user.uuid, groups);
   }
 
