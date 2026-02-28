@@ -44,7 +44,6 @@ import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
 export class NoticeService {
   private readonly logger = new Logger(NoticeService.name);
   private fcmDelay: number;
-  private readonly s3Url: string;
   constructor(
     private readonly imageService: ImageService,
     private readonly documentService: DocumentService,
@@ -54,7 +53,6 @@ export class NoticeService {
     private readonly customConfigService: CustomConfigService,
   ) {
     this.fcmDelay = Number(this.customConfigService.FCM_DELAY);
-    this.s3Url = `https://s3.${customConfigService.AWS_S3_REGION}.amazonaws.com/${customConfigService.AWS_S3_BUCKET_NAME}/`;
   }
 
   async getNoticeList(
@@ -66,8 +64,8 @@ export class NoticeService {
     ).map((notice) => {
       return new GeneralNoticeDto({
         ...notice,
+        ...this.fileService.getFilesUrl(notice.files),
         langFromDto: getAllNoticeQueryDto.lang,
-        s3Url: this.s3Url,
         userUuid,
       });
     });
@@ -96,8 +94,8 @@ export class NoticeService {
 
     return new ExpandedGeneralNoticeDto({
       ...notice,
+      ...this.fileService.getFilesUrl(notice.files),
       langFromDto: getNoticeDto.lang,
-      s3Url: this.s3Url,
       userUuid,
     });
   }
@@ -145,7 +143,7 @@ export class NoticeService {
 
     const notice = new CreateNoticeResDto({
       ...createdNotice,
-      s3Url: this.s3Url,
+      ...this.fileService.getFilesUrl(createdNotice.files),
     });
 
     const notification = {

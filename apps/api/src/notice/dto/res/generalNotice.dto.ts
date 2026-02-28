@@ -4,7 +4,6 @@ import {
   Content,
   Crawl,
   File,
-  FileType,
   Reaction,
   Tag,
   User,
@@ -59,8 +58,6 @@ export class GeneralNoticeDto {
   }
   @Exclude()
   files: File[];
-  @Exclude()
-  s3Url: string;
   @Exclude()
   reminders: User[];
   @Exclude()
@@ -180,19 +177,11 @@ export class GeneralNoticeDto {
 
   @Expose()
   @ApiProperty()
-  get imageUrls(): string[] {
-    return this.files
-      ?.filter(({ type }) => type === FileType.IMAGE)
-      .map(({ url }) => `${this.s3Url}${url}`);
-  }
+  imageUrls: string[];
 
   @Expose()
   @ApiProperty()
-  get documentUrls(): string[] {
-    return this.files
-      ?.filter(({ type }) => type === FileType.DOCUMENT)
-      .map(({ url }) => `${this.s3Url}${url}`);
-  }
+  documentUrls: string[];
 
   constructor(partial: Partial<GeneralNoticeDto>) {
     Object.assign(this, partial);
