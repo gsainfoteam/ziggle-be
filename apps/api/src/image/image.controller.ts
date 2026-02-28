@@ -17,6 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { ImageService } from './image.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { UploadImageDto } from './dto/req/upload-image.dto';
 
 @ApiTags('image')
 @ApiBearerAuth('jwt')
@@ -31,20 +32,7 @@ export class ImageController {
       'This endpoint allows you to upload multiple images to the S3 bucket',
   })
   @ApiBody({
-    required: true,
-    type: 'multipart/form-data',
-    schema: {
-      type: 'object',
-      properties: {
-        images: {
-          type: 'array',
-          items: {
-            type: 'string',
-            format: 'binary',
-          },
-        },
-      },
-    },
+    type: UploadImageDto,
   })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ type: [String], status: 201 })
