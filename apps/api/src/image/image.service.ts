@@ -19,6 +19,9 @@ export class ImageService {
    * @returns string[]
    */
   async uploadImages(files: Express.Multer.File[]): Promise<string[]> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
+    }
     return Promise.all(files.map((file) => this.uploadImage(file)));
   }
 

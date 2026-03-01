@@ -66,7 +66,8 @@ async function bootstrap() {
             scopes: {
               openid: 'openid',
               email: 'email',
-              profile: ' profile',
+              name: ' name',
+              picture: 'picture',
             },
           },
         },
