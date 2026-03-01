@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { FileModule } from './file/file.module';
+import { FileModule } from '@lib/file/file.module';
 import { UserModule } from './user/user.module';
 import { TagModule } from './tag/tag.module';
 import { NoticeModule } from './notice/notice.module';

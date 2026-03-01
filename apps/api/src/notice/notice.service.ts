@@ -30,20 +30,20 @@ import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
 import { ImageService } from '../image/image.service';
 import { DocumentService } from '../document/document.service';
-import { FileService } from '../file/file.service';
+import { FileService } from '@lib/file/file.service';
 import { FcmService } from '../fcm/fcm.service';
 import { FcmTargetUser } from '../fcm/types/fcmTargetUser.type';
 import {
   GroupsUserInfo,
   Permission,
 } from '@lib/infoteam-groups/types/groups.type';
+import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
 
 @Injectable()
 @Loggable()
 export class NoticeService {
   private readonly logger = new Logger(NoticeService.name);
   private fcmDelay: number;
-  private readonly s3Url: string;
   constructor(
     private readonly imageService: ImageService,
     private readonly documentService: DocumentService,
@@ -53,7 +53,6 @@ export class NoticeService {
     private readonly customConfigService: CustomConfigService,
   ) {
     this.fcmDelay = Number(this.customConfigService.FCM_DELAY);
-    this.s3Url = `https://s3.${customConfigService.AWS_S3_REGION}.amazonaws.com/${customConfigService.AWS_S3_BUCKET_NAME}/`;
   }
 
   async getNoticeList(
@@ -65,8 +64,8 @@ export class NoticeService {
     ).map((notice) => {
       return new GeneralNoticeDto({
         ...notice,
+        ...this.fileService.getFilesUrl(notice.files),
         langFromDto: getAllNoticeQueryDto.lang,
-        s3Url: this.s3Url,
         userUuid,
       });
     });
@@ -95,8 +94,8 @@ export class NoticeService {
 
     return new ExpandedGeneralNoticeDto({
       ...notice,
+      ...this.fileService.getFilesUrl(notice.files),
       langFromDto: getNoticeDto.lang,
-      s3Url: this.s3Url,
       userUuid,
     });
   }
@@ -105,7 +104,7 @@ export class NoticeService {
     createNoticeDto: CreateNoticeDto,
     userUuid: string,
     groups?: GroupsUserInfo[],
-  ): Promise<ExpandedGeneralNoticeDto> {
+  ): Promise<CreateNoticeResDto> {
     let matchingGroup;
 
     if (createNoticeDto.groupId !== undefined && groups !== undefined) {
@@ -142,7 +141,10 @@ export class NoticeService {
       },
     );
 
-    const notice = await this.getNotice(createdNotice.id, { isViewed: false });
+    const notice = new CreateNoticeResDto({
+      ...createdNotice,
+      ...this.fileService.getFilesUrl(createdNotice.files),
+    });
 
     const notification = {
       title: notice.title,
@@ -151,7 +153,7 @@ export class NoticeService {
     };
 
     await this.fcmService.postMessageWithDelay(
-      notice.id.toString(),
+      createdNotice.id.toString(),
       this.convertNotificationBodyToString(notification),
       FcmTargetUser.All,
       {

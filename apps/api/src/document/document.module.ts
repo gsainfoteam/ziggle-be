@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { DocumentController } from './document.controller';
 import { DocumentService } from './document.service';
 import { LoggerModule } from '@lib/logger';
-import { FileModule } from '../file/file.module';
+import { FileModule } from '@lib/file/file.module';
 
 @Module({
   imports: [FileModule, LoggerModule],
