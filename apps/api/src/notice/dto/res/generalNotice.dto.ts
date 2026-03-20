@@ -17,6 +17,12 @@ export class AuthorDto {
 
   @ApiProperty()
   name: string;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+  })
+  picture: string | null;
 }
 
 class GroupDto {

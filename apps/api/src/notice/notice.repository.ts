@@ -181,6 +181,7 @@ export class NoticeRepository {
             select: {
               name: true,
               uuid: true,
+              picture: true,
             },
           },
           files: {
@@ -229,6 +230,7 @@ export class NoticeRepository {
             select: {
               name: true,
               uuid: true,
+              picture: true,
             },
           },
           files: { orderBy: { order: 'asc' } },
@@ -286,6 +288,7 @@ export class NoticeRepository {
             select: {
               name: true,
               uuid: true,
+              picture: true,
             },
           },
           files: { orderBy: { order: 'asc' } },
@@ -426,6 +429,7 @@ export class NoticeRepository {
             select: {
               name: true,
               uuid: true,
+              picture: true,
             },
           },
           files: { orderBy: { order: 'asc' } },

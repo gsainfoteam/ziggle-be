@@ -9,6 +9,7 @@ export type NoticeFullContent = Prisma.NoticeGetPayload<{
       select: {
         name: true;
         uuid: true;
+        picture: true;
       };
     };
     files: true;
