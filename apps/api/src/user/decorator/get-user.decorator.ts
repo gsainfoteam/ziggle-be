@@ -5,6 +5,7 @@ export const GetUser = createParamDecorator(
   (_data, ctx: ExecutionContext): User | undefined => {
     const req = ctx.switchToHttp().getRequest();
     // deprecated
+    if (!req.user) return undefined;
     if (!req.user.ziggle) return req.user;
     return req.user.ziggle;
 

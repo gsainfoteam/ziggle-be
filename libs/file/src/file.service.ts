@@ -11,16 +11,19 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import { File, FileType } from '@prisma/client';
 
 @Injectable()
 @Loggable()
 export class FileService {
   private readonly logger = new Logger(FileService.name);
   private readonly s3Client: S3Client;
+  private readonly s3Url: string;
   constructor(private readonly customConfigService: CustomConfigService) {
     this.s3Client = new S3Client({
       region: customConfigService.AWS_S3_REGION,
     });
+    this.s3Url = `https://s3.${customConfigService.AWS_S3_REGION}.amazonaws.com/${customConfigService.AWS_S3_BUCKET_NAME}/`;
   }
 
   /**
@@ -85,5 +88,19 @@ export class FileService {
 
   async deleteFiles(keys: string[]): Promise<void> {
     await Promise.all(keys.map((key) => this.deleteFile(key)));
+  }
+
+  getFilesUrl(files: File[]): { imageUrls: string[]; documentUrls: string[] } {
+    const imageUrls: string[] = [];
+    const documentUrls: string[] = [];
+    for (const file of files) {
+      if (file.type === FileType.IMAGE) {
+        imageUrls.push(`${this.s3Url}${file.url}`);
+      }
+      if (file.type === FileType.DOCUMENT) {
+        documentUrls.push(`${this.s3Url}${file.url}`);
+      }
+    }
+    return { imageUrls, documentUrls };
   }
 }

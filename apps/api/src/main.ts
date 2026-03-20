@@ -66,7 +66,8 @@ async function bootstrap() {
             scopes: {
               openid: 'openid',
               email: 'email',
-              profile: ' profile',
+              name: ' name',
+              picture: 'picture',
             },
           },
         },
@@ -98,6 +99,7 @@ async function bootstrap() {
       initOAuth: {
         usePkceWithAuthorizationCodeGrant: true,
         additionalQueryStringParams: { nonce: 'help' },
+        clientId: customConfigService.CLIENT_ID,
       },
     },
   });

@@ -8,7 +8,7 @@ import { CustomConfigModule } from '@lib/custom-config';
 import { UserModule } from '../user/user.module';
 import { ImageModule } from '../image/image.module';
 import { DocumentModule } from '../document/document.module';
-import { FileModule } from '../file/file.module';
+import { FileModule } from '@lib/file/file.module';
 import { FcmModule } from '../fcm/fcm.module';
 import { InfoteamGroupsModule } from '@lib/infoteam-groups/infoteam-groups.module';
 import { AuthModule } from '../auth/auth.module';

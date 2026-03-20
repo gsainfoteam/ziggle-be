@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { TagRepository } from './tag.repository';
 import { Tag } from '@prisma/client';
-import { GetTagDto } from './dto/req/getTag.dto';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { CreateTagDto } from './dto/req/createTag.dto';
 
 @Injectable()
 @Loggable()
@@ -23,12 +23,8 @@ export class TagService {
    * @param name
    * @returns tag
    */
-  async findTag({ name }: Pick<GetTagDto, 'name'>): Promise<Tag> {
-    if (!name) {
-      this.logger.debug('name is required');
-      throw new BadRequestException('name is required');
-    }
-    return this.tagRepository.findTag({ name });
+  async findTag(name: string): Promise<Tag> {
+    return this.tagRepository.findTag(name);
   }
 
   /**
@@ -36,12 +32,8 @@ export class TagService {
    * @param search
    * @returns list of tags
    */
-  async searchTags({ search }: Pick<GetTagDto, 'search'>): Promise<Tag[]> {
-    if (!search) {
-      this.logger.debug('search is required');
-      throw new BadRequestException('search is required');
-    }
-    return this.tagRepository.searchTags({ name: search });
+  async searchTags(search: string): Promise<Tag[]> {
+    return this.tagRepository.searchTags(search);
   }
 
   /**
@@ -49,7 +41,7 @@ export class TagService {
    * @param name
    * @returns tag
    */
-  async createTag({ name }: Pick<GetTagDto, 'name'>): Promise<Tag> {
+  async createTag({ name }: CreateTagDto): Promise<Tag> {
     if (!name) {
       this.logger.debug('name is required');
       throw new BadRequestException('name is required');
@@ -65,7 +57,7 @@ export class TagService {
   async deleteTag({ id }: Pick<Tag, 'id'>): Promise<void> {
     if (!id) {
       this.logger.debug('id is required');
-      throw new BadRequestException('name is required');
+      throw new BadRequestException('id is required');
     }
     return this.tagRepository.deleteTag({ id });
   }

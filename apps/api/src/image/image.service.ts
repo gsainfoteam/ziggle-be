@@ -6,7 +6,7 @@ import {
 import path from 'path';
 import sharp from 'sharp';
 import { Loggable } from '@lib/logger/decorator/loggable';
-import { FileService } from '../file/file.service';
+import { FileService } from '@lib/file/file.service';
 
 @Injectable()
 @Loggable()
@@ -19,6 +19,9 @@ export class ImageService {
    * @returns string[]
    */
   async uploadImages(files: Express.Multer.File[]): Promise<string[]> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
+    }
     return Promise.all(files.map((file) => this.uploadImage(file)));
   }
 

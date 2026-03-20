@@ -30,7 +30,9 @@
       "@lib/custom-config": ["libs/custom-config/src"],
       "@lib/custom-config/*": ["libs/custom-config/src/*"],
       "@lib/infoteam-groups": ["libs/infoteam-groups/src"],
-      "@lib/infoteam-groups/*": ["libs/infoteam-groups/src/*"]
+      "@lib/infoteam-groups/*": ["libs/infoteam-groups/src/*"],
+      "@lib/file": ["libs/file/src"],
+      "@lib/file/*": ["libs/file/src/*"]
     }
   }
 }
