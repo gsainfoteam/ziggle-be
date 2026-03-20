@@ -22,7 +22,7 @@ export class UserInfoRes implements UserInfo {
   name: string;
 
   @ApiProperty({
-    type: 'string | null',
+    type: String,
     nullable: true,
     description: 'User profile image',
     example: 'https://bucket.s3.ap-northeast-2.amazonaws.com/1626740269.webp',
