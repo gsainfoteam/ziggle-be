@@ -59,22 +59,24 @@ export class NoticeService {
     getAllNoticeQueryDto: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<GeneralNoticeListDto> {
-    const notices = (
-      await this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid)
-    ).map((notice) => {
-      return new GeneralNoticeDto({
-        ...notice,
-        ...this.fileService.getFilesUrl(notice.files),
-        langFromDto: getAllNoticeQueryDto.lang,
-        userUuid,
-      });
-    });
+    const [notices, total] = await Promise.all([
+      this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid),
+      this.noticeRepository.getTotalCount(getAllNoticeQueryDto, userUuid),
+    ]);
+
+    const noticeList = notices.map(
+      (notice) =>
+        new GeneralNoticeDto({
+          ...notice,
+          ...this.fileService.getFilesUrl(notice.files),
+          langFromDto: getAllNoticeQueryDto.lang,
+          userUuid,
+        }),
+    );
+
     return {
-      total: await this.noticeRepository.getTotalCount(
-        getAllNoticeQueryDto,
-        userUuid,
-      ),
-      list: await Promise.all(notices),
+      total,
+      list: noticeList,
     };
   }
 
