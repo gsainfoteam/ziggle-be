@@ -32,7 +32,6 @@ export class HealthController {
     return this.health.check([
       () =>
         this.http.pingCheck('infoteam-idp', this.configService.IDP_BASE_URL),
-      () => this.http.pingCheck('groups', this.configService.GROUPS_URL),
       () => this.prisma.pingCheck('database', this.prismaService),
       () => this.memory.checkRSS('memory_rss', 1024 * 1024 * 150),
       () => this.redis.isHealthy('redis'),
