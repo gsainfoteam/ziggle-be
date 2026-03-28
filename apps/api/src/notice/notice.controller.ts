@@ -41,14 +41,14 @@ import { GetUser } from '../user/decorator/get-user.decorator';
 import { GroupsGuard } from '@lib/infoteam-groups/guard/groups.guard';
 import { GetGroups } from '../user/decorator/get-groups.decorator';
 import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
-import { JwtGuard, JwtOptionalGuard } from '../auth/guard/jwt.guard';
+import { JwtGuard } from '../auth/guard/jwt.guard';
 import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
 
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
 @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2') // deprecated
 @ApiSecurity('groups-auth')
-// @UseGuards(JwtGuard)
+@UseGuards(JwtGuard)
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
 @UseInterceptors(ClassSerializerInterceptor)
@@ -65,7 +65,6 @@ export class NoticeController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @UseGuards(JwtOptionalGuard)
   @Get()
   async getNoticeList(
     @Query() query: GetAllNoticeQueryDto,
@@ -84,7 +83,6 @@ export class NoticeController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @UseGuards(JwtOptionalGuard)
   @Get(':id')
   async getNotice(
     @Param('id', ParseIntPipe) id: number,
@@ -105,7 +103,6 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post()
-  @UseGuards(JwtGuard)
   @UseGuards(GroupsGuard)
   async createNotice(
     @GetUser() user: User,
@@ -122,7 +119,6 @@ export class NoticeController {
   @ApiOkResponse({ description: 'Return notice' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @UseGuards(JwtGuard)
   @Post(':id/alarm')
   async sendNotice(
     @GetUser() user: User,
@@ -141,7 +137,6 @@ export class NoticeController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @UseGuards(JwtGuard)
   @Post(':id/additional')
   async createAdditionalNotice(
     @Param('id', ParseIntPipe) id: number,
@@ -165,7 +160,6 @@ export class NoticeController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @UseGuards(JwtGuard)
   @Post(':id/:contentIdx/foreign')
   async addForeignContent(
     @Param('id', ParseIntPipe) id: number,
@@ -191,7 +185,6 @@ export class NoticeController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @UseGuards(JwtGuard)
   @Post(':id/reaction')
   async addReaction(
     @GetUser() user: User,
@@ -212,7 +205,6 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Patch(':id')
-  @UseGuards(JwtGuard)
   @UseGuards(GroupsGuard)
   async updateNotice(
     @Param('id', ParseIntPipe) id: number,
@@ -235,7 +227,6 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Delete(':id/reaction')
-  @UseGuards(JwtGuard)
   async deleteReaction(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
@@ -252,7 +243,6 @@ export class NoticeController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Delete(':id')
-  @UseGuards(JwtGuard)
   @UseGuards(GroupsGuard)
   async deleteNotice(
     @GetUser() user: User,
