@@ -7,7 +7,6 @@ import { CustomConfigService } from '@lib/custom-config';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { RedisService } from '@lib/redis';
-import ms, { StringValue } from 'ms';
 import { User } from '@prisma/client';
 
 @Injectable()
@@ -23,9 +22,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
   ) {
-    this.refreshTokenExpire = ms(
-      customConfigService.REFRESH_TOKEN_EXPIRE as StringValue,
-    );
+    this.refreshTokenExpire = customConfigService.REFRESH_TOKEN_EXPIRE;
   }
 
   async login(auth: string): Promise<JwtTokenType> {
@@ -85,7 +82,7 @@ export class AuthService {
     const refresh_token: string = this.generateOpaqueToken();
     await this.redisService.set<string>(refresh_token, uuid, {
       prefix: this.refreshTokenPrefix,
-      ttl: this.refreshTokenExpire / 1000,
+      ttl: this.refreshTokenExpire,
     });
     return {
       access_token: this.jwtService.sign({}, { subject: uuid }),

@@ -22,7 +22,6 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtGuard } from './guard/jwt.guard';
-import ms, { StringValue } from 'ms';
 import { CustomConfigService } from '@lib/custom-config';
 
 @ApiTags('auth')
@@ -34,9 +33,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly customConfigService: CustomConfigService,
   ) {
-    this.refreshTokenExpire = ms(
-      customConfigService.REFRESH_TOKEN_EXPIRE as StringValue,
-    );
+    this.refreshTokenExpire = customConfigService.REFRESH_TOKEN_EXPIRE;
   }
 
   @ApiOperation({

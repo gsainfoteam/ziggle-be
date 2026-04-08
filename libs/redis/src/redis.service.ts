@@ -29,7 +29,7 @@ export class RedisService implements OnModuleDestroy {
     await this.redisClient.set(
       `${prefix}:${key}`,
       JSON.stringify(value),
-      'EX',
+      'PX',
       ttl,
     );
   }
