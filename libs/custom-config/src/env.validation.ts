@@ -66,9 +66,9 @@ export class EnvironmentVariables {
   @IsNotEmpty()
   REDIS_PORT: number;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  FCM_DELAY: number;
+  FCM_DELAY: string;
 
   @IsString()
   @IsNotEmpty()
@@ -101,6 +101,10 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   REFRESH_TOKEN_EXPIRE: string;
+
+  @IsString()
+  @IsNotEmpty()
+  NOTICE_MAIN_LIST_CACHE_TTL: string;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;

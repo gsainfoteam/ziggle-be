@@ -63,6 +63,19 @@ export class RedisService implements OnModuleDestroy {
     await this.redisClient.del(`${prefix}:${key}`);
   }
 
+  async delByPattern(
+    keyPattern: string,
+    { prefix = 'default' }: Pick<CacheConfig, 'prefix'>,
+  ): Promise<void> {
+    const pattern = `${prefix}:${keyPattern}`;
+    this.logger.log(`Deleting cache by pattern: ${pattern}`);
+    const keys = await this.redisClient.keys(pattern);
+    if (!keys.length) {
+      return;
+    }
+    await this.redisClient.del(...keys);
+  }
+
   async onModuleDestroy() {
     await this.redisClient.quit();
   }
