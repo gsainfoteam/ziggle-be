@@ -39,7 +39,7 @@ import {
   Permission,
 } from '@lib/infoteam-groups/types/groups.type';
 import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
-import { RedisService } from 'libs/redis/src';
+import { RedisService } from '@lib/redis';
 import { GetMainNoticeListQueryDto } from './dto/req/get-main-notice-list.dto';
 
 @Injectable()

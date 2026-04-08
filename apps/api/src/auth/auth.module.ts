@@ -9,7 +9,7 @@ import { JwtGuard, JwtOptionalGuard } from './guard/jwt.guard';
 import { JwtOptionalStrategy } from './guard/jwtOptional.strategy';
 import { JwtStrategy } from './guard/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
-import { RedisModule } from 'libs/redis/src';
+import { RedisModule } from '@lib/redis';
 import ms, { StringValue } from 'ms';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';

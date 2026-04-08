@@ -12,7 +12,7 @@ import { FileModule } from '@lib/file/file.module';
 import { FcmModule } from '../fcm/fcm.module';
 import { InfoteamGroupsModule } from '@lib/infoteam-groups/infoteam-groups.module';
 import { AuthModule } from '../auth/auth.module';
-import { RedisModule } from 'libs/redis/src';
+import { RedisModule } from '@lib/redis';
 
 @Module({
   imports: [

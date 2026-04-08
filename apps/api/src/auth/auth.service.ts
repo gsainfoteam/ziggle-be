@@ -6,7 +6,7 @@ import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
-import { RedisService } from 'libs/redis/src';
+import { RedisService } from '@lib/redis';
 import ms, { StringValue } from 'ms';
 import { User } from '@prisma/client';
 
