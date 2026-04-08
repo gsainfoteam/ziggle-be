@@ -86,12 +86,20 @@ export class NoticeService {
     { lang = 'ko' }: GetMainNoticeListQueryDto,
     userUuid?: string,
   ): Promise<GeneralNoticeListDto> {
-    const cachedNoticeList = await this.redisService.get<NoticeListData>(
-      this.mainNoticeListCacheKey,
-      {
-        prefix: this.mainNoticeListCachePrefix,
-      },
-    );
+    let cachedNoticeList: NoticeListData | null = null;
+    try {
+      cachedNoticeList = await this.redisService.get<NoticeListData>(
+        this.mainNoticeListCacheKey,
+        {
+          prefix: this.mainNoticeListCachePrefix,
+        },
+      );
+    } catch (error: unknown) {
+      this.logger.warn(
+        'Failed to read main notice list cache, fallback to DB',
+        error,
+      );
+    }
 
     if (cachedNoticeList) {
       return this.buildNoticeListResponse(
@@ -108,14 +116,14 @@ export class NoticeService {
       orderBy: 'recent',
     });
 
-    await this.redisService.set<NoticeListData>(
-      this.mainNoticeListCacheKey,
-      fetchedNoticeList,
-      {
+    await this.redisService
+      .set<NoticeListData>(this.mainNoticeListCacheKey, fetchedNoticeList, {
         prefix: this.mainNoticeListCachePrefix,
         ttl: this.noticeListCacheTtl,
-      },
-    );
+      })
+      .catch((error: unknown) => {
+        this.logger.warn('Failed to write main notice list cache', error);
+      });
 
     return this.buildNoticeListResponse(
       fetchedNoticeList.notices,
