@@ -94,6 +94,6 @@ export class MetricsInterceptor implements NestInterceptor {
       return `${baseUrl}${routePath}`;
     }
 
-    return req.path || req.originalUrl?.split('?')[0] || 'unknown';
+    return 'unmatched';
   }
 }
