@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { Logger } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import expressBasicAuth from 'express-basic-auth';
@@ -10,6 +11,7 @@ import { MetricsInterceptor } from './metrics/metrics.interceptor';
 import * as http from 'http';
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(ApiModule);
   const customConfigService = app.get(CustomConfigService);
   // swagger auth config
@@ -121,7 +123,7 @@ async function bootstrap() {
       res.statusCode = 404;
       res.end('Not Found');
     } catch (error) {
-      console.error('Metrics error', error);
+      logger.error('Metrics error', error);
       res.statusCode = 500;
       res.end('Metrics error');
     }
@@ -129,11 +131,43 @@ async function bootstrap() {
 
   metricsServer.listen(customConfigService.METRICS_PORT);
 
-  const shutdown = async () => {
-    await app.close();
-    metricsServer.close(() => {
-      process.exit(0);
+  let isShuttingDown = false;
+
+  const closeMetricsServer = () =>
+    new Promise<void>((resolve, reject) => {
+      metricsServer.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
     });
+
+  const shutdown = async (signal: NodeJS.Signals) => {
+    if (isShuttingDown) {
+      return;
+    }
+
+    isShuttingDown = true;
+    let exitCode = 0;
+    logger.log(`Received ${signal}. Starting graceful shutdown.`);
+
+    try {
+      await app.close();
+    } catch (error) {
+      exitCode = 1;
+      logger.error('Failed to close Nest application', error);
+    } finally {
+      try {
+        await closeMetricsServer();
+      } catch (error) {
+        exitCode = 1;
+        logger.error('Failed to close metrics server', error);
+      }
+      process.exit(exitCode);
+    }
   };
 
   process.on('SIGINT', shutdown);
