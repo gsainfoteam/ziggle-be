@@ -5,7 +5,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { finalize, tap } from 'rxjs/operators';
 import {
   httpRequestDurationSeconds,
   httpRequestErrorsTotal,
@@ -34,30 +34,16 @@ export class MetricsInterceptor implements NestInterceptor {
 
     httpRequestsInFlight.inc({ method, route });
 
+    let statusCode = '200';
+
     return next.handle().pipe(
       tap({
-        next: () => {
-          const statusCode = String(res.statusCode ?? 200);
-
-          httpRequestsTotal.inc({
-            method,
-            route,
-            status_code: statusCode,
-          });
-
-          endTimer({
-            method,
-            route,
-            status_code: statusCode,
-          });
-
-          httpRequestsInFlight.dec({ method, route });
-        },
         error: (err: unknown) => {
           const rawStatusCode = res.statusCode;
-          const statusCode = String(
+          statusCode = String(
             !rawStatusCode || rawStatusCode < 400 ? 500 : rawStatusCode,
           );
+
           const errorName =
             err && typeof err === 'object' && 'constructor' in err
               ? (err as { constructor?: { name?: string } }).constructor
@@ -76,15 +62,26 @@ export class MetricsInterceptor implements NestInterceptor {
             error_name: errorName,
             status_code: statusCode,
           });
-
-          endTimer({
-            method,
-            route,
-            status_code: statusCode,
-          });
-
-          httpRequestsInFlight.dec({ method, route });
         },
+      }),
+      finalize(() => {
+        if (statusCode === '200') {
+          statusCode = String(res.statusCode ?? 200);
+        }
+
+        httpRequestsTotal.inc({
+          method,
+          route,
+          status_code: statusCode,
+        });
+
+        endTimer({
+          method,
+          route,
+          status_code: statusCode,
+        });
+
+        httpRequestsInFlight.dec({ method, route });
       }),
     );
   }
