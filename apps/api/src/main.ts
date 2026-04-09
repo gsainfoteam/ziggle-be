@@ -4,7 +4,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import expressBasicAuth from 'express-basic-auth';
 import { json } from 'express';
 import { CustomConfigService } from '@lib/custom-config';
+import { metricsRegistry } from '@lib/metrics';
 import { ApiModule } from './api.module';
+import { MetricsInterceptor } from './metrics/metrics.interceptor';
+import * as http from 'http';
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiModule);
@@ -103,6 +106,39 @@ async function bootstrap() {
       },
     },
   });
+
+  app.useGlobalInterceptors(new MetricsInterceptor());
+
+  const metricsServer = http.createServer(async (req, res) => {
+    try {
+      if (req.url === '/metrics') {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', metricsRegistry.contentType);
+        res.end(await metricsRegistry.metrics());
+        return;
+      }
+
+      res.statusCode = 404;
+      res.end('Not Found');
+    } catch (error) {
+      console.error('Metrics error', error);
+      res.statusCode = 500;
+      res.end('Metrics error');
+    }
+  });
+
+  metricsServer.listen(customConfigService.METRICS_PORT);
+
+  const shutdown = async () => {
+    await app.close();
+    metricsServer.close(() => {
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+
   // start server
   await app.listen(3000);
 }

@@ -53,6 +53,15 @@
         "tsConfigPath": "libs/custom-config/tsconfig.lib.json"
       }
     },
+    "metrics": {
+      "type": "library",
+      "root": "libs/metrics",
+      "entryFile": "index",
+      "sourceRoot": "libs/metrics/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/metrics/tsconfig.lib.json"
+      }
+    },
     "api": {
       "type": "application",
       "root": "apps/api",

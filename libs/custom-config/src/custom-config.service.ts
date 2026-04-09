@@ -109,4 +109,8 @@ export class CustomConfigService {
   get REFRESH_TOKEN_EXPIRE(): string {
     return this.getEnvVariable('REFRESH_TOKEN_EXPIRE');
   }
+
+  get METRICS_PORT(): number {
+    return this.getEnvVariable('METRICS_PORT');
+  }
 }
