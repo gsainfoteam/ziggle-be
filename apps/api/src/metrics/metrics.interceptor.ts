@@ -34,15 +34,13 @@ export class MetricsInterceptor implements NestInterceptor {
 
     httpRequestsInFlight.inc({ method, route });
 
-    let statusCode = '200';
+    let statusCode: string | null = null;
 
     return next.handle().pipe(
       tap({
         error: (err: unknown) => {
           const rawStatusCode = res.statusCode;
-          statusCode = String(
-            !rawStatusCode || rawStatusCode < 400 ? 500 : rawStatusCode,
-          );
+          statusCode = String(rawStatusCode ?? 500);
 
           const errorName =
             err && typeof err === 'object' && 'constructor' in err
@@ -59,20 +57,19 @@ export class MetricsInterceptor implements NestInterceptor {
         },
       }),
       finalize(() => {
-        if (statusCode === '200') {
-          statusCode = String(res.statusCode ?? 200);
-        }
+        const finalStatusCode =
+          statusCode === null ? String(res.statusCode ?? 500) : statusCode;
 
         httpRequestsTotal.inc({
           method,
           route,
-          status_code: statusCode,
+          status_code: finalStatusCode,
         });
 
         endTimer({
           method,
           route,
-          status_code: statusCode,
+          status_code: finalStatusCode,
         });
 
         httpRequestsInFlight.dec({ method, route });
