@@ -23,10 +23,6 @@ export class MetricsInterceptor implements NestInterceptor {
     const method = req.method ?? 'UNKNOWN';
     const route = this.normalizeRoute(req);
 
-    if (route === '/metrics') {
-      return next.handle();
-    }
-
     const endTimer = httpRequestDurationSeconds.startTimer({
       method,
       route,
