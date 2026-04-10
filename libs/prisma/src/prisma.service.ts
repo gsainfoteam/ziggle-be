@@ -60,14 +60,11 @@ export class PrismaService
   }
 
   private extractModel(query: string): string {
-    const match = query.match(/FROM\s+"?([A-Za-z0-9_]+)"?/i);
-    if (match?.[1]) return match[1];
-
-    const insertMatch = query.match(/INTO\s+"?([A-Za-z0-9_]+)"?/i);
-    if (insertMatch?.[1]) return insertMatch[1];
-
-    const updateMatch = query.match(/UPDATE\s+"?([A-Za-z0-9_]+)"?/i);
-    if (updateMatch?.[1]) return updateMatch[1];
+    const tableMatch = query.match(
+      /(?:FROM|INTO|UPDATE)\s+(?:(?:"[^"]+"|[A-Za-z_][A-Za-z0-9_]*)\s*\.\s*)?(?:"([^"]+)"|([A-Za-z_][A-Za-z0-9_]*))/i,
+    );
+    const model = tableMatch?.[1] ?? tableMatch?.[2];
+    if (model) return model;
 
     return 'unknown';
   }
