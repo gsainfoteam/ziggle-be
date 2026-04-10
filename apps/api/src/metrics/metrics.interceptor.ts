@@ -1,6 +1,7 @@
 import {
   CallHandler,
   ExecutionContext,
+  HttpException,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
@@ -36,7 +37,13 @@ export class MetricsInterceptor implements NestInterceptor {
       tap({
         error: (err: unknown) => {
           const rawStatusCode = res.statusCode;
-          statusCode = String(rawStatusCode ?? 500);
+          if (err instanceof HttpException) {
+            statusCode = String(err.getStatus());
+          } else {
+            statusCode = String(
+              !rawStatusCode || rawStatusCode < 400 ? 500 : rawStatusCode,
+            );
+          }
 
           const errorName =
             err && typeof err === 'object' && 'constructor' in err
