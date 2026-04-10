@@ -113,10 +113,17 @@ async function bootstrap() {
 
   const metricsServer = http.createServer(async (req, res) => {
     try {
-      if (req.url === '/metrics') {
+      if (req.url === '/metrics' && req.method === 'GET') {
         res.statusCode = 200;
         res.setHeader('Content-Type', metricsRegistry.contentType);
         res.end(await metricsRegistry.metrics());
+        return;
+      }
+
+      if (req.url === '/metrics') {
+        res.statusCode = 405;
+        res.setHeader('Allow', 'GET');
+        res.end('Method Not Allowed');
         return;
       }
 
