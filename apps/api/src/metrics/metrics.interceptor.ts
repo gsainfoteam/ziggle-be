@@ -50,12 +50,6 @@ export class MetricsInterceptor implements NestInterceptor {
                   ?.name ?? 'UnknownError'
               : 'UnknownError';
 
-          httpRequestsTotal.inc({
-            method,
-            route,
-            status_code: statusCode,
-          });
-
           httpRequestErrorsTotal.inc({
             method,
             route,
