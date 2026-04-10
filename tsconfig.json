@@ -29,6 +29,8 @@
       "@lib/config/*": ["libs/config/src/*"],
       "@lib/custom-config": ["libs/custom-config/src"],
       "@lib/custom-config/*": ["libs/custom-config/src/*"],
+      "@lib/metrics": ["libs/metrics/src"],
+      "@lib/metrics/*": ["libs/metrics/src/*"],
       "@lib/infoteam-groups": ["libs/infoteam-groups/src"],
       "@lib/infoteam-groups/*": ["libs/infoteam-groups/src/*"],
       "@lib/file": ["libs/file/src"],
