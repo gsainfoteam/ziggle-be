@@ -14,11 +14,18 @@ const sdk = new NodeSDK({
   instrumentations: [getNodeAutoInstrumentations()],
 });
 
-const startPromise = Promise.resolve(sdk.start());
+let startPromise: Promise<void> | null = null;
 
 let shutdownPromise: Promise<void> | null = null;
 
 export const initializeOpenTelemetry = async (): Promise<void> => {
+  if (!startPromise) {
+    startPromise = Promise.resolve(sdk.start()).catch((error: unknown) => {
+      startPromise = null;
+      throw error;
+    });
+  }
+
   await startPromise;
 };
 
