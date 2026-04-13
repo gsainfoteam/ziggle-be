@@ -1,4 +1,3 @@
-import './otel';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
@@ -10,6 +9,7 @@ import { metricsRegistry } from '@lib/metrics';
 import { ApiModule } from './api.module';
 import { MetricsInterceptor } from './metrics/metrics.interceptor';
 import * as http from 'http';
+import { shutdownOpenTelemetry } from './otel';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -173,6 +173,12 @@ async function bootstrap() {
       } catch (error) {
         exitCode = 1;
         logger.error('Failed to close metrics server', error);
+      }
+      try {
+        await shutdownOpenTelemetry();
+      } catch (error) {
+        exitCode = 1;
+        logger.error('Failed to shutdown OpenTelemetry SDK', error);
       }
       process.exit(exitCode);
     }

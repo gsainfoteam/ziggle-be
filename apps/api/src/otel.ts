@@ -16,11 +16,15 @@ const sdk = new NodeSDK({
 
 void sdk.start();
 
-const shutdownOpenTelemetry = () => {
-  void sdk.shutdown().catch((error: unknown) => {
-    console.error('[otel] failed to shutdown sdk', error);
-  });
-};
+let shutdownPromise: Promise<void> | null = null;
 
-process.once('SIGINT', shutdownOpenTelemetry);
-process.once('SIGTERM', shutdownOpenTelemetry);
+export const shutdownOpenTelemetry = async (): Promise<void> => {
+  if (!shutdownPromise) {
+    shutdownPromise = sdk.shutdown().catch((error: unknown) => {
+      console.error('[otel] failed to shutdown sdk', error);
+      throw error;
+    });
+  }
+
+  await shutdownPromise;
+};
