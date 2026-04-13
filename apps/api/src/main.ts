@@ -1,3 +1,4 @@
+import { initializeOpenTelemetry, shutdownOpenTelemetry } from './otel';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
@@ -173,6 +174,12 @@ async function bootstrap() {
         exitCode = 1;
         logger.error('Failed to close metrics server', error);
       }
+      try {
+        await shutdownOpenTelemetry();
+      } catch (error) {
+        exitCode = 1;
+        logger.error('Failed to shutdown OpenTelemetry SDK', error);
+      }
       process.exit(exitCode);
     }
   };
@@ -183,4 +190,11 @@ async function bootstrap() {
   // start server
   await app.listen(3000);
 }
-bootstrap();
+
+void initializeOpenTelemetry()
+  .then(bootstrap)
+  .catch((error: unknown) => {
+    const logger = new Logger('Bootstrap');
+    logger.error('Failed to initialize OpenTelemetry', error);
+    process.exit(1);
+  });
