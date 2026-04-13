@@ -33,10 +33,26 @@ export const shutdownOpenTelemetry = async (): Promise<void> => {
   await initializeOpenTelemetry();
 
   if (!shutdownPromise) {
-    shutdownPromise = sdk.shutdown().catch((error: unknown) => {
-      console.error('[otel] failed to shutdown sdk', error);
-      throw error;
-    });
+    let timeout: NodeJS.Timeout | null = null;
+
+    shutdownPromise = Promise.race([
+      sdk.shutdown(),
+      new Promise<void>((_, reject) => {
+        timeout = setTimeout(() => {
+          reject(new Error(`[otel] shutdown timeout after 10,000ms`));
+        }, 10000);
+      }),
+    ])
+      .catch((error: unknown) => {
+        shutdownPromise = null;
+        console.error('[otel] failed to shutdown sdk', error);
+        throw error;
+      })
+      .finally(() => {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+      });
   }
 
   await shutdownPromise;
