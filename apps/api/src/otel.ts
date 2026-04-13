@@ -14,11 +14,17 @@ const sdk = new NodeSDK({
   instrumentations: [getNodeAutoInstrumentations()],
 });
 
-void sdk.start();
+const startPromise = Promise.resolve(sdk.start());
 
 let shutdownPromise: Promise<void> | null = null;
 
+export const initializeOpenTelemetry = async (): Promise<void> => {
+  await startPromise;
+};
+
 export const shutdownOpenTelemetry = async (): Promise<void> => {
+  await initializeOpenTelemetry();
+
   if (!shutdownPromise) {
     shutdownPromise = sdk.shutdown().catch((error: unknown) => {
       console.error('[otel] failed to shutdown sdk', error);

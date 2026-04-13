@@ -1,3 +1,4 @@
+import { initializeOpenTelemetry, shutdownOpenTelemetry } from './otel';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
@@ -9,7 +10,6 @@ import { metricsRegistry } from '@lib/metrics';
 import { ApiModule } from './api.module';
 import { MetricsInterceptor } from './metrics/metrics.interceptor';
 import * as http from 'http';
-import { shutdownOpenTelemetry } from './otel';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -190,4 +190,11 @@ async function bootstrap() {
   // start server
   await app.listen(3000);
 }
-bootstrap();
+
+void initializeOpenTelemetry()
+  .then(bootstrap)
+  .catch((error: unknown) => {
+    const logger = new Logger('Bootstrap');
+    logger.error('Failed to initialize OpenTelemetry', error);
+    process.exit(1);
+  });
