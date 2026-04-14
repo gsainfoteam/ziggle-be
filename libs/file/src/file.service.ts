@@ -98,7 +98,7 @@ export class FileService {
         imageUrls.push(`${this.s3Url}${file.url}`);
       }
       if (file.type === FileType.DOCUMENT) {
-        documentUrls.push(`${this.s3Url}${file.url}`);
+        documentUrls.push(file.url);
       }
     }
     return { imageUrls, documentUrls };
