@@ -67,6 +67,11 @@ export class CrawlerRepository {
   async updateCrawl(
     { title, body, type }: Pick<Crawl, 'title' | 'body' | 'type'>,
     id: number,
+    files?: {
+      href: string;
+      name: string;
+      type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
+    }[],
   ): Promise<Crawl> {
     return this.prismaService.crawl.update({
       where: {
@@ -76,6 +81,22 @@ export class CrawlerRepository {
         title,
         body,
         type,
+        notice: {
+          update: {
+            files: {
+              deleteMany: {},
+              createMany: {
+                data:
+                  files?.map((file, index) => ({
+                    name: file.name,
+                    url: file.href,
+                    type: FileType.DOCUMENT,
+                    order: index,
+                  })) ?? [],
+              },
+            },
+          },
+        },
       },
     });
   }

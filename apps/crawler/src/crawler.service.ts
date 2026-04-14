@@ -75,8 +75,13 @@ export class CrawlerService {
   async updateCrawl(
     data: Pick<Crawl, 'title' | 'body' | 'type'>,
     id: number,
+    files?: {
+      href: string;
+      name: string;
+      type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
+    }[],
   ): Promise<Crawl> {
-    return this.crawlerRepository.updateCrawl(data, id);
+    return this.crawlerRepository.updateCrawl(data, id, files);
   }
 
   getNoticeList(): Observable<{

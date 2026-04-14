@@ -104,6 +104,7 @@ async function bootstrap() {
             type: 'ACADEMIC',
           },
           prev?.id,
+          notice.notice.files,
         );
       }),
     );
