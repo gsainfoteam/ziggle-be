@@ -66,13 +66,10 @@ function isNoisePath(path?: string): boolean {
     return false;
   }
 
-  return NOISE_PATHS.some((noisePath) => {
-    return (
-      normalizedPath === noisePath ||
-      normalizedPath === `${noisePath}/` ||
-      normalizedPath.startsWith(`${noisePath}?`)
-    );
-  });
+  const [pathname] = normalizedPath.split('?');
+  const canonicalPath = pathname.replace(/\/+$/, '') || '/';
+
+  return NOISE_PATHS.some((noisePath) => canonicalPath === noisePath);
 }
 
 const sdk = new NodeSDK({
