@@ -3,6 +3,74 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+import { IncomingMessage, RequestOptions } from 'node:http';
+
+const NOISE_PATHS = ['/health', '/metrics'] as const;
+
+function normalizePath(path?: string): string | undefined {
+  if (!path) {
+    return undefined;
+  }
+
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    try {
+      const parsedUrl = new URL(path);
+      return `${parsedUrl.pathname}${parsedUrl.search}`;
+    } catch {
+      return path;
+    }
+  }
+
+  return path;
+}
+
+function extractOutgoingPath(request: unknown): string | undefined {
+  if (typeof request === 'string') {
+    return request;
+  }
+
+  if (request instanceof URL) {
+    return `${request.pathname}${request.search}`;
+  }
+
+  if (!request || typeof request !== 'object') {
+    return undefined;
+  }
+
+  const options = request as RequestOptions;
+
+  if (typeof options.path === 'string') {
+    return options.path;
+  }
+
+  const optionsWithExtras = options as RequestOptions & {
+    pathname?: unknown;
+    href?: unknown;
+  };
+
+  if (typeof optionsWithExtras.pathname === 'string') {
+    return optionsWithExtras.pathname;
+  }
+
+  if (typeof optionsWithExtras.href === 'string') {
+    return optionsWithExtras.href;
+  }
+
+  return undefined;
+}
+
+function isNoisePath(path?: string): boolean {
+  const normalizedPath = normalizePath(path);
+
+  if (!normalizedPath) {
+    return false;
+  }
+
+  const [pathname] = normalizedPath.split('?');
+  const canonicalPath = pathname.replace(/\/+$/, '') || '/';
+
+  return NOISE_PATHS.some((noisePath) => canonicalPath === noisePath);
+}
 
 const sdk = new NodeSDK({
   resource: resourceFromAttributes({
@@ -11,7 +79,18 @@ const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
     url: process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
   }),
-  instrumentations: [getNodeAutoInstrumentations()],
+  instrumentations: [
+    getNodeAutoInstrumentations({
+      '@opentelemetry/instrumentation-http': {
+        ignoreIncomingRequestHook: (req: IncomingMessage) => {
+          return isNoisePath(req.url);
+        },
+        ignoreOutgoingRequestHook: (request: unknown) => {
+          return isNoisePath(extractOutgoingPath(request));
+        },
+      },
+    }),
+  ],
 });
 
 let startPromise: Promise<void> | null = null;
