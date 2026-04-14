@@ -76,6 +76,7 @@ async function bootstrap() {
           },
           new Date(notice.meta.createdAt),
           notice.meta.author,
+          notice.notice.files,
         );
       }),
     );

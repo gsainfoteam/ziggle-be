@@ -41,14 +41,18 @@ export class CrawlerService {
     data: Pick<Crawl, 'title' | 'body' | 'type' | 'crawledAt' | 'url'>,
     createdAt: Date,
     userName: string,
-    deadline?: Date,
+    files?: {
+      href: string;
+      name: string;
+      type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
+    }[],
   ): Promise<Crawl> {
     const user = await this.userService.findOrCreateTempUser(userName);
     const created = await this.crawlerRepository.createCrawl(
       data,
       createdAt,
       user,
-      deadline,
+      files,
     );
 
     await this.crawlerFcmService

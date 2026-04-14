@@ -1,7 +1,7 @@
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { PrismaService } from '@lib/prisma';
 import { Injectable } from '@nestjs/common';
-import { Crawl, User } from '@prisma/client';
+import { Crawl, FileType, User } from '@prisma/client';
 
 @Loggable()
 @Injectable()
@@ -26,7 +26,11 @@ export class CrawlerRepository {
     }: Pick<Crawl, 'title' | 'body' | 'type' | 'crawledAt' | 'url'>,
     createdAt: Date,
     user: User,
-    deadline?: Date,
+    files?: {
+      href: string;
+      name: string;
+      type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
+    }[],
   ): Promise<Crawl> {
     return this.prismaService.crawl.create({
       data: {
@@ -38,12 +42,22 @@ export class CrawlerRepository {
         notice: {
           create: {
             category: 'ACADEMIC',
-            currentDeadline: deadline,
             author: {
               connect: user,
             },
             createdAt,
             publishedAt: new Date(),
+            files: {
+              createMany: {
+                data:
+                  files?.map((file, index) => ({
+                    name: file.name,
+                    url: file.href,
+                    type: FileType.DOCUMENT,
+                    order: index,
+                  })) ?? [],
+              },
+            },
           },
         },
       },
