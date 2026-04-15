@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { trace } from '@opentelemetry/api';
 import {
   Category,
   Content,
@@ -125,14 +126,21 @@ export class GeneralNoticeDto {
   @Expose()
   @ApiProperty()
   get content(): string {
-    const content =
-      this.crawls.length > 0 ? this.crawls[0].body : this.mainContent.body;
-    return htmlToText(content, {
-      selectors: [
-        { selector: 'a', options: { ignoreHref: true } },
-        { selector: 'img', format: 'skip' },
-      ],
-    }).slice(0, 1000);
+    const tracer = trace.getTracer('notice.dto.res.generalNotice.dto');
+    return tracer.startActiveSpan('get content', (span) => {
+      try {
+        const content =
+          this.crawls.length > 0 ? this.crawls[0].body : this.mainContent.body;
+        return htmlToText(content, {
+          selectors: [
+            { selector: 'a', options: { ignoreHref: true } },
+            { selector: 'img', format: 'skip' },
+          ],
+        }).slice(0, 1000);
+      } finally {
+        span.end();
+      }
+    });
   }
 
   @Expose()
