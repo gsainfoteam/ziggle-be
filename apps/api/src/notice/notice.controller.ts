@@ -43,6 +43,7 @@ import { GetGroups } from '../user/decorator/get-groups.decorator';
 import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
 import { JwtGuard } from '../auth/guard/jwt.guard';
 import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
+import { GetMainNoticeListQueryDto } from './dto/req/get-main-notice-list.dto';
 
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
@@ -71,6 +72,24 @@ export class NoticeController {
     @GetUser() user: User,
   ): Promise<GeneralNoticeListDto> {
     return this.noticeService.getNoticeList(query, user?.uuid);
+  }
+
+  @ApiOperation({
+    summary: 'Get main notice list',
+    description: 'Get main notice list',
+  })
+  @ApiOkResponse({
+    type: GeneralNoticeListDto,
+    description: 'Return main notice list',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @Get('main')
+  async getMainNoticeList(
+    @Query() query: GetMainNoticeListQueryDto,
+    @GetUser() user: User,
+  ): Promise<GeneralNoticeListDto> {
+    return this.noticeService.getMainNoticeList(query, user?.uuid);
   }
 
   @ApiOperation({

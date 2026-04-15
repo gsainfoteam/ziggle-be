@@ -19,6 +19,7 @@ import {
   FcmTargetUser,
 } from './crawler-fcm/crawler-fcm.service';
 import { Notification } from 'firebase-admin/messaging';
+import { RedisService } from '@lib/redis';
 
 @Loggable()
 @Injectable()
@@ -26,11 +27,13 @@ export class CrawlerService {
   private readonly logger = new Logger(CrawlerService.name);
   private readonly targetUrl =
     'https://www.gist.ac.kr/kr/html/sub05/050209.html';
+  private readonly noticeListCachePrefix = 'notice:list';
   constructor(
     private readonly userService: UserService,
     private readonly httpService: HttpService,
     private readonly crawlerRepository: CrawlerRepository,
     private readonly crawlerFcmService: CrawlerFcmService,
+    private readonly redisService: RedisService,
   ) {}
 
   async checkCrawlData(url: string): Promise<Crawl | null> {
@@ -64,6 +67,7 @@ export class CrawlerService {
       .catch((err) =>
         this.logger.error('FCM enqueue failed', err?.stack ?? String(err)),
       );
+    await this.invalidateNoticeListCache();
 
     return created;
   }
@@ -72,7 +76,11 @@ export class CrawlerService {
     data: Pick<Crawl, 'title' | 'body' | 'type'>,
     id: number,
   ): Promise<Crawl> {
-    return this.crawlerRepository.updateCrawl(data, id);
+    const updated = await this.crawlerRepository.updateCrawl(data, id);
+
+    await this.invalidateNoticeListCache();
+
+    return updated;
   }
 
   getNoticeList(): Observable<{
@@ -168,5 +176,13 @@ export class CrawlerService {
             .replaceAll(/\s+/gm, ' ')
         : undefined,
     };
+  }
+
+  private async invalidateNoticeListCache(): Promise<void> {
+    await this.redisService
+      .delByPattern('*', { prefix: this.noticeListCachePrefix })
+      .catch((error: unknown) => {
+        this.logger.warn('Failed to invalidate notice list cache', error);
+      });
   }
 }

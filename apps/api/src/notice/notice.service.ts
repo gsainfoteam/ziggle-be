@@ -16,6 +16,7 @@ import { NoticeRepository } from './notice.repository';
 import { GetNoticeDto } from './dto/req/getNotice.dto';
 import { ExpandedGeneralNoticeDto } from './dto/res/expandedGeneralNotice.dto';
 import { NoticeFullContent } from './types/noticeFullContent';
+import { NoticeListData } from './types/noticeListData';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
@@ -38,12 +39,18 @@ import {
   Permission,
 } from '@lib/infoteam-groups/types/groups.type';
 import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
+import { RedisService } from '@lib/redis';
+import { GetMainNoticeListQueryDto } from './dto/req/get-main-notice-list.dto';
 
 @Injectable()
 @Loggable()
 export class NoticeService {
   private readonly logger = new Logger(NoticeService.name);
-  private fcmDelay: number;
+  private readonly fcmDelay: number;
+  private readonly mainNoticeListCachePrefix = 'notice:list';
+  private readonly mainNoticeListCacheKey = 'home';
+  private readonly noticeListCacheTtl: number;
+
   constructor(
     private readonly imageService: ImageService,
     private readonly documentService: DocumentService,
@@ -51,25 +58,105 @@ export class NoticeService {
     private readonly noticeRepository: NoticeRepository,
     private readonly fcmService: FcmService,
     private readonly customConfigService: CustomConfigService,
+    private readonly redisService: RedisService,
   ) {
-    this.fcmDelay = Number(this.customConfigService.FCM_DELAY);
+    this.fcmDelay = this.customConfigService.FCM_DELAY;
+    this.noticeListCacheTtl =
+      this.customConfigService.NOTICE_MAIN_LIST_CACHE_TTL;
   }
 
   async getNoticeList(
     getAllNoticeQueryDto: GetAllNoticeQueryDto,
     userUuid?: string,
   ): Promise<GeneralNoticeListDto> {
+    const noticeList = await this.fetchNoticeListData(
+      getAllNoticeQueryDto,
+      userUuid,
+    );
+
+    return this.buildNoticeListResponse(
+      noticeList.notices,
+      noticeList.total,
+      getAllNoticeQueryDto.lang,
+      userUuid,
+    );
+  }
+
+  async getMainNoticeList(
+    { lang = 'ko' }: GetMainNoticeListQueryDto,
+    userUuid?: string,
+  ): Promise<GeneralNoticeListDto> {
+    let cachedNoticeList: NoticeListData | null = null;
+    try {
+      cachedNoticeList = await this.redisService.get<NoticeListData>(
+        this.mainNoticeListCacheKey,
+        {
+          prefix: this.mainNoticeListCachePrefix,
+        },
+      );
+    } catch (error: unknown) {
+      this.logger.warn(
+        'Failed to read main notice list cache, fallback to DB',
+        error,
+      );
+    }
+
+    if (cachedNoticeList) {
+      return this.buildNoticeListResponse(
+        cachedNoticeList.notices,
+        cachedNoticeList.total,
+        lang,
+        userUuid,
+      );
+    }
+
+    const fetchedNoticeList = await this.fetchNoticeListData({
+      offset: 0,
+      limit: 30,
+      orderBy: 'recent',
+    });
+
+    await this.redisService
+      .set<NoticeListData>(this.mainNoticeListCacheKey, fetchedNoticeList, {
+        prefix: this.mainNoticeListCachePrefix,
+        ttl: this.noticeListCacheTtl,
+      })
+      .catch((error: unknown) => {
+        this.logger.warn('Failed to write main notice list cache', error);
+      });
+
+    return this.buildNoticeListResponse(
+      fetchedNoticeList.notices,
+      fetchedNoticeList.total,
+      lang,
+      userUuid,
+    );
+  }
+
+  private async fetchNoticeListData(
+    getAllNoticeQueryDto: GetAllNoticeQueryDto,
+    userUuid?: string,
+  ): Promise<NoticeListData> {
     const [notices, total] = await Promise.all([
       this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid),
       this.noticeRepository.getTotalCount(getAllNoticeQueryDto, userUuid),
     ]);
 
+    return { notices, total };
+  }
+
+  private buildNoticeListResponse(
+    notices: NoticeFullContent[],
+    total: number,
+    lang?: string,
+    userUuid?: string,
+  ): GeneralNoticeListDto {
     const noticeList = notices.map(
       (notice) =>
         new GeneralNoticeDto({
           ...notice,
           ...this.fileService.getFilesUrl(notice.files),
-          langFromDto: getAllNoticeQueryDto.lang,
+          langFromDto: lang,
           userUuid,
         }),
     );
@@ -142,6 +229,7 @@ export class NoticeService {
         group: matchingGroup,
       },
     );
+    await this.invalidateNoticeListCache();
 
     const notice = new CreateNoticeResDto({
       ...createdNotice,
@@ -193,6 +281,7 @@ export class NoticeService {
         );
         throw new InternalServerErrorException('failed to update publishedAt');
       });
+    await this.invalidateNoticeListCache();
 
     await this.fcmService.deleteMessageJobIdPattern(notice.id.toString());
     await this.fcmService
@@ -233,6 +322,7 @@ export class NoticeService {
         }
         throw error;
       });
+    await this.invalidateNoticeListCache();
 
     return this.getNotice(id, { isViewed: false });
   }
@@ -251,6 +341,7 @@ export class NoticeService {
         }
         throw error;
       });
+    await this.invalidateNoticeListCache();
     return this.getNotice(id, { isViewed: false });
   }
 
@@ -260,6 +351,7 @@ export class NoticeService {
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
     await this.noticeRepository.addReaction(emoji, id, userUuid);
+    await this.invalidateNoticeListCache();
 
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
@@ -298,6 +390,7 @@ export class NoticeService {
       throw new ForbiddenException();
     }
     await this.noticeRepository.updateNotice(body, query, id, userUuid);
+    await this.invalidateNoticeListCache();
 
     return this.getNotice(id, { isViewed: false });
   }
@@ -308,6 +401,7 @@ export class NoticeService {
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
     await this.noticeRepository.removeReaction(emoji, id, userUuid);
+    await this.invalidateNoticeListCache();
 
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
@@ -343,6 +437,15 @@ export class NoticeService {
     }
     await this.fileService.deleteFiles(notice.files.map(({ url }) => url));
     await this.noticeRepository.deleteNotice(id, userUuid);
+    await this.invalidateNoticeListCache();
+  }
+
+  private async invalidateNoticeListCache(): Promise<void> {
+    await this.redisService
+      .delByPattern('*', { prefix: this.mainNoticeListCachePrefix })
+      .catch((error: unknown) => {
+        this.logger.warn('Failed to invalidate notice list cache', error);
+      });
   }
 
   private convertNotificationBodyToString(notification: Notification) {

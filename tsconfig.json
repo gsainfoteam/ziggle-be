@@ -34,7 +34,9 @@
       "@lib/infoteam-groups": ["libs/infoteam-groups/src"],
       "@lib/infoteam-groups/*": ["libs/infoteam-groups/src/*"],
       "@lib/file": ["libs/file/src"],
-      "@lib/file/*": ["libs/file/src/*"]
+      "@lib/file/*": ["libs/file/src/*"],
+      "@lib/redis": ["libs/redis/src"],
+      "@lib/redis/*": ["libs/redis/src/*"]
     }
   }
 }

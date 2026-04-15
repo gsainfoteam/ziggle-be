@@ -9,8 +9,7 @@ import { JwtGuard, JwtOptionalGuard } from './guard/jwt.guard';
 import { JwtOptionalStrategy } from './guard/jwtOptional.strategy';
 import { JwtStrategy } from './guard/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
-import { RedisModule } from 'libs/redis/src';
-import ms, { StringValue } from 'ms';
+import { RedisModule } from '@lib/redis';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 
@@ -26,7 +25,7 @@ import { AuthController } from './auth.controller';
       useFactory: (customConfigService: CustomConfigService) => ({
         secret: customConfigService.JWT_SECRET,
         signOptions: {
-          expiresIn: ms(customConfigService.JWT_EXPIRE as StringValue) / 1000,
+          expiresIn: customConfigService.JWT_EXPIRE / 1000,
           algorithm: 'HS256',
           audience: customConfigService.JWT_AUDIENCE,
           issuer: customConfigService.JWT_ISSUER,

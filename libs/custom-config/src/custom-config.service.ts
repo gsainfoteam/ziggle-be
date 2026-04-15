@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentVariableKeys } from '@lib/custom-config/env.validation';
+import ms, { StringValue } from 'ms';
 
 @Injectable()
 export class CustomConfigService {
@@ -8,6 +9,15 @@ export class CustomConfigService {
 
   private getEnvVariable(key: EnvironmentVariableKeys) {
     return this.configService.getOrThrow(key);
+  }
+
+  private getDurationMs(key: EnvironmentVariableKeys): number {
+    const value = this.getEnvVariable(key) as StringValue;
+    const durationMs = ms(value);
+    if (durationMs === undefined) {
+      throw new Error(`${key} must be a valid duration string`);
+    }
+    return durationMs;
   }
 
   get IDP_URL(): string {
@@ -79,7 +89,7 @@ export class CustomConfigService {
   }
 
   get FCM_DELAY(): number {
-    return this.getEnvVariable('FCM_DELAY');
+    return this.getDurationMs('FCM_DELAY');
   }
 
   get GROUPS_URL(): string {
@@ -102,11 +112,15 @@ export class CustomConfigService {
     return this.getEnvVariable('JWT_AUDIENCE');
   }
 
-  get JWT_EXPIRE(): string {
-    return this.getEnvVariable('JWT_EXPIRE');
+  get JWT_EXPIRE(): number {
+    return this.getDurationMs('JWT_EXPIRE');
   }
 
-  get REFRESH_TOKEN_EXPIRE(): string {
-    return this.getEnvVariable('REFRESH_TOKEN_EXPIRE');
+  get REFRESH_TOKEN_EXPIRE(): number {
+    return this.getDurationMs('REFRESH_TOKEN_EXPIRE');
+  }
+
+  get NOTICE_MAIN_LIST_CACHE_TTL(): number {
+    return this.getDurationMs('NOTICE_MAIN_LIST_CACHE_TTL');
   }
 }

@@ -29,7 +29,7 @@ export class RedisService implements OnModuleDestroy {
     await this.redisClient.set(
       `${prefix}:${key}`,
       JSON.stringify(value),
-      'EX',
+      'PX',
       ttl,
     );
   }
@@ -61,6 +61,33 @@ export class RedisService implements OnModuleDestroy {
   ): Promise<void> {
     this.logger.log(`Deleting cache for key: ${key}`);
     await this.redisClient.del(`${prefix}:${key}`);
+  }
+
+  async delByPattern(
+    keyPattern: string,
+    { prefix = 'default' }: Pick<CacheConfig, 'prefix'>,
+  ): Promise<void> {
+    const pattern = `${prefix}:${keyPattern}`;
+    this.logger.log(`Deleting cache by pattern: ${pattern}`);
+
+    const scanCount = 500;
+    let cursor = '0';
+
+    do {
+      const [nextCursor, keys] = await this.redisClient.scan(
+        cursor,
+        'MATCH',
+        pattern,
+        'COUNT',
+        scanCount,
+      );
+
+      if (keys.length) {
+        await this.redisClient.del(...keys);
+      }
+
+      cursor = nextCursor;
+    } while (cursor !== '0');
   }
 
   async onModuleDestroy() {

@@ -9,6 +9,7 @@ import { CrawlerFcmModule } from './crawler-fcm/crawler-fcm.module';
 import { BullModule } from '@nestjs/bull';
 import { CustomConfigService } from '@lib/custom-config';
 import { CustomConfigModule } from '@lib/custom-config';
+import { RedisModule } from '@lib/redis';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { CustomConfigModule } from '@lib/custom-config';
       }),
     }),
     CrawlerFcmModule,
+    RedisModule,
   ],
   providers: [CrawlerService, CrawlerRepository],
   exports: [CrawlerService],

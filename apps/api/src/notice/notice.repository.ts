@@ -99,7 +99,7 @@ export class NoticeRepository {
   async getNoticeList(
     {
       offset = 0,
-      limit = 10,
+      limit = 30,
       search,
       tags,
       orderBy,
