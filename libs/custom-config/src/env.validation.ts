@@ -101,10 +101,6 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   REFRESH_TOKEN_EXPIRE: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  METRICS_PORT: number;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;
