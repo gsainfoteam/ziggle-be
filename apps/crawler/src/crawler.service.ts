@@ -43,7 +43,7 @@ export class CrawlerService {
     data: Pick<Crawl, 'title' | 'body' | 'type' | 'crawledAt' | 'url'>,
     createdAt: Date,
     userName: string,
-    files?: {
+    files: {
       href: string;
       name: string;
       type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
@@ -77,7 +77,7 @@ export class CrawlerService {
   async updateCrawl(
     data: Pick<Crawl, 'title' | 'body' | 'type'>,
     id: number,
-    files?: {
+    files: {
       href: string;
       name: string;
       type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';

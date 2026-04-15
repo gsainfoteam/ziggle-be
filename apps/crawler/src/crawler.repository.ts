@@ -80,7 +80,7 @@ export class CrawlerRepository {
   async updateCrawl(
     { title, body, type }: Pick<Crawl, 'title' | 'body' | 'type'>,
     id: number,
-    files?: {
+    files: {
       href: string;
       name: string;
       type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
