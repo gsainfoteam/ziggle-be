@@ -9,6 +9,11 @@ import { IncomingMessage, RequestOptions } from 'node:http';
 const NOISE_PATHS = ['/health', '/metrics'] as const;
 
 const metricsPort = Number(process.env.METRICS_PORT);
+
+if (Number.isNaN(metricsPort)) {
+  throw new Error('METRICS_PORT is not set or is not a number');
+}
+
 const prometheusExporter = new PrometheusExporter({
   port: metricsPort,
   endpoint: '/metrics',
