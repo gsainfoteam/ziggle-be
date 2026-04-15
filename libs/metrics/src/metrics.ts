@@ -71,50 +71,64 @@ class MetricsInstruments {
   }
 
   initialize(): void {
-    this.getOrCreateInstruments();
+    if (!this.instruments) {
+      this.instruments = this.createInstruments();
+    }
   }
 
   addHttpRequestsTotal(value: number, attributes?: Attributes): void {
-    this.getOrCreateInstruments().httpRequestsTotal.add(value, attributes);
+    this.getInitializedInstruments().httpRequestsTotal.add(value, attributes);
   }
 
   recordHttpRequestDurationSeconds(
     value: number,
     attributes?: Attributes,
   ): void {
-    this.getOrCreateInstruments().httpRequestDurationSeconds.record(
+    this.getInitializedInstruments().httpRequestDurationSeconds.record(
       value,
       attributes,
     );
   }
 
   addHttpRequestsInFlight(value: number, attributes?: Attributes): void {
-    this.getOrCreateInstruments().httpRequestsInFlight.add(value, attributes);
+    this.getInitializedInstruments().httpRequestsInFlight.add(
+      value,
+      attributes,
+    );
   }
 
   addHttpRequestErrorsTotal(value: number, attributes?: Attributes): void {
-    this.getOrCreateInstruments().httpRequestErrorsTotal.add(value, attributes);
+    this.getInitializedInstruments().httpRequestErrorsTotal.add(
+      value,
+      attributes,
+    );
   }
 
   recordDbQueryDurationSeconds(value: number, attributes?: Attributes): void {
-    this.getOrCreateInstruments().dbQueryDurationSeconds.record(
+    this.getInitializedInstruments().dbQueryDurationSeconds.record(
       value,
       attributes,
     );
   }
 
   addDbQueriesTotal(value: number, attributes?: Attributes): void {
-    this.getOrCreateInstruments().dbQueriesTotal.add(value, attributes);
+    this.getInitializedInstruments().dbQueriesTotal.add(value, attributes);
   }
 
-  private getOrCreateInstruments(): Instruments {
+  private getInitializedInstruments(): Instruments {
     if (this.instruments) {
       return this.instruments;
     }
 
+    throw new Error(
+      'Metrics are not initialized. Call initializeMetrics() after OpenTelemetry initialization.',
+    );
+  }
+
+  private createInstruments(): Instruments {
     const meter = metrics.getMeter(process.env.OTEL_SERVICE_NAME ?? 'Unknown');
 
-    this.instruments = {
+    return {
       httpRequestsTotal: meter.createCounter(
         METRIC_DEFINITIONS.httpRequestsTotal.name,
         {
@@ -164,8 +178,6 @@ class MetricsInstruments {
         },
       ),
     };
-
-    return this.instruments;
   }
 }
 
