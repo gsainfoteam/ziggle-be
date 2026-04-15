@@ -6,10 +6,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import expressBasicAuth from 'express-basic-auth';
 import { json } from 'express';
 import { CustomConfigService } from '@lib/custom-config';
-import { metricsRegistry } from '@lib/metrics';
 import { ApiModule } from './api.module';
 import { MetricsInterceptor } from './metrics/metrics.interceptor';
-import * as http from 'http';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -112,46 +110,7 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new MetricsInterceptor());
 
-  const metricsServer = http.createServer(async (req, res) => {
-    try {
-      if (req.url === '/metrics' && req.method === 'GET') {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', metricsRegistry.contentType);
-        res.end(await metricsRegistry.metrics());
-        return;
-      }
-
-      if (req.url === '/metrics') {
-        res.statusCode = 405;
-        res.setHeader('Allow', 'GET');
-        res.end('Method Not Allowed');
-        return;
-      }
-
-      res.statusCode = 404;
-      res.end('Not Found');
-    } catch (error) {
-      logger.error('Metrics error', error);
-      res.statusCode = 500;
-      res.end('Metrics error');
-    }
-  });
-
-  metricsServer.listen(customConfigService.METRICS_PORT);
-
   let isShuttingDown = false;
-
-  const closeMetricsServer = () =>
-    new Promise<void>((resolve, reject) => {
-      metricsServer.close((error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-
-        resolve();
-      });
-    });
 
   const shutdown = async (signal: NodeJS.Signals) => {
     if (isShuttingDown) {
@@ -168,12 +127,6 @@ async function bootstrap() {
       exitCode = 1;
       logger.error('Failed to close Nest application', error);
     } finally {
-      try {
-        await closeMetricsServer();
-      } catch (error) {
-        exitCode = 1;
-        logger.error('Failed to close metrics server', error);
-      }
       try {
         await shutdownOpenTelemetry();
       } catch (error) {
