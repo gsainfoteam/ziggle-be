@@ -92,8 +92,21 @@ async function bootstrap() {
           logger.debug(`Notice ${notice.meta.title} has no previous data`);
           return;
         }
-        if (prev.title === notice.meta.title) {
-          logger.debug(`Notice ${notice.meta.title} has no change`);
+
+        const isFilesSame =
+          prev.notice.files.length === notice.notice.files.length &&
+          prev.notice.files.every((file, index) => {
+            return file.url === notice.notice.files[index].href;
+          });
+
+        if (
+          prev.title === notice.meta.title &&
+          prev.body === notice.notice.content &&
+          isFilesSame
+        ) {
+          logger.debug(
+            `Notice ${notice.meta.title}, content and files has no change`,
+          );
           return;
         }
         logger.log(`Updating notice ${notice.meta.title}`);

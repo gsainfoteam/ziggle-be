@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
-import { Crawl } from '@prisma/client';
+import { Crawl, File } from '@prisma/client';
 import { load } from 'cheerio';
 import {
   catchError,
@@ -33,7 +33,9 @@ export class CrawlerService {
     private readonly crawlerFcmService: CrawlerFcmService,
   ) {}
 
-  async checkCrawlData(url: string): Promise<Crawl | null> {
+  async checkCrawlData(
+    url: string,
+  ): Promise<(Crawl & { notice: { files: File[] } }) | null> {
     return this.crawlerRepository.checkCrawlData(url);
   }
 

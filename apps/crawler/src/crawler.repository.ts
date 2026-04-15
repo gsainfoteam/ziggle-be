@@ -1,17 +1,30 @@
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { PrismaService } from '@lib/prisma';
 import { Injectable } from '@nestjs/common';
-import { Crawl, FileType, User } from '@prisma/client';
+import { Crawl, File, FileType, User } from '@prisma/client';
 
 @Loggable()
 @Injectable()
 export class CrawlerRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async checkCrawlData(url: string): Promise<Crawl | null> {
+  async checkCrawlData(
+    url: string,
+  ): Promise<(Crawl & { notice: { files: File[] } }) | null> {
     return this.prismaService.crawl.findFirst({
       where: {
         url,
+      },
+      include: {
+        notice: {
+          include: {
+            files: {
+              orderBy: {
+                order: 'asc',
+              },
+            },
+          },
+        },
       },
     });
   }
