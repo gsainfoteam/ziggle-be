@@ -6,6 +6,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import expressBasicAuth from 'express-basic-auth';
 import { json } from 'express';
 import { CustomConfigService } from '@lib/custom-config';
+import { initializeMetrics } from '@lib/metrics';
 import { ApiModule } from './api.module';
 import { MetricsInterceptor } from './metrics/metrics.interceptor';
 
@@ -145,7 +146,10 @@ async function bootstrap() {
 }
 
 void initializeOpenTelemetry()
-  .then(bootstrap)
+  .then(() => {
+    initializeMetrics();
+    return bootstrap();
+  })
   .catch((error: unknown) => {
     const logger = new Logger('Bootstrap');
     logger.error('Failed to initialize OpenTelemetry', error);

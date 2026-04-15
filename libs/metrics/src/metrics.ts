@@ -58,79 +58,133 @@ const METRIC_DEFINITIONS = {
   },
 } as const;
 
-let instruments: Instruments | null = null;
+class MetricsInstruments {
+  private static instance: MetricsInstruments | null = null;
+  private instruments: Instruments | null = null;
 
-const getInstruments = (): Instruments => {
-  if (instruments) {
-    return instruments;
+  static getInstance(): MetricsInstruments {
+    if (!MetricsInstruments.instance) {
+      MetricsInstruments.instance = new MetricsInstruments();
+    }
+
+    return MetricsInstruments.instance;
   }
 
-  const meter = metrics.getMeter(process.env.OTEL_SERVICE_NAME ?? 'Unknown');
+  initialize(): void {
+    this.getOrCreateInstruments();
+  }
 
-  instruments = {
-    httpRequestsTotal: meter.createCounter(
-      METRIC_DEFINITIONS.httpRequestsTotal.name,
-      {
-        description: METRIC_DEFINITIONS.httpRequestsTotal.help,
-      },
-    ),
-    httpRequestDurationSeconds: meter.createHistogram(
-      METRIC_DEFINITIONS.httpRequestDurationSeconds.name,
-      {
-        description: METRIC_DEFINITIONS.httpRequestDurationSeconds.help,
-        unit: 's',
-        advice: {
-          explicitBucketBoundaries: [
-            ...METRIC_DEFINITIONS.httpRequestDurationSeconds.buckets,
-          ],
-        },
-      },
-    ),
-    httpRequestsInFlight: meter.createUpDownCounter(
-      METRIC_DEFINITIONS.httpRequestsInFlight.name,
-      {
-        description: METRIC_DEFINITIONS.httpRequestsInFlight.help,
-      },
-    ),
-    httpRequestErrorsTotal: meter.createCounter(
-      METRIC_DEFINITIONS.httpRequestErrorsTotal.name,
-      {
-        description: METRIC_DEFINITIONS.httpRequestErrorsTotal.help,
-      },
-    ),
-    dbQueryDurationSeconds: meter.createHistogram(
-      METRIC_DEFINITIONS.dbQueryDurationSeconds.name,
-      {
-        description: METRIC_DEFINITIONS.dbQueryDurationSeconds.help,
-        unit: 's',
-        advice: {
-          explicitBucketBoundaries: [
-            ...METRIC_DEFINITIONS.dbQueryDurationSeconds.buckets,
-          ],
-        },
-      },
-    ),
-    dbQueriesTotal: meter.createCounter(
-      METRIC_DEFINITIONS.dbQueriesTotal.name,
-      {
-        description: METRIC_DEFINITIONS.dbQueriesTotal.help,
-      },
-    ),
-  };
+  addHttpRequestsTotal(value: number, attributes?: Attributes): void {
+    this.getOrCreateInstruments().httpRequestsTotal.add(value, attributes);
+  }
 
-  return instruments;
+  recordHttpRequestDurationSeconds(
+    value: number,
+    attributes?: Attributes,
+  ): void {
+    this.getOrCreateInstruments().httpRequestDurationSeconds.record(
+      value,
+      attributes,
+    );
+  }
+
+  addHttpRequestsInFlight(value: number, attributes?: Attributes): void {
+    this.getOrCreateInstruments().httpRequestsInFlight.add(value, attributes);
+  }
+
+  addHttpRequestErrorsTotal(value: number, attributes?: Attributes): void {
+    this.getOrCreateInstruments().httpRequestErrorsTotal.add(value, attributes);
+  }
+
+  recordDbQueryDurationSeconds(value: number, attributes?: Attributes): void {
+    this.getOrCreateInstruments().dbQueryDurationSeconds.record(
+      value,
+      attributes,
+    );
+  }
+
+  addDbQueriesTotal(value: number, attributes?: Attributes): void {
+    this.getOrCreateInstruments().dbQueriesTotal.add(value, attributes);
+  }
+
+  private getOrCreateInstruments(): Instruments {
+    if (this.instruments) {
+      return this.instruments;
+    }
+
+    const meter = metrics.getMeter(process.env.OTEL_SERVICE_NAME ?? 'Unknown');
+
+    this.instruments = {
+      httpRequestsTotal: meter.createCounter(
+        METRIC_DEFINITIONS.httpRequestsTotal.name,
+        {
+          description: METRIC_DEFINITIONS.httpRequestsTotal.help,
+        },
+      ),
+      httpRequestDurationSeconds: meter.createHistogram(
+        METRIC_DEFINITIONS.httpRequestDurationSeconds.name,
+        {
+          description: METRIC_DEFINITIONS.httpRequestDurationSeconds.help,
+          unit: 's',
+          advice: {
+            explicitBucketBoundaries: [
+              ...METRIC_DEFINITIONS.httpRequestDurationSeconds.buckets,
+            ],
+          },
+        },
+      ),
+      httpRequestsInFlight: meter.createUpDownCounter(
+        METRIC_DEFINITIONS.httpRequestsInFlight.name,
+        {
+          description: METRIC_DEFINITIONS.httpRequestsInFlight.help,
+        },
+      ),
+      httpRequestErrorsTotal: meter.createCounter(
+        METRIC_DEFINITIONS.httpRequestErrorsTotal.name,
+        {
+          description: METRIC_DEFINITIONS.httpRequestErrorsTotal.help,
+        },
+      ),
+      dbQueryDurationSeconds: meter.createHistogram(
+        METRIC_DEFINITIONS.dbQueryDurationSeconds.name,
+        {
+          description: METRIC_DEFINITIONS.dbQueryDurationSeconds.help,
+          unit: 's',
+          advice: {
+            explicitBucketBoundaries: [
+              ...METRIC_DEFINITIONS.dbQueryDurationSeconds.buckets,
+            ],
+          },
+        },
+      ),
+      dbQueriesTotal: meter.createCounter(
+        METRIC_DEFINITIONS.dbQueriesTotal.name,
+        {
+          description: METRIC_DEFINITIONS.dbQueriesTotal.help,
+        },
+      ),
+    };
+
+    return this.instruments;
+  }
+}
+
+const metricsInstruments = MetricsInstruments.getInstance();
+
+export const initializeMetrics = (): void => {
+  metricsInstruments.initialize();
 };
 
 // HTTP
 export const httpRequestsTotal: CounterAdapter = {
   add(value, attributes) {
-    getInstruments().httpRequestsTotal.add(value, attributes);
+    metricsInstruments.addHttpRequestsTotal(value, attributes);
   },
 };
 
 export const httpRequestDurationSeconds: HistogramAdapter = {
   record(value, attributes) {
-    getInstruments().httpRequestDurationSeconds.record(value, attributes);
+    metricsInstruments.recordHttpRequestDurationSeconds(value, attributes);
   },
 };
 
@@ -150,25 +204,25 @@ export const startHttpRequestDurationTimer = (labels: Attributes) => {
 
 export const httpRequestsInFlight: UpDownCounterAdapter = {
   add(value, attributes) {
-    getInstruments().httpRequestsInFlight.add(value, attributes);
+    metricsInstruments.addHttpRequestsInFlight(value, attributes);
   },
 };
 
 export const httpRequestErrorsTotal: CounterAdapter = {
   add(value, attributes) {
-    getInstruments().httpRequestErrorsTotal.add(value, attributes);
+    metricsInstruments.addHttpRequestErrorsTotal(value, attributes);
   },
 };
 
 // DB
 export const dbQueryDurationSeconds: HistogramAdapter = {
   record(value, attributes) {
-    getInstruments().dbQueryDurationSeconds.record(value, attributes);
+    metricsInstruments.recordDbQueryDurationSeconds(value, attributes);
   },
 };
 
 export const dbQueriesTotal: CounterAdapter = {
   add(value, attributes) {
-    getInstruments().dbQueriesTotal.add(value, attributes);
+    metricsInstruments.addDbQueriesTotal(value, attributes);
   },
 };
