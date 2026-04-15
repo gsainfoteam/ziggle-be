@@ -1,11 +1,23 @@
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { IncomingMessage, RequestOptions } from 'node:http';
 
 const NOISE_PATHS = ['/health', '/metrics'] as const;
+
+const metricsPort = Number(process.env.METRICS_PORT);
+
+if (Number.isNaN(metricsPort)) {
+  throw new Error('METRICS_PORT is not set or is not a number');
+}
+
+const prometheusExporter = new PrometheusExporter({
+  port: metricsPort,
+  endpoint: '/metrics',
+});
 
 function normalizePath(path?: string): string | undefined {
   if (!path) {
@@ -79,6 +91,7 @@ const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
     url: process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
   }),
+  metricReader: prometheusExporter,
   instrumentations: [
     getNodeAutoInstrumentations({
       '@opentelemetry/instrumentation-http': {

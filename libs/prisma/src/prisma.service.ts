@@ -23,22 +23,16 @@ export class PrismaService
     this.$on('query', (event: Prisma.QueryEvent) => {
       const operation = this.extractOperation(event.query);
       const model = this.extractModel(event.query);
-      const success = 'true';
 
-      dbQueriesTotal.inc({
+      dbQueriesTotal.add(1, {
         operation,
         model,
-        success,
       });
 
-      dbQueryDurationSeconds.observe(
-        {
-          operation,
-          model,
-          success,
-        },
-        event.duration / 1000,
-      );
+      dbQueryDurationSeconds.record(event.duration / 1000, {
+        operation,
+        model,
+      });
     });
 
     await this.$connect();

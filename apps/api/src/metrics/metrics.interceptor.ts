@@ -8,10 +8,10 @@ import {
 import { Observable } from 'rxjs';
 import { finalize, tap } from 'rxjs/operators';
 import {
-  httpRequestDurationSeconds,
   httpRequestErrorsTotal,
   httpRequestsInFlight,
   httpRequestsTotal,
+  startHttpRequestDurationTimer,
 } from '@lib/metrics';
 
 @Injectable()
@@ -24,12 +24,9 @@ export class MetricsInterceptor implements NestInterceptor {
     const method = req.method ?? 'UNKNOWN';
     const route = this.normalizeRoute(req);
 
-    const endTimer = httpRequestDurationSeconds.startTimer({
-      method,
-      route,
-    } as Record<string, string>);
+    const endTimer = startHttpRequestDurationTimer({ method, route });
 
-    httpRequestsInFlight.inc({ method, route });
+    httpRequestsInFlight.add(1, { method, route });
 
     let statusCode: string | null = null;
 
@@ -51,7 +48,7 @@ export class MetricsInterceptor implements NestInterceptor {
                   ?.name ?? 'UnknownError'
               : 'UnknownError';
 
-          httpRequestErrorsTotal.inc({
+          httpRequestErrorsTotal.add(1, {
             method,
             route,
             error_name: errorName,
@@ -63,19 +60,15 @@ export class MetricsInterceptor implements NestInterceptor {
         const finalStatusCode =
           statusCode === null ? String(res.statusCode ?? 500) : statusCode;
 
-        httpRequestsTotal.inc({
+        httpRequestsTotal.add(1, {
           method,
           route,
           status_code: finalStatusCode,
         });
 
-        endTimer({
-          method,
-          route,
-          status_code: finalStatusCode,
-        });
+        endTimer({ status_code: finalStatusCode });
 
-        httpRequestsInFlight.dec({ method, route });
+        httpRequestsInFlight.add(-1, { method, route });
       }),
     );
   }
