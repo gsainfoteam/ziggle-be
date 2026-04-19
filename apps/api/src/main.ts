@@ -33,7 +33,13 @@ async function bootstrap() {
     /http:\/\/localhost:3000/,
   ];
   app.enableCors({
-    origin: function (origin, callback) {
+    origin: function (
+      origin: string | undefined,
+      callback: (
+        err: Error | null,
+        allow?: boolean | string | RegExp | (string | RegExp)[],
+      ) => void,
+    ) {
       if (!origin || whitelist.some((regex) => regex.test(origin))) {
         callback(null, origin);
       } else {

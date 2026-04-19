@@ -3,7 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-anonymous';
 
 @Injectable()
-export class AnonymousStrategy extends PassportStrategy(
-  Strategy,
-  'anonymous',
-) {}
+export class AnonymousStrategy extends PassportStrategy(Strategy, 'anonymous') {
+  validate(): void {
+    return;
+  }
+}
