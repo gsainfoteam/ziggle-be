@@ -26,11 +26,22 @@ async function bootstrap() {
     }),
   );
   // set CORS config
-  const allowedOrigins = customConfigService.CORS_ALLOWED_ORIGINS.split(',')
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0);
-
-  const allowedOriginSet = new Set(allowedOrigins);
+  const allowedOriginSet = new Set(
+    customConfigService.CORS_ALLOWED_ORIGINS.split(',')
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0)
+      .map((origin) => {
+        try {
+          const parsedOrigin = new URL(origin);
+          if (!['http:', 'https:'].includes(parsedOrigin.protocol)) {
+            throw new Error('Invalid protocol');
+          }
+          return parsedOrigin.origin;
+        } catch {
+          throw new Error(`Invalid CORS_ALLOWED_ORIGINS value: ${origin}`);
+        }
+      }),
+  );
 
   app.enableCors({
     origin: function (
