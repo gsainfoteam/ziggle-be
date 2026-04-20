@@ -80,6 +80,10 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsNotEmpty()
+  CORS_ALLOWED_ORIGINS: string;
+
+  @IsString()
+  @IsNotEmpty()
   CRAWLING_UPTIME_URI: string;
 
   @IsString()
