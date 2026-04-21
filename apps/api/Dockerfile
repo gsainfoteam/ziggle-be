@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-RUN apk add --no-cache build-base libheif vips-dev vips
+RUN apk add --no-cache build-base libheif vips-dev vips openssl
 RUN npm ci
 
 COPY nest-cli.json tsconfig.json tsconfig.build.json ./
@@ -13,7 +13,7 @@ COPY apps/api ./apps/api
 COPY libs ./libs
 COPY prisma ./prisma
 
-RUN npx prisma generate
+RUN npx prisma generate --generator client
 
 RUN npm run build
 RUN npm prune --omit=dev
@@ -25,13 +25,15 @@ WORKDIR /app
 
 ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-  apk add --no-cache libheif vips-dev vips
+  apk add --no-cache libheif vips openssl
 
-COPY --from=builder /app/package.json /app/package-lock.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist/apps/api ./dist/apps/api
-COPY --from=builder /app/prisma ./prisma
+COPY --chown=node:node --from=builder /app/package.json /app/package-lock.json ./
+COPY --chown=node:node --from=builder /app/node_modules ./node_modules
+COPY --chown=node:node --from=builder /app/dist/apps/api ./dist/apps/api
+COPY --chown=node:node --from=builder /app/prisma ./prisma
 
 EXPOSE 3000
+
+USER node
 
 CMD ["npm", "run", "start:deploy"]
