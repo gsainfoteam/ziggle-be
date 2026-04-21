@@ -26,16 +26,51 @@ async function bootstrap() {
     }),
   );
   // set CORS config
-  const whitelist = [
-    /https:\/\/.*gistory.me/,
-    /https:\/\/.*ziggle.gistory.me/,
-    /https:\/\/.*ziggle-fe.pages.dev/,
-    /http:\/\/localhost:3000/,
-  ];
+  const allowedOriginSet = new Set(
+    customConfigService.CORS_ALLOWED_ORIGINS.split(',')
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0)
+      .map((origin) => {
+        try {
+          const parsedOrigin = new URL(origin);
+          if (!['http:', 'https:'].includes(parsedOrigin.protocol)) {
+            throw new Error('Invalid protocol');
+          }
+          return parsedOrigin.origin;
+        } catch {
+          throw new Error(`Invalid CORS_ALLOWED_ORIGINS value: ${origin}`);
+        }
+      }),
+  );
+
   app.enableCors({
-    origin: function (origin, callback) {
-      if (!origin || whitelist.some((regex) => regex.test(origin))) {
-        callback(null, origin);
+    origin: function (
+      origin: string | undefined,
+      callback: (
+        err: Error | null,
+        allow?: boolean | string | RegExp | (string | RegExp)[],
+      ) => void,
+    ) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      let normalizedOrigin: string;
+      try {
+        const parsedOrigin = new URL(origin);
+        if (!['http:', 'https:'].includes(parsedOrigin.protocol)) {
+          callback(new Error('Not allowed by CORS'));
+          return;
+        }
+        normalizedOrigin = parsedOrigin.origin;
+      } catch {
+        callback(new Error('Not allowed by CORS'));
+        return;
+      }
+
+      if (allowedOriginSet.has(normalizedOrigin)) {
+        callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
       }
@@ -45,6 +80,7 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
     credentials: true,
   });
+
   // set json limit
   app.use(json({ limit: '5mb' }));
   // set cookie config

@@ -42,6 +42,10 @@ export class CustomConfigService {
     return this.getEnvVariable('API_URL');
   }
 
+  get CORS_ALLOWED_ORIGINS(): string {
+    return this.getEnvVariable('CORS_ALLOWED_ORIGINS');
+  }
+
   get FCM_PROJECT_ID(): string {
     return this.getEnvVariable('FCM_PROJECT_ID');
   }
