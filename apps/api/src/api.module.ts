@@ -12,10 +12,13 @@ import { HealthModule } from './health/health.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { ApiController } from './api.controller';
 import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from '@lib/prisma';
+import { PrismaMetricsService } from './metrics/prisma-metrics.service';
 
 @Module({
   imports: [
     AuthModule,
+    PrismaModule,
     FileModule,
     UserModule,
     TagModule,
@@ -48,5 +51,6 @@ import { AuthModule } from './auth/auth.module';
     HealthModule,
   ],
   controllers: [ApiController],
+  providers: [PrismaMetricsService],
 })
 export class ApiModule {}
