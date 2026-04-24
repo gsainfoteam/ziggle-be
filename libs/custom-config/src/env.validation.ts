@@ -1,6 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import {
   IsNotEmpty,
+  Min,
   IsNumber,
   IsOptional,
   IsString,
@@ -114,6 +115,7 @@ export class EnvironmentVariables {
 
   @IsOptional()
   @IsNumber()
+  @Min(200)
   HEALTH_MEMORY_RSS_LIMIT_MB?: number;
 }
 
