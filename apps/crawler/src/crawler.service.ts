@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
-import { Crawl } from '@prisma/client';
+import { Crawl, File } from '@prisma/client';
 import { load } from 'cheerio';
 import {
   catchError,
@@ -33,7 +33,9 @@ export class CrawlerService {
     private readonly crawlerFcmService: CrawlerFcmService,
   ) {}
 
-  async checkCrawlData(url: string): Promise<Crawl | null> {
+  async checkCrawlData(
+    url: string,
+  ): Promise<(Crawl & { notice: { files: File[] } }) | null> {
     return this.crawlerRepository.checkCrawlData(url);
   }
 
@@ -41,14 +43,18 @@ export class CrawlerService {
     data: Pick<Crawl, 'title' | 'body' | 'type' | 'crawledAt' | 'url'>,
     createdAt: Date,
     userName: string,
-    deadline?: Date,
+    files: {
+      href: string;
+      name: string;
+      type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
+    }[],
   ): Promise<Crawl> {
     const user = await this.userService.findOrCreateTempUser(userName);
     const created = await this.crawlerRepository.createCrawl(
       data,
       createdAt,
       user,
-      deadline,
+      files,
     );
 
     await this.crawlerFcmService
@@ -71,8 +77,13 @@ export class CrawlerService {
   async updateCrawl(
     data: Pick<Crawl, 'title' | 'body' | 'type'>,
     id: number,
+    files: {
+      href: string;
+      name: string;
+      type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
+    }[],
   ): Promise<Crawl> {
-    return this.crawlerRepository.updateCrawl(data, id);
+    return this.crawlerRepository.updateCrawl(data, id, files);
   }
 
   getNoticeList(): Observable<{

@@ -1,17 +1,30 @@
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { PrismaService } from '@lib/prisma';
 import { Injectable } from '@nestjs/common';
-import { Crawl, User } from '@prisma/client';
+import { Crawl, File, FileType, User } from '@prisma/client';
 
 @Loggable()
 @Injectable()
 export class CrawlerRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async checkCrawlData(url: string): Promise<Crawl | null> {
+  async checkCrawlData(
+    url: string,
+  ): Promise<(Crawl & { notice: { files: File[] } }) | null> {
     return this.prismaService.crawl.findFirst({
       where: {
         url,
+      },
+      include: {
+        notice: {
+          include: {
+            files: {
+              orderBy: {
+                order: 'asc',
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -26,7 +39,11 @@ export class CrawlerRepository {
     }: Pick<Crawl, 'title' | 'body' | 'type' | 'crawledAt' | 'url'>,
     createdAt: Date,
     user: User,
-    deadline?: Date,
+    files?: {
+      href: string;
+      name: string;
+      type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
+    }[],
   ): Promise<Crawl> {
     return this.prismaService.crawl.create({
       data: {
@@ -38,12 +55,22 @@ export class CrawlerRepository {
         notice: {
           create: {
             category: 'ACADEMIC',
-            currentDeadline: deadline,
             author: {
               connect: user,
             },
             createdAt,
             publishedAt: new Date(),
+            files: {
+              createMany: {
+                data:
+                  files?.map((file, index) => ({
+                    name: file.name,
+                    url: file.href,
+                    type: FileType.DOCUMENT,
+                    order: index,
+                  })) ?? [],
+              },
+            },
           },
         },
       },
@@ -53,6 +80,11 @@ export class CrawlerRepository {
   async updateCrawl(
     { title, body, type }: Pick<Crawl, 'title' | 'body' | 'type'>,
     id: number,
+    files: {
+      href: string;
+      name: string;
+      type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
+    }[],
   ): Promise<Crawl> {
     return this.prismaService.crawl.update({
       where: {
@@ -62,6 +94,22 @@ export class CrawlerRepository {
         title,
         body,
         type,
+        notice: {
+          update: {
+            files: {
+              deleteMany: {},
+              createMany: {
+                data:
+                  files?.map((file, index) => ({
+                    name: file.name,
+                    url: file.href,
+                    type: FileType.DOCUMENT,
+                    order: index,
+                  })) ?? [],
+              },
+            },
+          },
+        },
       },
     });
   }
