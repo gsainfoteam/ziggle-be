@@ -4,8 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '@generated/prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { Prisma, User } from '@generated/prisma/client';
 import { v4 as uuid } from 'uuid';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { PrismaService } from '@lib/prisma';
@@ -39,7 +38,7 @@ export class UserRepository {
       })
       .catch((err) => {
         this.logger.debug(err);
-        if (err instanceof PrismaClientKnownRequestError) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
           this.logger.error('findUserOrCreate Prisma error');
           throw new InternalServerErrorException('Database Error');
         }
@@ -55,7 +54,7 @@ export class UserRepository {
         data: { consent: true },
       })
       .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
           if (err.code === 'P2025' || err.code === 'P2016') {
             throw new NotFoundException();
           }
@@ -76,7 +75,7 @@ export class UserRepository {
         where: { name },
       })
       .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
           this.logger.error(err.message);
           throw new InternalServerErrorException();
         }
@@ -95,7 +94,7 @@ export class UserRepository {
         },
       })
       .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
           this.logger.error(err.message);
           throw new InternalServerErrorException();
         }
@@ -120,7 +119,7 @@ export class UserRepository {
         },
       })
       .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
           this.logger.error(err.message);
           //TODO 여러 error case 생각해보기(일단 500 return 하도록 함)
           throw new InternalServerErrorException();
@@ -137,7 +136,7 @@ export class UserRepository {
         where: { uuid: userUuid },
       })
       .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
           if (err.code === 'P2025') {
             this.logger.debug('user not found');
             throw new NotFoundException();
@@ -156,7 +155,7 @@ export class UserRepository {
         where: { fcmTokenId: { in: fcmTokens } },
       })
       .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
           if (err.code === 'P2025') {
             this.logger.debug('Some fcm token not found. Just ignore it');
             return;

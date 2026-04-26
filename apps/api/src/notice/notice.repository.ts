@@ -7,8 +7,7 @@ import {
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import dayjs from 'dayjs';
 import { NoticeFullContent } from './types/noticeFullContent';
-import { FileType, Notice } from '@generated/prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { FileType, Notice, Prisma } from '@generated/prisma/client';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';
@@ -243,7 +242,7 @@ export class NoticeRepository {
         },
       })
       .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === 'P2025') {
             this.logger.debug(`Notice with id ${id} not found`);
             throw new NotFoundException(`Notice with id ${id} not found`);
@@ -301,7 +300,7 @@ export class NoticeRepository {
         },
       })
       .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === 'P2025') {
             this.logger.debug(`Notice with id ${id} not found`);
             throw new NotFoundException(`Notice with id ${id} not found`);
@@ -442,7 +441,7 @@ export class NoticeRepository {
         },
       })
       .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === 'P2025') {
             this.logger.debug(`User uuid not found`);
             throw new NotFoundException(`User uuid not found`);
@@ -488,7 +487,7 @@ export class NoticeRepository {
         },
       })
       .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === 'P2025') {
             this.logger.debug(`Notice with id ${id} not found`);
             throw new NotFoundException(`Notice with id ${id} not found`);
@@ -520,7 +519,7 @@ export class NoticeRepository {
         },
       })
       .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           this.logger.error('addAdditionalNotice error');
           this.logger.debug(error);
           throw new InternalServerErrorException('Database Error');
@@ -554,7 +553,7 @@ export class NoticeRepository {
         },
       })
       .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === 'P2025') {
             this.logger.debug(`Notice with id ${id} not found`);
             throw new NotFoundException(`Notice with id ${id} not found`);
@@ -598,7 +597,7 @@ export class NoticeRepository {
           },
         })
         .catch((error) => {
-          if (error instanceof PrismaClientKnownRequestError) {
+          if (error instanceof Prisma.PrismaClientKnownRequestError) {
             this.logger.error('addReaction error');
             this.logger.debug(error);
             throw new InternalServerErrorException('Database Error');
@@ -625,7 +624,7 @@ export class NoticeRepository {
           },
         })
         .catch((error) => {
-          if (error instanceof PrismaClientKnownRequestError) {
+          if (error instanceof Prisma.PrismaClientKnownRequestError) {
             this.logger.error('addReaction error');
             this.logger.debug(error);
             throw new InternalServerErrorException('Database Error');
@@ -656,7 +655,7 @@ export class NoticeRepository {
         },
       })
       .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === 'P2025') {
             this.logger.debug(
               `Reaction with emoji ${emoji}, user ${userUuid}, id: ${id} not found`,
@@ -703,7 +702,7 @@ export class NoticeRepository {
         },
       })
       .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           this.logger.error('updateNotice error');
           this.logger.debug(error);
           throw new InternalServerErrorException('Database Error');
@@ -723,7 +722,7 @@ export class NoticeRepository {
         },
       })
       .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === 'P2025') {
             this.logger.debug(`Notice with id ${id} not found`);
             throw new NotFoundException(`Notice with id ${id} not found`);
