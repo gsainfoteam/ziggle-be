@@ -19,6 +19,7 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "paths": {
+      "@generated/prisma/client": ["generated/prisma/client/client"],
       "@lib/prisma": ["libs/prisma/src"],
       "@lib/prisma/*": ["libs/prisma/src/*"],
       "@lib/infoteam-idp": ["libs/infoteam-idp/src"],
