@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Category } from '@prisma/client';
+import { Category } from '@generated/prisma/client';
 import { Expose, Transform, Type } from 'class-transformer';
 import {
   IsArray,

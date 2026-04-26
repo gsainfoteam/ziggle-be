@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { TagRepository } from './tag.repository';
-import { Tag } from '@prisma/client';
+import { Tag } from '@generated/prisma/client';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CreateTagDto } from './dto/req/createTag.dto';
 

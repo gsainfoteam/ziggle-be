@@ -1,19 +1,20 @@
 import { CustomConfigService } from '@lib/custom-config';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Prisma, PrismaClient } from '@generated/prisma/client';
 
 @Injectable()
 export class PrismaService
-  extends PrismaClient<Prisma.PrismaClientOptions, 'query'>
+  extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
   constructor(readonly customConfigService: CustomConfigService) {
+    const adapter = new PrismaPg({
+      connectionString: customConfigService.DATABASE_URL,
+    });
+
     super({
-      datasources: {
-        db: {
-          url: customConfigService.DATABASE_URL,
-        },
-      },
+      adapter,
       log: [{ emit: 'event', level: 'query' }],
     });
   }
@@ -24,6 +25,16 @@ export class PrismaService
 
   async onModuleDestroy() {
     await this.$disconnect();
+  }
+
+  onQuery(callback: (event: Prisma.QueryEvent) => void): void {
+    const eventClient = this as unknown as {
+      $on(
+        eventType: 'query',
+        callback: (event: Prisma.QueryEvent) => void,
+      ): void;
+    };
+    eventClient.$on('query', callback);
   }
 
 }

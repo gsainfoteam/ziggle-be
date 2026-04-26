@@ -7,8 +7,8 @@ import {
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import dayjs from 'dayjs';
 import { NoticeFullContent } from './types/noticeFullContent';
-import { FileType, Notice } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { FileType, Notice } from '@generated/prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
 import { ForeignContentDto } from './dto/req/foreignContent.dto';

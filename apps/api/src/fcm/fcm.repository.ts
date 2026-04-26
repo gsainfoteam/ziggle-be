@@ -4,7 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Content } from './types/content.type';
-import { FcmToken, Prisma } from '@prisma/client';
+import { FcmToken, Prisma } from '@generated/prisma/client';
 import { PrismaService } from '@lib/prisma';
 import { Loggable } from '@lib/logger/decorator/loggable';
 

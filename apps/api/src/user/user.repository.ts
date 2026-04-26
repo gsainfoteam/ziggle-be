@@ -4,8 +4,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { User } from '@generated/prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { v4 as uuid } from 'uuid';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { PrismaService } from '@lib/prisma';

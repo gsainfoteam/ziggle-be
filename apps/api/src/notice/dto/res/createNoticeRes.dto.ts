@@ -1,7 +1,7 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Expose, Transform } from 'class-transformer';
 import { ExpandedGeneralNoticeDto } from './expandedGeneralNotice.dto';
-import { Tag } from '@prisma/client';
+import { Tag } from '@generated/prisma/client';
 
 export class CreateNoticeResDto extends OmitType(ExpandedGeneralNoticeDto, [
   'tags',

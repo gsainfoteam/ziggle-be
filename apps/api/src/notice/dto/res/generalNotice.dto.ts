@@ -7,7 +7,7 @@ import {
   Reaction,
   Tag,
   User,
-} from '@prisma/client';
+} from '@generated/prisma/client';
 import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { htmlToText } from 'html-to-text';
 

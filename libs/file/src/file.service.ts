@@ -11,7 +11,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { File, FileType } from '@prisma/client';
+import { File, FileType } from '@generated/prisma/client';
 
 @Injectable()
 @Loggable()

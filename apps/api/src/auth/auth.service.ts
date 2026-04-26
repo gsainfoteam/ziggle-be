@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { RedisService } from 'libs/redis/src';
 import ms, { StringValue } from 'ms';
-import { User } from '@prisma/client';
+import { User } from '@generated/prisma/client';
 
 @Injectable()
 @Loggable()
