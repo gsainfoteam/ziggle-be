@@ -113,4 +113,8 @@ export class CustomConfigService {
   get REFRESH_TOKEN_EXPIRE(): string {
     return this.getEnvVariable('REFRESH_TOKEN_EXPIRE');
   }
+
+  get HEALTH_MEMORY_RSS_LIMIT_MB(): number {
+    return this.configService.get<number>('HEALTH_MEMORY_RSS_LIMIT_MB') ?? 200;
+  }
 }

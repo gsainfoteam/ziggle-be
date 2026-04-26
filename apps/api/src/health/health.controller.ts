@@ -15,6 +15,8 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller('health')
 export class HealthController {
   private readonly logger = new Logger(HealthController.name);
+  private readonly bytesPerMb = 1024 * 1024;
+
   constructor(
     private readonly configService: CustomConfigService,
     private readonly prismaService: PrismaService,
@@ -33,7 +35,11 @@ export class HealthController {
       () =>
         this.http.pingCheck('infoteam-idp', this.configService.IDP_BASE_URL),
       () => this.prisma.pingCheck('database', this.prismaService),
-      () => this.memory.checkRSS('memory_rss', 1024 * 1024 * 150),
+      () =>
+        this.memory.checkRSS(
+          'memory_rss',
+          this.configService.HEALTH_MEMORY_RSS_LIMIT_MB * this.bytesPerMb,
+        ),
       () => this.redis.isHealthy('redis'),
     ]);
   }

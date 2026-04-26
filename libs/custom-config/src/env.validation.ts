@@ -1,5 +1,12 @@
 import { plainToInstance } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsString, validateSync } from 'class-validator';
+import {
+  IsNotEmpty,
+  Min,
+  IsNumber,
+  IsOptional,
+  IsString,
+  validateSync,
+} from 'class-validator';
 
 export class EnvironmentVariables {
   @IsString()
@@ -105,6 +112,11 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   REFRESH_TOKEN_EXPIRE: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(200)
+  HEALTH_MEMORY_RSS_LIMIT_MB?: number;
 }
 
 export type EnvironmentVariableKeys = keyof EnvironmentVariables;
