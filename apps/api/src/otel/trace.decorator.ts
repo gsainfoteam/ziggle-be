@@ -87,59 +87,62 @@ const wrapObservableWithSpan = (
   source$: Observable<unknown>,
   span: Span,
 ): Observable<unknown> =>
-  new Observable<unknown>((subscriber) =>
-    {
-      const spanContext = trace.setSpan(context.active(), span);
-      const withSpanContext = <T>(callback: () => T): T =>
-        context.with(spanContext, callback);
+  new Observable<unknown>((subscriber) => {
+    const spanContext = trace.setSpan(context.active(), span);
+    const withSpanContext = <T>(callback: () => T): T =>
+      context.with(spanContext, callback);
 
-      let spanEnded = false;
-      const endSpan = (): void => {
-        if (!spanEnded) {
-          spanEnded = true;
-          span.end();
-        }
-      };
-
-      let subscription: { unsubscribe: () => void } | undefined;
-      try {
-        subscription = withSpanContext(() =>
-          source$.subscribe({
-            next: (value) => {
-              withSpanContext(() => {
-                subscriber.next(value);
-              });
-            },
-            error: (error: unknown) => {
-              withSpanContext(() => {
-                setSpanError(span, error);
-                endSpan();
-                subscriber.error(error);
-              });
-            },
-            complete: () => {
-              withSpanContext(() => {
-                span.setStatus({ code: SpanStatusCode.OK });
-                endSpan();
-                subscriber.complete();
-              });
-            },
-          }),
-        );
-      } catch (error: unknown) {
-        withSpanContext(() => {
-          setSpanError(span, error);
-          endSpan();
-          subscriber.error(error);
-        });
+    let spanEnded = false;
+    const endSpan = (): void => {
+      if (!spanEnded) {
+        spanEnded = true;
+        span.end();
       }
+    };
 
-      return () => {
+    let subscription: { unsubscribe: () => void } | undefined;
+    try {
+      subscription = withSpanContext(() =>
+        source$.subscribe({
+          next: (value) => {
+            withSpanContext(() => {
+              subscriber.next(value);
+            });
+          },
+          error: (error: unknown) => {
+            withSpanContext(() => {
+              setSpanError(span, error);
+              endSpan();
+              subscriber.error(error);
+            });
+          },
+          complete: () => {
+            withSpanContext(() => {
+              span.setStatus({ code: SpanStatusCode.OK });
+              endSpan();
+              subscriber.complete();
+            });
+          },
+        }),
+      );
+    } catch (error: unknown) {
+      withSpanContext(() => {
+        setSpanError(span, error);
         endSpan();
-        subscription?.unsubscribe();
-      };
-    },
-  );
+        subscriber.error(error);
+      });
+    }
+
+    return () => {
+      try {
+        withSpanContext(() => {
+          subscription?.unsubscribe();
+        });
+      } finally {
+        endSpan();
+      }
+    };
+  });
 
 const isPromiseLike = (value: unknown): value is Promise<unknown> => {
   if (
