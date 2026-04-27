@@ -46,11 +46,21 @@ const wrapMethod = (originalMethod: AnyMethod, spanName: string): AnyMethod => {
   }
 
   const wrapped: AnyMethod = function (...args: unknown[]): unknown {
-    return methodTracer.startActiveSpan(spanName, (span) => {
+    const parentContext = context.active();
+    return methodTracer.startActiveSpan(spanName, {}, parentContext, (span) => {
       try {
         const result = originalMethod.apply(this, args);
         if (isObservable(result)) {
-          return wrapObservableWithSpan(result as Observable<unknown>, span);
+          const returnedAtNs = process.hrtime.bigint();
+          span.updateName(`${spanName}.invocation`);
+          span.setStatus({ code: SpanStatusCode.OK });
+          span.end();
+          return wrapObservableWithSpan(
+            result as Observable<unknown>,
+            spanName,
+            returnedAtNs,
+            parentContext,
+          );
         }
 
         if (isPromiseLike(result)) {
@@ -85,61 +95,77 @@ const wrapMethod = (originalMethod: AnyMethod, spanName: string): AnyMethod => {
 
 const wrapObservableWithSpan = (
   source$: Observable<unknown>,
-  span: Span,
+  spanName: string,
+  returnedAtNs: bigint,
+  parentContext: ReturnType<typeof context.active>,
 ): Observable<unknown> =>
   new Observable<unknown>((subscriber) => {
-    const spanContext = trace.setSpan(context.active(), span);
-    const withSpanContext = <T>(callback: () => T): T =>
-      context.with(spanContext, callback);
+    const subscribedAtNs = process.hrtime.bigint();
+    const subscriptionGapMs = Number(subscribedAtNs - returnedAtNs) / 1_000_000;
+    const pipelineSpan = context.with(parentContext, () =>
+      methodTracer.startSpan(`${spanName}.pipeline`),
+    );
+    pipelineSpan.setAttribute('subscription_gap_ms', subscriptionGapMs);
+    const pipelineContext = trace.setSpan(parentContext, pipelineSpan);
+    const executionSpan = context.with(pipelineContext, () =>
+      methodTracer.startSpan(`${spanName}.execution`),
+    );
+    const executionContext = trace.setSpan(pipelineContext, executionSpan);
+    const withExecutionContext = <T>(callback: () => T): T =>
+      context.with(executionContext, callback);
 
-    let spanEnded = false;
-    const endSpan = (): void => {
-      if (!spanEnded) {
-        spanEnded = true;
-        span.end();
+    let spansEnded = false;
+    const endSpans = (): void => {
+      if (!spansEnded) {
+        spansEnded = true;
+        executionSpan.end();
+        pipelineSpan.end();
       }
     };
 
     let subscription: { unsubscribe: () => void } | undefined;
     try {
-      subscription = withSpanContext(() =>
+      subscription = withExecutionContext(() =>
         source$.subscribe({
           next: (value) => {
-            withSpanContext(() => {
+            withExecutionContext(() => {
               subscriber.next(value);
             });
           },
           error: (error: unknown) => {
-            withSpanContext(() => {
-              setSpanError(span, error);
-              endSpan();
+            withExecutionContext(() => {
+              setSpanError(executionSpan, error);
+              setSpanError(pipelineSpan, error);
+              endSpans();
               subscriber.error(error);
             });
           },
           complete: () => {
-            withSpanContext(() => {
-              span.setStatus({ code: SpanStatusCode.OK });
-              endSpan();
+            withExecutionContext(() => {
+              executionSpan.setStatus({ code: SpanStatusCode.OK });
+              pipelineSpan.setStatus({ code: SpanStatusCode.OK });
+              endSpans();
               subscriber.complete();
             });
           },
         }),
       );
     } catch (error: unknown) {
-      withSpanContext(() => {
-        setSpanError(span, error);
-        endSpan();
+      withExecutionContext(() => {
+        setSpanError(executionSpan, error);
+        setSpanError(pipelineSpan, error);
+        endSpans();
         subscriber.error(error);
       });
     }
 
     return () => {
       try {
-        withSpanContext(() => {
+        withExecutionContext(() => {
           subscription?.unsubscribe();
         });
       } finally {
-        endSpan();
+        endSpans();
       }
     };
   });
