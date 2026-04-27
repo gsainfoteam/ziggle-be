@@ -12,6 +12,7 @@ import { FileModule } from '@lib/file/file.module';
 import { FcmModule } from '../fcm/fcm.module';
 import { InfoteamGroupsModule } from '@lib/infoteam-groups/infoteam-groups.module';
 import { AuthModule } from '../auth/auth.module';
+import { OtelClassSerializerInterceptor } from '../otel/otel-class-serializer.interceptor';
 
 @Module({
   imports: [
@@ -27,6 +28,6 @@ import { AuthModule } from '../auth/auth.module';
     AuthModule,
   ],
   controllers: [NoticeController],
-  providers: [NoticeService, NoticeRepository],
+  providers: [NoticeService, NoticeRepository, OtelClassSerializerInterceptor],
 })
 export class NoticeModule {}
