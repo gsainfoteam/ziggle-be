@@ -1,4 +1,4 @@
-import { Span, SpanStatusCode, trace } from '@opentelemetry/api';
+import { Span, SpanStatusCode, context, trace } from '@opentelemetry/api';
 import { Observable, isObservable } from 'rxjs';
 
 const WRAPPED = Symbol('OTEL_SERVICE_TRACE_WRAPPED');
@@ -89,6 +89,10 @@ const wrapObservableWithSpan = (
 ): Observable<unknown> =>
   new Observable<unknown>((subscriber) =>
     {
+      const spanContext = trace.setSpan(context.active(), span);
+      const withSpanContext = <T>(callback: () => T): T =>
+        context.with(spanContext, callback);
+
       let spanEnded = false;
       const endSpan = (): void => {
         if (!spanEnded) {
@@ -99,25 +103,35 @@ const wrapObservableWithSpan = (
 
       let subscription: { unsubscribe: () => void } | undefined;
       try {
-        subscription = source$.subscribe({
-          next: (value) => {
-            subscriber.next(value);
-          },
-          error: (error: unknown) => {
-            setSpanError(span, error);
-            endSpan();
-            subscriber.error(error);
-          },
-          complete: () => {
-            span.setStatus({ code: SpanStatusCode.OK });
-            endSpan();
-            subscriber.complete();
-          },
-        });
+        subscription = withSpanContext(() =>
+          source$.subscribe({
+            next: (value) => {
+              withSpanContext(() => {
+                subscriber.next(value);
+              });
+            },
+            error: (error: unknown) => {
+              withSpanContext(() => {
+                setSpanError(span, error);
+                endSpan();
+                subscriber.error(error);
+              });
+            },
+            complete: () => {
+              withSpanContext(() => {
+                span.setStatus({ code: SpanStatusCode.OK });
+                endSpan();
+                subscriber.complete();
+              });
+            },
+          }),
+        );
       } catch (error: unknown) {
-        setSpanError(span, error);
-        endSpan();
-        subscriber.error(error);
+        withSpanContext(() => {
+          setSpanError(span, error);
+          endSpan();
+          subscriber.error(error);
+        });
       }
 
       return () => {
