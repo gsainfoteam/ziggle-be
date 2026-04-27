@@ -7,9 +7,11 @@ import path from 'path';
 import sharp from 'sharp';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { FileService } from '@lib/file/file.service';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class ImageService {
   constructor(private readonly fileService: FileService) {}
 

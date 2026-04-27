@@ -7,9 +7,11 @@ import {
 import { Prisma, User } from '@generated/prisma/client';
 import { PrismaService } from '@lib/prisma';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class AuthRepository {
   private readonly logger = new Logger(AuthRepository.name);
   constructor(private readonly prismaService: PrismaService) {}

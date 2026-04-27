@@ -12,9 +12,11 @@ import { Queue } from 'bull';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
 import { UserService } from '../user/user.service';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class FcmService {
   private readonly app: App;
   private readonly logger = new Logger(FcmService.name);

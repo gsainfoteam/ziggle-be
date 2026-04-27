@@ -7,9 +7,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, Tag } from '@generated/prisma/client';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class TagRepository {
   private readonly logger = new Logger(TagRepository.name);
   constructor(private readonly prismaService: PrismaService) {}

@@ -9,9 +9,11 @@ import { v4 as uuid } from 'uuid';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { PrismaService } from '@lib/prisma';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class UserRepository {
   private readonly logger = new Logger(UserRepository.name);
   constructor(private readonly prismaService: PrismaService) {}

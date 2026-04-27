@@ -38,9 +38,11 @@ import {
   Permission,
 } from '@lib/infoteam-groups/types/groups.type';
 import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class NoticeService {
   private readonly logger = new Logger(NoticeService.name);
   private fcmDelay: number;

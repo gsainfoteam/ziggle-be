@@ -5,9 +5,11 @@ import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { JwtTokenType } from '../auth/types/jwtToken.type';
 import { InfoteamIdpService } from '@lib/infoteam-idp';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
   constructor(

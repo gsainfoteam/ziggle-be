@@ -7,9 +7,11 @@ import { Content } from './types/content.type';
 import { FcmToken, Prisma } from '@generated/prisma/client';
 import { PrismaService } from '@lib/prisma';
 import { Loggable } from '@lib/logger/decorator/loggable';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class FcmRepository {
   private readonly logger = new Logger(FcmRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
