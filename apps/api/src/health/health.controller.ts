@@ -16,6 +16,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class HealthController {
   private readonly logger = new Logger(HealthController.name);
   private readonly bytesPerMb = 1024 * 1024;
+  private readonly prismaHealthTimeoutMs = 5000;
 
   constructor(
     private readonly configService: CustomConfigService,
@@ -34,7 +35,10 @@ export class HealthController {
     return this.health.check([
       () =>
         this.http.pingCheck('infoteam-idp', this.configService.IDP_BASE_URL),
-      () => this.prisma.pingCheck('database', this.prismaService),
+      () =>
+        this.prisma.pingCheck('database', this.prismaService, {
+          timeout: this.prismaHealthTimeoutMs,
+        }),
       () =>
         this.memory.checkRSS(
           'memory_rss',
