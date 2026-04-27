@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { UserRepository } from './user.repository';
-import { User } from '@prisma/client';
+import { User } from '@generated/prisma/client';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { JwtTokenType } from '../auth/types/jwtToken.type';

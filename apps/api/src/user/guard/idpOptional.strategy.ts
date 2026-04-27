@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-http-bearer';
-import { User } from '@prisma/client';
+import { User } from '@generated/prisma/client';
 import { InfoteamIdpService } from '@lib/infoteam-idp';
 import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
 import { UserService } from '../user.service';

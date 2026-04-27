@@ -4,7 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '@lib/prisma';
-import { FcmToken } from '@prisma/client';
+import { FcmToken } from '@generated/prisma/client';
 
 @Injectable()
 export class CrawlerFcmRepository {

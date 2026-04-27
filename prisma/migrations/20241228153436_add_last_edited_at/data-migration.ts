@@ -2,9 +2,19 @@
 // To run this migration, use the following command:
 // npx ts-node ./prisma/migrations/20241228153436_add_last_edited_at/data-migration.ts
 
-import { Prisma, PrismaClient } from '@prisma/client';
+import 'dotenv/config';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Prisma, PrismaClient } from '../../../generated/prisma/client/client';
 
-const prisma = new PrismaClient();
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL is not set');
+}
+
+const adapter = new PrismaPg({
+  connectionString: databaseUrl,
+});
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   await prisma.$transaction(

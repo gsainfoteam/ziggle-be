@@ -4,8 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Prisma, User } from '@generated/prisma/client';
 import { PrismaService } from '@lib/prisma';
 import { Loggable } from '@lib/logger/decorator/loggable';
 
@@ -39,7 +38,7 @@ export class AuthRepository {
       })
       .catch((err) => {
         this.logger.debug(err);
-        if (err instanceof PrismaClientKnownRequestError) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
           this.logger.error('findUserOrCreate Prisma error');
           throw new InternalServerErrorException('Database Error');
         }
@@ -54,7 +53,7 @@ export class AuthRepository {
         where: { uuid },
       })
       .catch((error) => {
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === 'P2025') {
             throw new NotFoundException();
           }

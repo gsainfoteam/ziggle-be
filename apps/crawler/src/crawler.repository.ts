@@ -1,7 +1,7 @@
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { PrismaService } from '@lib/prisma';
 import { Injectable } from '@nestjs/common';
-import { Crawl, File, FileType, User } from '@prisma/client';
+import { Crawl, File, FileType, User } from '@generated/prisma/client';
 
 @Loggable()
 @Injectable()

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Tag } from '@prisma/client';
+import { Tag } from '@generated/prisma/client';
 
 export class TagResDto implements Tag {
   @ApiProperty({

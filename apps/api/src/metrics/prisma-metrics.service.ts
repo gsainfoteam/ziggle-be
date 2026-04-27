@@ -1,6 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '@lib/prisma';
-import { Prisma } from '@prisma/client';
 import { dbQueriesTotal, dbQueryDurationSeconds } from '@lib/metrics';
 
 @Injectable()
@@ -8,7 +7,7 @@ export class PrismaMetricsService implements OnModuleInit {
   constructor(private readonly prismaService: PrismaService) {}
 
   onModuleInit() {
-    this.prismaService.$on('query', (event: Prisma.QueryEvent) => {
+    this.prismaService.onQuery((event) => {
       const operation = this.extractOperation(event.query);
       const model = this.extractModel(event.query);
 

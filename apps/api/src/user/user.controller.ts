@@ -24,7 +24,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { User } from '@prisma/client';
+import { User } from '@generated/prisma/client';
 import { GetUser } from './decorator/get-user.decorator';
 import { UserInfoRes } from './dto/res/userInfoRes.dto';
 import { setFcmTokenRes } from './dto/res/setFcmTokenRes.dto';

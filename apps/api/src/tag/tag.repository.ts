@@ -6,8 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Tag } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Prisma, Tag } from '@generated/prisma/client';
 
 @Injectable()
 @Loggable()
@@ -28,7 +27,7 @@ export class TagRepository {
         where: { name },
       })
       .catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
           if (err.code === 'P2025') {
             this.logger.debug(`tag with name ${name} not found`);
             throw new NotFoundException(`tag with name ${name} not found`);
@@ -70,7 +69,7 @@ export class TagRepository {
 
   async deleteTag({ id }: Pick<Tag, 'id'>): Promise<void> {
     await this.prismaService.tag.delete({ where: { id } }).catch((err) => {
-      if (err instanceof PrismaClientKnownRequestError) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) {
         if (err.code === 'P2025') {
           this.logger.error('Tag not found');
         }

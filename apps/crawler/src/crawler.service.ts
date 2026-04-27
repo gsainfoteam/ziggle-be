@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
-import { Crawl, File } from '@prisma/client';
+import { Crawl, File } from '@generated/prisma/client';
 import { load } from 'cheerio';
 import {
   catchError,
