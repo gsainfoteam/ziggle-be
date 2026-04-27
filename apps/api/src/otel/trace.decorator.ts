@@ -50,12 +50,7 @@ const wrapMethod = (originalMethod: AnyMethod, spanName: string): AnyMethod => {
       try {
         const result = originalMethod.apply(this, args);
         if (isObservable(result)) {
-          span.setStatus({ code: SpanStatusCode.OK });
-          span.end();
-          return wrapObservableWithSpan(
-            result as Observable<unknown>,
-            `${spanName}.observable`,
-          );
+          return wrapObservableWithSpan(result as Observable<unknown>, span);
         }
 
         if (isPromiseLike(result)) {
@@ -90,12 +85,12 @@ const wrapMethod = (originalMethod: AnyMethod, spanName: string): AnyMethod => {
 
 const wrapObservableWithSpan = (
   source$: Observable<unknown>,
-  spanName: string,
+  span: Span,
 ): Observable<unknown> =>
   new Observable<unknown>((subscriber) =>
-    methodTracer.startActiveSpan(spanName, (span) => {
+    {
       let spanEnded = false;
-      const endSpan = () => {
+      const endSpan = (): void => {
         if (!spanEnded) {
           spanEnded = true;
           span.end();
@@ -129,7 +124,7 @@ const wrapObservableWithSpan = (
         endSpan();
         subscription?.unsubscribe();
       };
-    }),
+    },
   );
 
 const isPromiseLike = (value: unknown): value is Promise<unknown> => {
