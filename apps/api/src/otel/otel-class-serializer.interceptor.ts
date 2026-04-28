@@ -1,6 +1,7 @@
 import { ClassSerializerInterceptor, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { SpanStatusCode, trace } from '@opentelemetry/api';
+import { setSpanError } from './span-error.util';
 
 type SerializeMethod = ClassSerializerInterceptor['serialize'];
 type SerializeArgs = Parameters<SerializeMethod>;
@@ -21,22 +22,7 @@ export class OtelClassSerializerInterceptor extends ClassSerializerInterceptor {
       span.setStatus({ code: SpanStatusCode.OK });
       return result;
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        span.recordException(error);
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: error.message,
-        });
-      } else {
-        span.recordException({
-          name: 'UnknownError',
-          message: String(error),
-        });
-        span.setStatus({
-          code: SpanStatusCode.ERROR,
-          message: String(error),
-        });
-      }
+      setSpanError(span, error);
       throw error;
     } finally {
       span.end();
