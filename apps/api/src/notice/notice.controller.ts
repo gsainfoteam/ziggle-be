@@ -1,6 +1,5 @@
 import {
   Body,
-  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -43,6 +42,7 @@ import { GetGroups } from '../user/decorator/get-groups.decorator';
 import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
 import { JwtGuard } from '../auth/guard/jwt.guard';
 import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
+import { OtelClassSerializerInterceptor } from '../otel/otel-class-serializer.interceptor';
 
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
@@ -51,7 +51,7 @@ import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
 @UseGuards(JwtGuard)
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))
-@UseInterceptors(ClassSerializerInterceptor)
+@UseInterceptors(OtelClassSerializerInterceptor)
 export class NoticeController {
   constructor(private readonly noticeService: NoticeService) {}
 

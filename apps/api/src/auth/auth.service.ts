@@ -9,9 +9,11 @@ import * as crypto from 'crypto';
 import { RedisService } from 'libs/redis/src';
 import ms, { StringValue } from 'ms';
 import { User } from '@generated/prisma/client';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
   private readonly refreshTokenPrefix = 'ziggleRefreshToken';

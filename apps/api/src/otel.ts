@@ -5,6 +5,7 @@ import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { IncomingMessage, RequestOptions } from 'node:http';
+import { PrismaInstrumentation } from '@prisma/instrumentation';
 
 const NOISE_PATHS = ['/health', '/metrics'] as const;
 
@@ -103,6 +104,7 @@ const sdk = new NodeSDK({
         },
       },
     }),
+    new PrismaInstrumentation(),
   ],
 });
 

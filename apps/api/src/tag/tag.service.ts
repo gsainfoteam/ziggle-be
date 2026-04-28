@@ -3,9 +3,11 @@ import { TagRepository } from './tag.repository';
 import { Tag } from '@generated/prisma/client';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CreateTagDto } from './dto/req/createTag.dto';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class TagService {
   private readonly logger = new Logger(TagService.name);
   constructor(private readonly tagRepository: TagRepository) {}

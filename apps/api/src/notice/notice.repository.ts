@@ -18,9 +18,11 @@ import {
 import { PrismaService } from '@lib/prisma';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
+import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
 @Loggable()
+@Trace()
 export class NoticeRepository {
   private readonly logger = new Logger(NoticeRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
