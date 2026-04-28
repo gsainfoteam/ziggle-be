@@ -14,12 +14,10 @@ export class OtelClassSerializerInterceptor extends ClassSerializerInterceptor {
     super(reflector);
   }
 
-  public override serialize(
-    ...[response, options]: SerializeArgs
-  ): SerializeResult {
+  public override serialize(...args: SerializeArgs): SerializeResult {
     const span = this.tracer.startSpan('nest.response.serialize');
     try {
-      const result = super.serialize(response, options);
+      const result = super.serialize(...args);
       span.setStatus({ code: SpanStatusCode.OK });
       return result;
     } catch (error: unknown) {
