@@ -1,95 +1,61 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  Category,
-  Content,
-  Crawl,
-  File,
-  Reaction,
-  Tag,
-  User,
-} from '@generated/prisma/client';
-import { Exclude, Expose, Transform, Type } from 'class-transformer';
-import { htmlToText } from 'html-to-text';
+import { Category } from '@generated/prisma/client';
+import { Exclude, Expose, Type } from 'class-transformer';
 
+@Exclude()
 export class AuthorDto {
+  @Expose()
   @ApiProperty()
   uuid: string;
 
+  @Expose()
   @ApiProperty()
   name: string;
 
-  @ApiProperty({
-    type: String,
-    nullable: true,
-  })
+  @Expose()
+  @ApiProperty({ type: String, nullable: true })
   picture: string | null;
 }
 
-class GroupDto {
+@Exclude()
+export class GroupDto {
+  @Expose()
   @ApiProperty()
   uuid: string;
 
+  @Expose()
   @ApiProperty()
   name: string;
 
+  @Expose()
   @ApiPropertyOptional({ type: String })
   profileImageUrl: string | null;
 }
 
-class GeneralReactionDto {
+@Exclude()
+export class GeneralReactionDto {
+  @Expose()
   @ApiProperty()
   emoji: string;
 
+  @Expose()
   @ApiProperty()
   count: number;
 
+  @Expose()
   @ApiProperty()
   isReacted: boolean;
 }
 
+@Exclude()
 export class GeneralNoticeDto {
-  @Exclude()
-  langFromDto?: string;
-  @Exclude()
-  crawls: Crawl[];
-  @Exclude()
-  contents: Content[];
-  @Exclude()
-  get mainContent(): Content {
-    return (
-      this.contents.filter(
-        ({ lang }) => lang === (this.langFromDto ?? 'ko'),
-      )[0] ?? this.contents[0]
-    );
-  }
-  @Exclude()
-  files: File[];
-  @Exclude()
-  reminders: User[];
-  @Exclude()
-  userUuid?: string;
-  @Exclude()
-  updatedAt: Date | null;
-  @Exclude()
-  lastEditedAt: Date | null;
-  @Exclude()
-  deletedAt: Date | null;
-  @Exclude()
-  authorId: string;
-  @Exclude()
-  groupId: string | null;
-
   @Expose()
   @ApiProperty()
   id: number;
 
   @Expose()
   @ApiProperty()
-  get title(): string {
-    return this.crawls.length > 0
-      ? this.crawls[0].title
-      : (this.mainContent.title as string);
-  }
+  title: string;
 
   @Expose()
   @Type(() => GroupDto)
@@ -106,62 +72,29 @@ export class GeneralNoticeDto {
   createdAt: Date;
 
   @Expose()
-  @Transform(({ value }: { value: Tag[] }) => value.map(({ name }) => name))
-  @ApiProperty()
-  tags: string[] | Tag[];
+  @ApiProperty({ type: [String] })
+  tags: string[];
 
   @Expose()
   @ApiProperty()
   views: number;
 
   @Expose()
-  @ApiProperty()
-  get langs(): string[] {
-    return this.crawls.length > 0
-      ? ['ko']
-      : Array.from(new Set(this.contents.map(({ lang }) => lang)));
-  }
+  @ApiProperty({ type: [String] })
+  langs: string[];
 
   @Expose()
   @ApiProperty()
-  get content(): string {
-    const content =
-      this.crawls.length > 0 ? this.crawls[0].body : this.mainContent.body;
-    return htmlToText(content, {
-      selectors: [
-        { selector: 'a', options: { ignoreHref: true } },
-        { selector: 'img', format: 'skip' },
-      ],
-    }).slice(0, 1000);
-  }
+  content: string;
 
   @Expose()
-  @Transform(({ obj }: { obj: GeneralNoticeDto }) => {
-    const resultReaction = Object.values(
-      obj.reactions.reduce<Record<string, Reaction[]>>(
-        (acc, reaction: Reaction) => {
-          const { emoji } = reaction;
-          if (!acc[emoji]) acc[emoji] = [];
-          acc[emoji].push(reaction);
-          return acc;
-        },
-        {},
-      ),
-    );
-    return resultReaction.map((reactions) => ({
-      emoji: reactions[0].emoji,
-      count: reactions.length,
-      isReacted: reactions.some(({ userId }) => userId === obj.userUuid),
-    }));
-  })
+  @Type(() => GeneralReactionDto)
   @ApiProperty({ type: [GeneralReactionDto] })
-  reactions: GeneralReactionDto[] | Reaction[];
+  reactions: GeneralReactionDto[];
 
   @Expose()
   @ApiProperty()
-  get isReminded(): boolean {
-    return this.reminders.some(({ uuid }) => uuid === this.userUuid);
-  }
+  isReminded: boolean;
 
   @Expose()
   @ApiProperty()
@@ -169,9 +102,7 @@ export class GeneralNoticeDto {
 
   @Expose()
   @ApiPropertyOptional({ type: Date })
-  get deadline(): Date | null {
-    return this.crawls.length > 0 ? null : this.mainContent.deadline ?? null;
-  }
+  deadline: Date | null;
 
   @Expose()
   @ApiPropertyOptional({ type: Date })
@@ -182,24 +113,46 @@ export class GeneralNoticeDto {
   publishedAt: Date;
 
   @Expose()
-  @ApiProperty()
+  @ApiProperty({ type: [String] })
   imageUrls: string[];
 
   @Expose()
-  @ApiProperty()
+  @ApiProperty({ type: [String] })
   documentUrls: string[];
 
-  constructor(partial: Partial<GeneralNoticeDto>) {
-    Object.assign(this, partial);
+  constructor(partial: GeneralNoticeDto) {
+    this.id = partial.id;
+    this.title = partial.title;
+    this.group = partial.group;
+    this.author = partial.author;
+    this.createdAt = partial.createdAt;
+    this.tags = partial.tags;
+    this.views = partial.views;
+    this.langs = partial.langs;
+    this.content = partial.content;
+    this.reactions = partial.reactions;
+    this.isReminded = partial.isReminded;
+    this.category = partial.category;
+    this.deadline = partial.deadline;
+    this.currentDeadline = partial.currentDeadline;
+    this.publishedAt = partial.publishedAt;
+    this.imageUrls = partial.imageUrls;
+    this.documentUrls = partial.documentUrls;
   }
 }
 
+@Exclude()
 export class GeneralNoticeListDto {
+  @Expose()
   @ApiProperty()
   total: number;
 
-  @ApiProperty({
-    type: [GeneralNoticeDto],
-  })
+  @Expose()
+  @ApiProperty({ type: [GeneralNoticeDto] })
   list: GeneralNoticeDto[];
+
+  constructor(partial: GeneralNoticeListDto) {
+    this.total = partial.total;
+    this.list = partial.list;
+  }
 }
