@@ -1,46 +1,39 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GeneralNoticeDto } from './generalNotice.dto';
-import { Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 
-class AdditionalContentsDto {
+@Exclude()
+export class AdditionalContentsDto {
+  @Expose()
   @ApiProperty()
   id: number;
 
+  @Expose()
   @ApiProperty()
   lang: string;
 
+  @Expose()
   @ApiPropertyOptional({ type: Date })
   deadline: Date | null;
 
+  @Expose()
   @ApiProperty()
   content: string;
 
+  @Expose()
   @ApiProperty()
   createdAt: Date;
 }
 
+@Exclude()
 export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   @Expose()
+  @Type(() => AdditionalContentsDto)
   @ApiProperty({ type: [AdditionalContentsDto] })
-  get additionalContents(): AdditionalContentsDto[] {
-    return this.contents
-      .filter(({ id }) => id !== 1)
-      .map(({ id, createdAt, body, deadline, lang }) => ({
-        id,
-        content: body,
-        deadline: deadline ?? null,
-        createdAt,
-        lang,
-      }));
-  }
+  additionalContents: AdditionalContentsDto[];
 
-  @Expose()
-  @ApiProperty()
-  get content(): string {
-    return this.crawls.length > 0 ? this.crawls[0].body : this.mainContent.body;
-  }
-
-  constructor(partial: Partial<ExpandedGeneralNoticeDto>) {
+  constructor(partial: ExpandedGeneralNoticeDto) {
     super(partial);
+    this.additionalContents = partial.additionalContents;
   }
 }

@@ -39,6 +39,11 @@ import {
 } from '@lib/infoteam-groups/types/groups.type';
 import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
 import { Trace } from '../otel/trace.decorator';
+import {
+  toCreateNoticeResDto,
+  toExpandedNoticeDto,
+  toGeneralNoticeDto,
+} from './notice.mapper';
 
 @Injectable()
 @Loggable()
@@ -66,20 +71,26 @@ export class NoticeService {
       this.noticeRepository.getTotalCount(getAllNoticeQueryDto, userUuid),
     ]);
 
-    const noticeList = notices.map(
-      (notice) =>
-        new GeneralNoticeDto({
-          ...notice,
-          ...this.fileService.getFilesUrl(notice.files),
-          langFromDto: getAllNoticeQueryDto.lang,
-          userUuid,
-        }),
+    const noticeList = this.buildGeneralNoticeDto(
+      notices,
+      getAllNoticeQueryDto.lang,
+      userUuid,
     );
 
-    return {
+    return new GeneralNoticeListDto({
       total,
       list: noticeList,
-    };
+    });
+  }
+
+  private buildGeneralNoticeDto(
+    notices: NoticeFullContent[],
+    lang?: string,
+    userUuid?: string,
+  ): GeneralNoticeDto[] {
+    return notices.map((notice) =>
+      toGeneralNoticeDto(notice, this.fileService, lang, userUuid),
+    );
   }
 
   async getNotice(
@@ -96,12 +107,12 @@ export class NoticeService {
       notice = await this.noticeRepository.getNotice(id);
     }
 
-    return new ExpandedGeneralNoticeDto({
-      ...notice,
-      ...this.fileService.getFilesUrl(notice.files),
-      langFromDto: getNoticeDto.lang,
+    return toExpandedNoticeDto(
+      notice,
+      this.fileService,
+      getNoticeDto.lang,
       userUuid,
-    });
+    );
   }
 
   async createNotice(
@@ -145,10 +156,7 @@ export class NoticeService {
       },
     );
 
-    const notice = new CreateNoticeResDto({
-      ...createdNotice,
-      ...this.fileService.getFilesUrl(createdNotice.files),
-    });
+    const notice = toCreateNoticeResDto(createdNotice, this.fileService);
 
     const notification = {
       title: notice.title,

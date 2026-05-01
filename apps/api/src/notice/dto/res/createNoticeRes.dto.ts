@@ -1,18 +1,17 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
-import { Expose, Transform } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import { ExpandedGeneralNoticeDto } from './expandedGeneralNotice.dto';
-import { Tag } from '@generated/prisma/client';
 
+@Exclude()
 export class CreateNoticeResDto extends OmitType(ExpandedGeneralNoticeDto, [
   'tags',
 ]) {
   @Expose()
-  @Transform(({ value }: { value: Tag[] }) => value.map(({ id }) => id))
   @ApiProperty({ type: [Number] })
-  tags: number[] | Tag[];
+  tags: number[];
 
-  constructor(partial: Partial<CreateNoticeResDto>) {
+  constructor(partial: CreateNoticeResDto) {
     super(partial);
-    Object.assign(this, partial);
+    this.tags = partial.tags;
   }
 }
