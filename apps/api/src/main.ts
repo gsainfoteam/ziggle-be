@@ -30,6 +30,7 @@ async function bootstrap() {
     customConfigService.CORS_ALLOWED_ORIGINS.split(',')
       .map((origin) => origin.trim())
       .filter((origin) => origin.length > 0)
+      .concat(new URL(customConfigService.API_URL).origin)
       .map((origin) => {
         try {
           const parsedOrigin = new URL(origin);
