@@ -120,6 +120,10 @@ export class GeneralNoticeDto {
   @ApiProperty({ type: [String] })
   documentUrls: string[];
 
+  @Expose()
+  @ApiPropertyOptional({ type: String })
+  crawledUrl: string | null;
+
   constructor(partial: GeneralNoticeDto) {
     this.id = partial.id;
     this.title = partial.title;
@@ -138,6 +142,7 @@ export class GeneralNoticeDto {
     this.publishedAt = partial.publishedAt;
     this.imageUrls = partial.imageUrls;
     this.documentUrls = partial.documentUrls;
+    this.crawledUrl = partial.crawledUrl;
   }
 }
 
