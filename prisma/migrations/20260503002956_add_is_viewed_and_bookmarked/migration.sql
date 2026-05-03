@@ -17,7 +17,7 @@ ALTER TABLE "_Reminder" ADD CONSTRAINT "_Reminder_AB_pkey" PRIMARY KEY ("A", "B"
 DROP INDEX "_Reminder_AB_unique";
 
 -- AlterTable
-ALTER TABLE "user_record" ADD COLUMN     "bookmarked" BOOLEAN NOT NULL DEFAULT false,
+ALTER TABLE "user_record" ADD COLUMN "is_bookmarked" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN     "is_viewed" BOOLEAN NOT NULL DEFAULT false;
 

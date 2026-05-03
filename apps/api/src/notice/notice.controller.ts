@@ -44,6 +44,7 @@ import { JwtGuard } from '../auth/guard/jwt.guard';
 import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
 import { OtelClassSerializerInterceptor } from '../otel/otel-class-serializer.interceptor';
 import { GetNoticeDto } from './dto/req/getNotice.dto';
+import { BookmarkNoticeDto } from './dto/req/bookmarkNotice.dto';
 
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
@@ -215,6 +216,22 @@ export class NoticeController {
     @Body() body: UpdateNoticeDto,
   ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.updateNotice(body, query, id, user.uuid, groups);
+  }
+
+  @ApiOperation({
+    summary: 'Update bookmark status',
+    description: 'Update bookmark status for a notice',
+  })
+  @ApiOkResponse({ description: 'Update bookmark status' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @Patch(':id/bookmark')
+  async updateBookmark(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+    @Body() body: BookmarkNoticeDto,
+  ): Promise<void> {
+    await this.noticeService.updateBookmark(id, user.uuid, body.bookmarked);
   }
 
   @ApiOperation({

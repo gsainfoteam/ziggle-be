@@ -38,7 +38,7 @@ ETC ETC
     String user_uuid 
     Int notice_id 
     Boolean is_viewed 
-    Boolean bookmarked 
+    Boolean is_bookmarked 
     }
   
 

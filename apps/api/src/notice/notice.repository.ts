@@ -766,4 +766,36 @@ export class NoticeRepository {
       },
     });
   }
+
+  async updateBookmark(
+    noticeId: number,
+    userUuid: string,
+    isBookmarked: boolean,
+  ): Promise<void> {
+    await this.prismaService.userRecord.upsert({
+      where: {
+        userUuid_noticeId: {
+          userUuid,
+          noticeId,
+        },
+      },
+      update: {
+        isBookmarked,
+        updatedAt: new Date(),
+      },
+      create: {
+        user: {
+          connect: {
+            uuid: userUuid,
+          },
+        },
+        notice: {
+          connect: {
+            id: noticeId,
+          },
+        },
+        isBookmarked,
+      },
+    });
+  }
 }

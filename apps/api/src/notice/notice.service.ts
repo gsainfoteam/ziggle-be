@@ -355,6 +355,18 @@ export class NoticeService {
     await this.noticeRepository.deleteNotice(id, userUuid);
   }
 
+  async updateBookmark(
+    noticeId: number,
+    userUuid: string,
+    isBookmarked: boolean,
+  ): Promise<void> {
+    await this.noticeRepository.updateBookmark(
+      noticeId,
+      userUuid,
+      isBookmarked,
+    );
+  }
+
   private convertNotificationBodyToString(notification: Notification) {
     return {
       ...notification,
