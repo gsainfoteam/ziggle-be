@@ -33,10 +33,12 @@ ETC ETC
   
 
   "user_record" {
-    Int views 
+    DateTime created_at 
     DateTime updated_at 
     String user_uuid 
     Int notice_id 
+    Boolean is_viewed 
+    Boolean bookmarked 
     }
   
 

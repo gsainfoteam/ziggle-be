@@ -43,6 +43,7 @@ import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
 import { JwtGuard } from '../auth/guard/jwt.guard';
 import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
 import { OtelClassSerializerInterceptor } from '../otel/otel-class-serializer.interceptor';
+import { GetNoticeDto } from './dto/req/getNotice.dto';
 
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
@@ -86,7 +87,7 @@ export class NoticeController {
   @Get(':id')
   async getNotice(
     @Param('id', ParseIntPipe) id: number,
-    @Query() query: GetAllNoticeQueryDto,
+    @Query() query: GetNoticeDto,
     @GetUser() user: User,
   ): Promise<ExpandedGeneralNoticeDto> {
     return this.noticeService.getNotice(id, query, user?.uuid);

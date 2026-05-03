@@ -47,10 +47,12 @@ model User {
 }
 
 model UserRecord {
-  views     Int      @default(1)
-  updatedAt DateTime @default(now()) @map("updated_at")
-  userUuid  String   @map("user_uuid") @db.Uuid
-  noticeId  Int      @map("notice_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @map("updated_at")
+  userUuid   String   @map("user_uuid") @db.Uuid
+  noticeId   Int      @map("notice_id")
+  isViewed   Boolean  @default(false) @map("is_viewed")
+  bookmarked Boolean  @default(false)
 
   user   User   @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
   notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)

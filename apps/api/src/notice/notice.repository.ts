@@ -748,9 +748,7 @@ export class NoticeRepository {
         },
       },
       update: {
-        views: {
-          increment: 1,
-        },
+        isViewed: true,
         updatedAt: new Date(),
       },
       create: {
@@ -764,6 +762,7 @@ export class NoticeRepository {
             id,
           },
         },
+        isViewed: true,
       },
     });
   }
