@@ -100,6 +100,7 @@ export const toGeneralNoticeDto = (
     currentDeadline: notice.currentDeadline,
     publishedAt: notice.publishedAt,
     ...fileService.getFilesUrl(notice.files),
+    crawledUrl: notice.crawls.length > 0 ? notice.crawls[0].url : null,
   });
 };
 

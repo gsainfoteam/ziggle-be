@@ -30,6 +30,7 @@ async function bootstrap() {
     customConfigService.CORS_ALLOWED_ORIGINS.split(',')
       .map((origin) => origin.trim())
       .filter((origin) => origin.length > 0)
+      .concat(new URL(customConfigService.API_URL).origin)
       .map((origin) => {
         try {
           const parsedOrigin = new URL(origin);
@@ -181,13 +182,18 @@ async function bootstrap() {
   await app.listen(3000);
 }
 
-void initializeOpenTelemetry()
-  .then(() => {
+const bootstrapWithOTEL = async () => {
+  const logger = new Logger('Bootstrap');
+  try {
+    if (process.env.API_URL?.includes('ziggle.gistory.me')) {
+      await initializeOpenTelemetry();
+    }
     initializeMetrics();
-    return bootstrap();
-  })
-  .catch((error: unknown) => {
-    const logger = new Logger('Bootstrap');
-    logger.error('Failed to initialize OpenTelemetry', error);
+    await bootstrap();
+  } catch (error) {
+    logger.error('Failed to bootstrap application', error);
     process.exit(1);
-  });
+  }
+};
+
+void bootstrapWithOTEL();

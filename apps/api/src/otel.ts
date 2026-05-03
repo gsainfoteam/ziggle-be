@@ -10,8 +10,9 @@ import { PrismaInstrumentation } from '@prisma/instrumentation';
 const NOISE_PATHS = ['/health', '/metrics'] as const;
 
 const metricsPort = Number(process.env.METRICS_PORT);
+const apiUrl = process.env.API_URL;
 
-if (Number.isNaN(metricsPort)) {
+if (Number.isNaN(metricsPort) && apiUrl?.includes('ziggle.gistory.me')) {
   throw new Error('METRICS_PORT is not set or is not a number');
 }
 
@@ -124,6 +125,10 @@ export const initializeOpenTelemetry = async (): Promise<void> => {
 };
 
 export const shutdownOpenTelemetry = async (): Promise<void> => {
+  if (!startPromise) {
+    return;
+  }
+
   await initializeOpenTelemetry();
 
   if (!shutdownPromise) {
