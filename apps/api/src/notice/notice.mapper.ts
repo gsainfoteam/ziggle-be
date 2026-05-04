@@ -101,8 +101,8 @@ export const toGeneralNoticeDto = (
     publishedAt: notice.publishedAt,
     ...fileService.getFilesUrl(notice.files),
     crawledUrl: notice.crawls.length > 0 ? notice.crawls[0].url : null,
-    isViewed: notice.UserRecord[0].isViewed ?? false,
-    isBookmarked: notice.UserRecord[0].isBookmarked ?? false,
+    isViewed: notice.UserRecord[0]?.isViewed ?? false,
+    isBookmarked: notice.UserRecord[0]?.isBookmarked ?? false,
   });
 };
 
