@@ -137,6 +137,12 @@ export class NoticeRepository {
               ],
             }
           : {}),
+        UserRecord: {
+          some: {
+            userUuid,
+            isBookmarked: my === 'bookmarked' ? true : undefined,
+          },
+        },
       },
     });
   }
@@ -218,6 +224,12 @@ export class NoticeRepository {
             : {}),
           category,
           groupId,
+          UserRecord: {
+            some: {
+              userUuid,
+              isBookmarked: my === 'bookmarked' ? true : undefined,
+            },
+          },
         },
         include: this.getNoticeInclude(userUuid, true),
       })
