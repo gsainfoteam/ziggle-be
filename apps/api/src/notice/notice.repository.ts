@@ -27,6 +27,56 @@ export class NoticeRepository {
   private readonly logger = new Logger(NoticeRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
+  private getNoticeInclude(
+    userUuid: string,
+    isList = false,
+  ): Prisma.NoticeInclude {
+    return {
+      tags: true,
+      contents: isList
+        ? {
+            where: {
+              id: 1,
+            },
+          }
+        : {
+            orderBy: {
+              id: 'asc',
+            },
+          },
+      crawls: true,
+      reminders: true,
+      author: {
+        select: {
+          name: true,
+          uuid: true,
+          picture: true,
+        },
+      },
+      files: isList
+        ? {
+            where: {
+              type: FileType.IMAGE,
+            },
+            orderBy: { order: 'asc' },
+          }
+        : { orderBy: { order: 'asc' } },
+      reactions: {
+        where: {
+          deletedAt: null,
+        },
+      },
+      group: true,
+      UserRecord: {
+        where: {
+          userUuid,
+          isViewed: true,
+          isBookmarked: true,
+        },
+      },
+    };
+  }
+
   /**
    * this method is used to get the total count of the notices
    * @param param0 the query dto
@@ -169,42 +219,7 @@ export class NoticeRepository {
           category,
           groupId,
         },
-        include: {
-          tags: true,
-          contents: {
-            where: {
-              id: 1,
-            },
-          },
-          crawls: true,
-          reminders: true,
-          author: {
-            select: {
-              name: true,
-              uuid: true,
-              picture: true,
-            },
-          },
-          files: {
-            where: {
-              type: FileType.IMAGE,
-            },
-            orderBy: { order: 'asc' },
-          },
-          reactions: {
-            where: {
-              deletedAt: null,
-            },
-          },
-          group: true,
-          UserRecord: {
-            where: {
-              userUuid,
-              isViewed: true,
-              isBookmarked: true,
-            },
-          },
-        },
+        include: this.getNoticeInclude(userUuid, true),
       })
       .catch((error) => {
         this.logger.error('getNoticeList error');
@@ -225,37 +240,7 @@ export class NoticeRepository {
           id,
           deletedAt: null,
         },
-        include: {
-          tags: true,
-          contents: {
-            orderBy: {
-              id: 'asc',
-            },
-          },
-          crawls: true,
-          reminders: true,
-          author: {
-            select: {
-              name: true,
-              uuid: true,
-              picture: true,
-            },
-          },
-          files: { orderBy: { order: 'asc' } },
-          reactions: {
-            where: {
-              deletedAt: null,
-            },
-          },
-          group: true,
-          UserRecord: {
-            where: {
-              userUuid,
-              isViewed: true,
-              isBookmarked: true,
-            },
-          },
-        },
+        include: this.getNoticeInclude(userUuid),
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -293,37 +278,7 @@ export class NoticeRepository {
             increment: 1,
           },
         },
-        include: {
-          tags: true,
-          contents: {
-            orderBy: {
-              id: 'asc',
-            },
-          },
-          crawls: true,
-          reminders: true,
-          author: {
-            select: {
-              name: true,
-              uuid: true,
-              picture: true,
-            },
-          },
-          files: { orderBy: { order: 'asc' } },
-          reactions: {
-            where: {
-              deletedAt: null,
-            },
-          },
-          group: true,
-          UserRecord: {
-            where: {
-              userUuid,
-              isViewed: true,
-              isBookmarked: true,
-            },
-          },
-        },
+        include: this.getNoticeInclude(userUuid),
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -441,37 +396,7 @@ export class NoticeRepository {
                 },
           publishedAt,
         },
-        include: {
-          tags: true,
-          contents: {
-            orderBy: {
-              id: 'asc',
-            },
-          },
-          crawls: true,
-          reminders: true,
-          author: {
-            select: {
-              name: true,
-              uuid: true,
-              picture: true,
-            },
-          },
-          files: { orderBy: { order: 'asc' } },
-          reactions: {
-            where: {
-              deletedAt: null,
-            },
-          },
-          group: true,
-          UserRecord: {
-            where: {
-              userUuid,
-              isViewed: true,
-              isBookmarked: true,
-            },
-          },
-        },
+        include: this.getNoticeInclude(userUuid),
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
