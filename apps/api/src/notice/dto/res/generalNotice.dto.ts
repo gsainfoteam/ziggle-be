@@ -124,6 +124,14 @@ export class GeneralNoticeDto {
   @ApiPropertyOptional({ type: String })
   crawledUrl: string | null;
 
+  @Expose()
+  @ApiProperty({ type: Boolean })
+  isViewed: boolean;
+
+  @Expose()
+  @ApiProperty({ type: Boolean })
+  isBookmarked: boolean;
+
   constructor(partial: GeneralNoticeDto) {
     this.id = partial.id;
     this.title = partial.title;
@@ -143,6 +151,8 @@ export class GeneralNoticeDto {
     this.imageUrls = partial.imageUrls;
     this.documentUrls = partial.documentUrls;
     this.crawledUrl = partial.crawledUrl;
+    this.isViewed = partial.isViewed;
+    this.isBookmarked = partial.isBookmarked;
   }
 }
 

@@ -108,7 +108,7 @@ export class NoticeRepository {
       category,
       groupId,
     }: GetAllNoticeQueryDto,
-    userUuid?: string,
+    userUuid: string,
   ): Promise<NoticeFullContent[]> {
     return this.prismaService.notice
       .findMany({
@@ -197,6 +197,13 @@ export class NoticeRepository {
             },
           },
           group: true,
+          UserRecord: {
+            where: {
+              userUuid,
+              isViewed: true,
+              isBookmarked: true,
+            },
+          },
         },
       })
       .catch((error) => {
@@ -211,7 +218,7 @@ export class NoticeRepository {
    * @param id the notice id
    * @returns the notice
    */
-  async getNotice(id: number): Promise<NoticeFullContent> {
+  async getNotice(id: number, userUuid: string): Promise<NoticeFullContent> {
     return this.prismaService.notice
       .findUniqueOrThrow({
         where: {
@@ -241,6 +248,13 @@ export class NoticeRepository {
             },
           },
           group: true,
+          UserRecord: {
+            where: {
+              userUuid,
+              isViewed: true,
+              isBookmarked: true,
+            },
+          },
         },
       })
       .catch((error) => {
@@ -264,7 +278,10 @@ export class NoticeRepository {
    * @param id the notice id
    * @returns notice object
    */
-  async getNoticeWithView(id: number): Promise<NoticeFullContent> {
+  async getNoticeWithView(
+    id: number,
+    userUuid: string,
+  ): Promise<NoticeFullContent> {
     return this.prismaService.notice
       .update({
         where: {
@@ -299,6 +316,13 @@ export class NoticeRepository {
             },
           },
           group: true,
+          UserRecord: {
+            where: {
+              userUuid,
+              isViewed: true,
+              isBookmarked: true,
+            },
+          },
         },
       })
       .catch((error) => {
@@ -440,6 +464,13 @@ export class NoticeRepository {
             },
           },
           group: true,
+          UserRecord: {
+            where: {
+              userUuid,
+              isViewed: true,
+              isBookmarked: true,
+            },
+          },
         },
       })
       .catch((error) => {

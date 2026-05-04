@@ -64,7 +64,7 @@ export class NoticeService {
 
   async getNoticeList(
     getAllNoticeQueryDto: GetAllNoticeQueryDto,
-    userUuid?: string,
+    userUuid: string,
   ): Promise<GeneralNoticeListDto> {
     const [notices, total] = await Promise.all([
       this.noticeRepository.getNoticeList(getAllNoticeQueryDto, userUuid),
@@ -96,15 +96,15 @@ export class NoticeService {
   async getNotice(
     id: number,
     getNoticeDto: GetNoticeDto,
-    userUuid?: string,
+    userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
     let notice: NoticeFullContent;
     if (getNoticeDto.isViewed) {
-      notice = await this.noticeRepository.getNoticeWithView(id);
+      notice = await this.noticeRepository.getNoticeWithView(id, userUuid);
       if (userUuid !== undefined)
         await this.noticeRepository.updateUserRecord(id, userUuid);
     } else {
-      notice = await this.noticeRepository.getNotice(id);
+      notice = await this.noticeRepository.getNotice(id, userUuid);
     }
 
     return toExpandedNoticeDto(
@@ -180,7 +180,7 @@ export class NoticeService {
     id: number,
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    const notice = await this.getNotice(id, { isViewed: false });
+    const notice = await this.getNotice(id, { isViewed: false }, userUuid);
     if (notice.author.uuid !== userUuid) {
       throw new ForbiddenException('not author of the notice');
     }
@@ -230,7 +230,7 @@ export class NoticeService {
     id: number,
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    const notice = await this.noticeRepository.getNotice(id);
+    const notice = await this.noticeRepository.getNotice(id, userUuid);
     if ((notice.currentDeadline === null) === !!additionalNoticeDto.deadline) {
       throw new BadRequestException("Can't add or remove deadline");
     }
@@ -244,7 +244,7 @@ export class NoticeService {
         throw error;
       });
 
-    return this.getNotice(id, { isViewed: false });
+    return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
   async addForeignContent(
@@ -261,7 +261,7 @@ export class NoticeService {
         }
         throw error;
       });
-    return this.getNotice(id, { isViewed: false });
+    return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
   async addNoticeReaction(
@@ -281,7 +281,7 @@ export class NoticeService {
     userUuid: string,
     groups?: GroupsUserInfo[],
   ): Promise<ExpandedGeneralNoticeDto> {
-    const notice = await this.noticeRepository.getNotice(id);
+    const notice = await this.noticeRepository.getNotice(id, userUuid);
 
     if (notice.groupId !== undefined && groups !== undefined) {
       const matchingGroup = groups.find(
@@ -309,7 +309,7 @@ export class NoticeService {
     }
     await this.noticeRepository.updateNotice(body, query, id, userUuid);
 
-    return this.getNotice(id, { isViewed: false });
+    return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
   async removeNoticeReaction(
@@ -328,7 +328,7 @@ export class NoticeService {
     groups?: GroupsUserInfo[],
   ): Promise<void> {
     await this.fcmService.deleteMessageJobIdPattern(id.toString());
-    const notice = await this.noticeRepository.getNotice(id);
+    const notice = await this.noticeRepository.getNotice(id, userUuid);
 
     if (notice.groupId !== undefined && groups !== undefined) {
       const matchingGroup = groups.find(
