@@ -70,6 +70,8 @@ export class NoticeRepository {
       UserRecord: {
         where: {
           userUuid,
+        },
+        select: {
           isViewed: true,
           isBookmarked: true,
         },
@@ -95,6 +97,10 @@ export class NoticeRepository {
         authorId: my === 'own' ? userUuid : undefined,
         reminders:
           my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
+        UserRecord:
+          my === 'bookmarked'
+            ? { some: { userUuid, isBookmarked: true } }
+            : undefined,
         tags: tags && { some: { name: { in: tags } } },
         ...(orderBy === 'hot'
           ? {
@@ -137,12 +143,6 @@ export class NoticeRepository {
               ],
             }
           : {}),
-        UserRecord: {
-          some: {
-            userUuid,
-            isBookmarked: my === 'bookmarked' ? true : undefined,
-          },
-        },
       },
     });
   }
@@ -190,6 +190,10 @@ export class NoticeRepository {
           authorId: my === 'own' ? userUuid : undefined,
           reminders:
             my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
+          UserRecord:
+            my === 'bookmarked'
+              ? { some: { userUuid, isBookmarked: true } }
+              : undefined,
           tags: tags && { some: { name: { in: tags } } },
           ...(search
             ? {
@@ -224,12 +228,6 @@ export class NoticeRepository {
             : {}),
           category,
           groupId,
-          UserRecord: {
-            some: {
-              userUuid,
-              isBookmarked: my === 'bookmarked' ? true : undefined,
-            },
-          },
         },
         include: this.getNoticeInclude(userUuid, true),
       })
@@ -740,30 +738,45 @@ export class NoticeRepository {
     userUuid: string,
     isBookmarked: boolean,
   ): Promise<void> {
-    await this.prismaService.userRecord.upsert({
-      where: {
-        userUuid_noticeId: {
-          userUuid,
-          noticeId,
-        },
-      },
-      update: {
-        isBookmarked,
-        updatedAt: new Date(),
-      },
-      create: {
-        user: {
-          connect: {
-            uuid: userUuid,
+    await this.prismaService.userRecord
+      .upsert({
+        where: {
+          userUuid_noticeId: {
+            userUuid,
+            noticeId,
           },
         },
-        notice: {
-          connect: {
-            id: noticeId,
-          },
+        update: {
+          isBookmarked,
+          updatedAt: new Date(),
         },
-        isBookmarked,
-      },
-    });
+        create: {
+          user: {
+            connect: {
+              uuid: userUuid,
+            },
+          },
+          notice: {
+            connect: {
+              id: noticeId,
+            },
+          },
+          isBookmarked,
+        },
+      })
+      .catch((error) => {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${noticeId} not found`);
+            throw new NotFoundException(`Notice with id ${noticeId} not found`);
+          }
+          this.logger.error('updateBookmark error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('updateBookmark Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
   }
 }
