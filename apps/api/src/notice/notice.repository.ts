@@ -27,6 +27,58 @@ export class NoticeRepository {
   private readonly logger = new Logger(NoticeRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
+  private getNoticeInclude(
+    userUuid: string,
+    isList = false,
+  ): Prisma.NoticeInclude {
+    return {
+      tags: true,
+      contents: isList
+        ? {
+            where: {
+              id: 1,
+            },
+          }
+        : {
+            orderBy: {
+              id: 'asc',
+            },
+          },
+      crawls: true,
+      reminders: true,
+      author: {
+        select: {
+          name: true,
+          uuid: true,
+          picture: true,
+        },
+      },
+      files: isList
+        ? {
+            where: {
+              type: FileType.IMAGE,
+            },
+            orderBy: { order: 'asc' },
+          }
+        : { orderBy: { order: 'asc' } },
+      reactions: {
+        where: {
+          deletedAt: null,
+        },
+      },
+      group: true,
+      UserRecord: {
+        where: {
+          userUuid,
+        },
+        select: {
+          isViewed: true,
+          isBookmarked: true,
+        },
+      },
+    };
+  }
+
   /**
    * this method is used to get the total count of the notices
    * @param param0 the query dto
@@ -45,6 +97,10 @@ export class NoticeRepository {
         authorId: my === 'own' ? userUuid : undefined,
         reminders:
           my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
+        UserRecord:
+          my === 'bookmarked'
+            ? { some: { userUuid, isBookmarked: true } }
+            : undefined,
         tags: tags && { some: { name: { in: tags } } },
         ...(orderBy === 'hot'
           ? {
@@ -108,7 +164,7 @@ export class NoticeRepository {
       category,
       groupId,
     }: GetAllNoticeQueryDto,
-    userUuid?: string,
+    userUuid: string,
   ): Promise<NoticeFullContent[]> {
     return this.prismaService.notice
       .findMany({
@@ -134,6 +190,10 @@ export class NoticeRepository {
           authorId: my === 'own' ? userUuid : undefined,
           reminders:
             my === 'reminders' ? { some: { uuid: userUuid } } : undefined,
+          UserRecord:
+            my === 'bookmarked'
+              ? { some: { userUuid, isBookmarked: true } }
+              : undefined,
           tags: tags && { some: { name: { in: tags } } },
           ...(search
             ? {
@@ -169,35 +229,7 @@ export class NoticeRepository {
           category,
           groupId,
         },
-        include: {
-          tags: true,
-          contents: {
-            where: {
-              id: 1,
-            },
-          },
-          crawls: true,
-          reminders: true,
-          author: {
-            select: {
-              name: true,
-              uuid: true,
-              picture: true,
-            },
-          },
-          files: {
-            where: {
-              type: FileType.IMAGE,
-            },
-            orderBy: { order: 'asc' },
-          },
-          reactions: {
-            where: {
-              deletedAt: null,
-            },
-          },
-          group: true,
-        },
+        include: this.getNoticeInclude(userUuid, true),
       })
       .catch((error) => {
         this.logger.error('getNoticeList error');
@@ -211,37 +243,14 @@ export class NoticeRepository {
    * @param id the notice id
    * @returns the notice
    */
-  async getNotice(id: number): Promise<NoticeFullContent> {
+  async getNotice(id: number, userUuid: string): Promise<NoticeFullContent> {
     return this.prismaService.notice
       .findUniqueOrThrow({
         where: {
           id,
           deletedAt: null,
         },
-        include: {
-          tags: true,
-          contents: {
-            orderBy: {
-              id: 'asc',
-            },
-          },
-          crawls: true,
-          reminders: true,
-          author: {
-            select: {
-              name: true,
-              uuid: true,
-              picture: true,
-            },
-          },
-          files: { orderBy: { order: 'asc' } },
-          reactions: {
-            where: {
-              deletedAt: null,
-            },
-          },
-          group: true,
-        },
+        include: this.getNoticeInclude(userUuid),
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -264,7 +273,10 @@ export class NoticeRepository {
    * @param id the notice id
    * @returns notice object
    */
-  async getNoticeWithView(id: number): Promise<NoticeFullContent> {
+  async getNoticeWithView(
+    id: number,
+    userUuid: string,
+  ): Promise<NoticeFullContent> {
     return this.prismaService.notice
       .update({
         where: {
@@ -276,30 +288,7 @@ export class NoticeRepository {
             increment: 1,
           },
         },
-        include: {
-          tags: true,
-          contents: {
-            orderBy: {
-              id: 'asc',
-            },
-          },
-          crawls: true,
-          reminders: true,
-          author: {
-            select: {
-              name: true,
-              uuid: true,
-              picture: true,
-            },
-          },
-          files: { orderBy: { order: 'asc' } },
-          reactions: {
-            where: {
-              deletedAt: null,
-            },
-          },
-          group: true,
-        },
+        include: this.getNoticeInclude(userUuid),
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -417,30 +406,7 @@ export class NoticeRepository {
                 },
           publishedAt,
         },
-        include: {
-          tags: true,
-          contents: {
-            orderBy: {
-              id: 'asc',
-            },
-          },
-          crawls: true,
-          reminders: true,
-          author: {
-            select: {
-              name: true,
-              uuid: true,
-              picture: true,
-            },
-          },
-          files: { orderBy: { order: 'asc' } },
-          reactions: {
-            where: {
-              deletedAt: null,
-            },
-          },
-          group: true,
-        },
+        include: this.getNoticeInclude(userUuid),
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -748,9 +714,7 @@ export class NoticeRepository {
         },
       },
       update: {
-        views: {
-          increment: 1,
-        },
+        isViewed: true,
         updatedAt: new Date(),
       },
       create: {
@@ -764,7 +728,55 @@ export class NoticeRepository {
             id,
           },
         },
+        isViewed: true,
       },
     });
+  }
+
+  async updateBookmark(
+    noticeId: number,
+    userUuid: string,
+    isBookmarked: boolean,
+  ): Promise<void> {
+    await this.prismaService.userRecord
+      .upsert({
+        where: {
+          userUuid_noticeId: {
+            userUuid,
+            noticeId,
+          },
+        },
+        update: {
+          isBookmarked,
+          updatedAt: new Date(),
+        },
+        create: {
+          user: {
+            connect: {
+              uuid: userUuid,
+            },
+          },
+          notice: {
+            connect: {
+              id: noticeId,
+            },
+          },
+          isBookmarked,
+        },
+      })
+      .catch((error) => {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${noticeId} not found`);
+            throw new NotFoundException(`Notice with id ${noticeId} not found`);
+          }
+          this.logger.error('updateBookmark error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('updateBookmark Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
   }
 }

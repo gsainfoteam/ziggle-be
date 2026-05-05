@@ -105,13 +105,13 @@ export class GetAllNoticeQueryDto {
 
   @ApiProperty({
     example: 'own',
-    description: '공지 타입 (own, reminders)',
+    description: '공지 타입 (own, reminders, bookmarked)',
     required: false,
   })
   @IsString()
-  @IsEnum(['own', 'reminders'])
+  @IsEnum(['own', 'reminders', 'bookmarked'])
   @IsOptional()
-  my?: 'own' | 'reminders';
+  my?: 'own' | 'reminders' | 'bookmarked';
 
   @ApiProperty({
     example: 'b5555555-0000-1111-2222-47997e666666',
