@@ -706,31 +706,46 @@ export class NoticeRepository {
   }
 
   async updateUserRecord(id: number, userUuid: string): Promise<void> {
-    await this.prismaService.userRecord.upsert({
-      where: {
-        userUuid_noticeId: {
-          userUuid,
-          noticeId: id,
-        },
-      },
-      update: {
-        isViewed: true,
-        updatedAt: new Date(),
-      },
-      create: {
-        user: {
-          connect: {
-            uuid: userUuid,
+    await this.prismaService.userRecord
+      .upsert({
+        where: {
+          userUuid_noticeId: {
+            userUuid,
+            noticeId: id,
           },
         },
-        notice: {
-          connect: {
-            id,
-          },
+        update: {
+          isViewed: true,
+          updatedAt: new Date(),
         },
-        isViewed: true,
-      },
-    });
+        create: {
+          user: {
+            connect: {
+              uuid: userUuid,
+            },
+          },
+          notice: {
+            connect: {
+              id,
+            },
+          },
+          isViewed: true,
+        },
+      })
+      .catch((error) => {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
+            this.logger.debug(`Notice with id ${id} not found`);
+            throw new NotFoundException(`Notice with id ${id} not found`);
+          }
+          this.logger.error('updateBookmark error');
+          this.logger.debug(error);
+          throw new InternalServerErrorException('Database Error');
+        }
+        this.logger.error('updateBookmark Unknown Error');
+        this.logger.debug(error);
+        throw new InternalServerErrorException('Unknown Error');
+      });
   }
 
   async updateBookmark(

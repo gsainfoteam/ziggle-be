@@ -100,8 +100,8 @@ export class NoticeService {
   ): Promise<ExpandedGeneralNoticeDto> {
     let notice: NoticeFullContent;
     if (getNoticeDto.isViewed) {
-      notice = await this.noticeRepository.getNoticeWithView(id, userUuid);
       await this.noticeRepository.updateUserRecord(id, userUuid);
+      notice = await this.noticeRepository.getNoticeWithView(id, userUuid);
     } else {
       notice = await this.noticeRepository.getNotice(id, userUuid);
     }
