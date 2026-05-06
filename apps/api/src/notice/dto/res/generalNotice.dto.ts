@@ -48,6 +48,22 @@ export class GeneralReactionDto {
 }
 
 @Exclude()
+export class DocumentDto {
+  @Expose()
+  @ApiProperty()
+  url: string;
+
+  @Expose()
+  @ApiProperty()
+  name: string;
+
+  constructor(partial: DocumentDto) {
+    this.url = partial.url;
+    this.name = partial.name;
+  }
+}
+
+@Exclude()
 export class GeneralNoticeDto {
   @Expose()
   @ApiProperty()
@@ -117,12 +133,21 @@ export class GeneralNoticeDto {
   imageUrls: string[];
 
   @Expose()
-  @ApiProperty({ type: [String] })
-  documentUrls: string[];
+  @Type(() => DocumentDto)
+  @ApiProperty({ type: [DocumentDto] })
+  documents: DocumentDto[];
 
   @Expose()
   @ApiPropertyOptional({ type: String })
   crawledUrl: string | null;
+
+  @Expose()
+  @ApiProperty({ type: Boolean })
+  isViewed: boolean;
+
+  @Expose()
+  @ApiProperty({ type: Boolean })
+  isBookmarked: boolean;
 
   constructor(partial: GeneralNoticeDto) {
     this.id = partial.id;
@@ -141,8 +166,10 @@ export class GeneralNoticeDto {
     this.currentDeadline = partial.currentDeadline;
     this.publishedAt = partial.publishedAt;
     this.imageUrls = partial.imageUrls;
-    this.documentUrls = partial.documentUrls;
+    this.documents = partial.documents;
     this.crawledUrl = partial.crawledUrl;
+    this.isViewed = partial.isViewed;
+    this.isBookmarked = partial.isBookmarked;
   }
 }
 

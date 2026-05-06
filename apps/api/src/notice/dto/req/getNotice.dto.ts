@@ -5,13 +5,13 @@ import { IsBoolean, IsOptional, IsString } from 'class-validator';
 export class GetNoticeDto {
   @ApiProperty({
     example: 'true',
-    description: '공지를 읽었는지 여부, 기본값은 false',
+    description: '공지를 읽었는지 여부, 기본값은 true',
     required: false,
   })
   @Transform(({ value }) => value === 'true')
   @IsBoolean()
   @IsOptional()
-  isViewed?: boolean;
+  isViewed?: boolean = true;
 
   @ApiProperty({
     example: 'en',

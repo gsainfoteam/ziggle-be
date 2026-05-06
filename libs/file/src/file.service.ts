@@ -11,7 +11,6 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { File, FileType } from '@generated/prisma/client';
 
 @Injectable()
 @Loggable()
@@ -90,17 +89,7 @@ export class FileService {
     await Promise.all(keys.map((key) => this.deleteFile(key)));
   }
 
-  getFilesUrl(files: File[]): { imageUrls: string[]; documentUrls: string[] } {
-    const imageUrls: string[] = [];
-    const documentUrls: string[] = [];
-    for (const file of files) {
-      if (file.type === FileType.IMAGE) {
-        imageUrls.push(`${this.s3Url}${file.url}`);
-      }
-      if (file.type === FileType.DOCUMENT) {
-        documentUrls.push(file.url);
-      }
-    }
-    return { imageUrls, documentUrls };
+  getFilesUrl(url: string): string {
+    return `${this.s3Url}${url}`;
   }
 }

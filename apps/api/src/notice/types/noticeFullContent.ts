@@ -16,5 +16,11 @@ export type NoticeFullContent = Prisma.NoticeGetPayload<{
     reactions: true;
     reminders: true;
     group: true;
+    UserRecord: {
+      select: {
+        isViewed: true;
+        isBookmarked: true;
+      };
+    };
   };
 }>;
