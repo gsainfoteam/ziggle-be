@@ -1,7 +1,8 @@
-import { Content, Crawl, Reaction } from '@generated/prisma/client';
+import { Content, Crawl, FileType, Reaction } from '@generated/prisma/client';
 import { htmlToText } from 'html-to-text';
 import { FileService } from '@lib/file/file.service';
 import {
+  DocumentDto,
   GeneralNoticeDto,
   GeneralNoticeListDto,
 } from './dto/res/generalNotice.dto';
@@ -80,6 +81,23 @@ export const toGeneralNoticeDto = (
   userUuid?: string,
 ): GeneralNoticeDto => {
   const mainContent = pickMainContent(notice.contents, lang);
+
+  const imageUrls: string[] = [];
+  const documents: DocumentDto[] = [];
+  for (const file of notice.files) {
+    if (file.type === FileType.IMAGE) {
+      imageUrls.push(fileService.getFilesUrl(file.url));
+    }
+    if (file.type === FileType.DOCUMENT) {
+      documents.push(
+        new DocumentDto({
+          url: file.url,
+          name: file.name,
+        }),
+      );
+    }
+  }
+
   return new GeneralNoticeDto({
     id: notice.id,
     title:
@@ -99,7 +117,8 @@ export const toGeneralNoticeDto = (
     deadline: notice.crawls.length > 0 ? null : (mainContent.deadline ?? null),
     currentDeadline: notice.currentDeadline,
     publishedAt: notice.publishedAt,
-    ...fileService.getFilesUrl(notice.files),
+    imageUrls,
+    documents,
     crawledUrl: notice.crawls.length > 0 ? notice.crawls[0].url : null,
     isViewed: notice.UserRecord[0]?.isViewed ?? false,
     isBookmarked: notice.UserRecord[0]?.isBookmarked ?? false,

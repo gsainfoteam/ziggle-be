@@ -17,7 +17,7 @@ export type NoticeFullContent = Prisma.NoticeGetPayload<{
     reminders: true;
     group: true;
     UserRecord: {
-      where: {
+      select: {
         isViewed: true;
         isBookmarked: true;
       };
