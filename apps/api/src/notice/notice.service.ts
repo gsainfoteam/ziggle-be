@@ -160,7 +160,6 @@ export class NoticeService {
     const notification = {
       title: notice.title,
       body: notice.content,
-      imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
     };
 
     await this.fcmService.postMessageWithDelay(
@@ -188,9 +187,8 @@ export class NoticeService {
     }
 
     const notification = {
-      title: '[긴급] ' + notice.title,
+      title: notice.title,
       body: notice.content,
-      imageUrl: notice.imageUrls ? notice.imageUrls[0] : undefined,
     };
 
     await this.noticeRepository
