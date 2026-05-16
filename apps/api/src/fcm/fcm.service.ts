@@ -185,7 +185,6 @@ export class FcmService {
     const message: MulticastMessage = {
       tokens,
       notification,
-      apns: { payload: { aps: { mutableContent: true } } },
       data,
     };
 
@@ -203,7 +202,6 @@ export class FcmService {
       .map(({ token }) => token);
 
     const invalidCodes = [
-      'messaging/invalid-argument',
       'messaging/unregistered',
       'messaging/third-party-auth-error',
       'messaging/registration-token-not-registered',
