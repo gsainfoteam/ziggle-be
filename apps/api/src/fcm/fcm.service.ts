@@ -204,7 +204,6 @@ export class FcmService {
       .map(({ token }) => token);
 
     const invalidCodes = [
-      'messaging/invalid-argument',
       'messaging/unregistered',
       'messaging/third-party-auth-error',
       'messaging/registration-token-not-registered',
