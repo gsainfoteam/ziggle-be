@@ -1,11 +1,9 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
-import { ExpandedGeneralNoticeDto } from './expandedGeneralNotice.dto';
+import { NoticeCommonDto } from './generalNotice.dto';
 
 @Exclude()
-export class CreateNoticeResDto extends OmitType(ExpandedGeneralNoticeDto, [
-  'tags',
-]) {
+export class CreateNoticeResDto extends NoticeCommonDto {
   @Expose()
   @ApiProperty({ type: [Number] })
   tags: number[];
