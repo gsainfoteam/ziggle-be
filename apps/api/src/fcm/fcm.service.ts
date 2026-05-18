@@ -188,9 +188,11 @@ export class FcmService {
       data,
     };
 
-    const { responses } = await getMessaging(this.app).sendEachForMulticast(
-      message,
-    );
+    const { responses, successCount, failureCount } = await getMessaging(
+      this.app,
+    ).sendEachForMulticast(message);
+
+    this.logger.debug(`Success: ${successCount}, Failure: ${failureCount}`);
 
     const results = tokens.map((token, idx) => ({
       res: responses[idx],
@@ -202,6 +204,7 @@ export class FcmService {
       .map(({ token }) => token);
 
     const invalidCodes = [
+      'messaging/invalid-argument',
       'messaging/unregistered',
       'messaging/third-party-auth-error',
       'messaging/registration-token-not-registered',
