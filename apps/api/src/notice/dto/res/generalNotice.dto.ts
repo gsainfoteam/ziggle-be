@@ -64,7 +64,7 @@ export class DocumentDto {
 }
 
 @Exclude()
-export class GeneralNoticeDto {
+export class NoticeCommonDto {
   @Expose()
   @ApiProperty()
   id: number;
@@ -86,10 +86,6 @@ export class GeneralNoticeDto {
   @Expose()
   @ApiProperty()
   createdAt: Date;
-
-  @Expose()
-  @ApiProperty({ type: [String] })
-  tags: string[];
 
   @Expose()
   @ApiProperty()
@@ -149,13 +145,12 @@ export class GeneralNoticeDto {
   @ApiProperty({ type: Boolean })
   isBookmarked: boolean;
 
-  constructor(partial: GeneralNoticeDto) {
+  constructor(partial: NoticeCommonDto) {
     this.id = partial.id;
     this.title = partial.title;
     this.group = partial.group;
     this.author = partial.author;
     this.createdAt = partial.createdAt;
-    this.tags = partial.tags;
     this.views = partial.views;
     this.langs = partial.langs;
     this.content = partial.content;
@@ -170,6 +165,18 @@ export class GeneralNoticeDto {
     this.crawledUrl = partial.crawledUrl;
     this.isViewed = partial.isViewed;
     this.isBookmarked = partial.isBookmarked;
+  }
+}
+
+@Exclude()
+export class GeneralNoticeDto extends NoticeCommonDto {
+  @Expose()
+  @ApiProperty({ type: [String] })
+  tags: string[];
+
+  constructor(partial: GeneralNoticeDto) {
+    super(partial);
+    this.tags = partial.tags;
   }
 }
 
