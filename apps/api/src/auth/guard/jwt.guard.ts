@@ -4,7 +4,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { User } from '@generated/prisma/client';
 
 @Injectable()
 // export class JwtGuard extends AuthGuard('jwt') {}
@@ -12,7 +11,7 @@ export class JwtGuard extends AuthGuard(['jwt', 'idp']) {
   override handleRequest(
     err: any,
     user: any, // TODO: jwt로 인증 방식 통합 후 user 타입으로 변경
-    info: any,
+    _: any,
     context: ExecutionContext,
   ): any {
     if (err || !user) {
@@ -20,7 +19,7 @@ export class JwtGuard extends AuthGuard(['jwt', 'idp']) {
     }
 
     const request = context.switchToHttp().getRequest();
-    if (request.url.includes('/user/consent')) {
+    if (request.path === '/user/consent') {
       return user;
     }
 
