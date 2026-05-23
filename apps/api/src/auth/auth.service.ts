@@ -1,6 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { AuthRepository } from './auth.repository';
-import { IssueTokenType, JwtTokenType } from './types/jwtToken.type';
+import { JwtTokenType } from './types/jwtToken.type';
 import { InfoteamIdpService } from '@lib/infoteam-idp';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
@@ -38,8 +38,8 @@ export class AuthService {
       .catch(() => {
         throw new UnauthorizedException();
       });
-    const tokens = await this.issueTokens(userinfo.uuid);
-    return { ...tokens, consent_required: user.consent };
+    const tokens = await this.issueTokens(user.uuid);
+    return tokens;
   }
 
   /**
@@ -52,11 +52,10 @@ export class AuthService {
     const uuid = await this.redisService.getOrThrow<string>(refreshToken, {
       prefix: this.refreshTokenPrefix,
     });
-    const user = await this.authRepository.findUserByUuid(uuid);
+    await this.authRepository.findUserByUuid(uuid);
     return {
       access_token: this.jwtService.sign({}, { subject: uuid }),
       refresh_token: refreshToken,
-      consent_required: user.consent,
     };
   }
 
@@ -83,7 +82,7 @@ export class AuthService {
       .replace(/[+//=]/g, '');
   }
 
-  private async issueTokens(uuid: string): Promise<IssueTokenType> {
+  private async issueTokens(uuid: string): Promise<JwtTokenType> {
     const refresh_token: string = this.generateOpaqueToken();
     await this.redisService.set<string>(refresh_token, uuid, {
       prefix: this.refreshTokenPrefix,
