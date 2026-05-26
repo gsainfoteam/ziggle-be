@@ -17,32 +17,6 @@ export class UserService {
     private readonly infoteamIdpService: InfoteamIdpService,
   ) {}
 
-  // deprecated
-  async refresh(refreshToken: string): Promise<JwtTokenType> {
-    const tokens = await this.infoteamIdpService.refresh(refreshToken);
-    const userData = await this.infoteamIdpService.getUserInfo(
-      tokens.access_token,
-    );
-    const user = await this.userRepository.findUserOrCreate({
-      uuid: userData.uuid,
-      name: userData.name,
-      email: userData.email,
-    });
-    return tokens;
-  }
-
-  // deprecated
-  /**
-   * this method is used to logout the user from the idp
-   * @param accessToken
-   * @param refreshToken
-   * @returns void
-   */
-  async logout(accessToken: string, refreshToken: string): Promise<void> {
-    await this.infoteamIdpService.revoke(accessToken);
-    await this.infoteamIdpService.revoke(refreshToken);
-  }
-
   /**
    * this method is used to set the user consent about ziggle service
    * @param user
@@ -50,12 +24,6 @@ export class UserService {
    */
   async setConsent(user: User): Promise<void> {
     await this.userRepository.setConsent(user);
-  }
-
-  async findUserOrCreate(
-    user: Pick<User, 'uuid' | 'name' | 'email'>,
-  ): Promise<User> {
-    return this.userRepository.findUserOrCreate(user);
   }
 
   async findOrCreateTempUser(user: Pick<User, 'name'>): Promise<User> {
