@@ -16,7 +16,6 @@ import {
 import {
   ApiBearerAuth,
   ApiInternalServerErrorResponse,
-  ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
   ApiSecurity,
