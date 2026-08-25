@@ -5,6 +5,7 @@ import { load } from 'cheerio';
 import {
   catchError,
   concatMap,
+  from,
   map,
   Observable,
   throwError,
@@ -94,35 +95,39 @@ export class CrawlerService {
     createdAt: string;
     id: number;
   }> {
-    return this.httpService
-      .get(this.targetUrl, {
-        headers: {
-          'User-Agent': '',
-        },
-      })
-      .pipe(
-        timeout(60e3),
-        map((res) => load(res.data)),
-        map(($) => $('table > tbody > tr')),
-        concatMap(($) => $.toArray().map((value: any) => load(value))),
-        map(($) => {
-          return {
-            title: $('td').eq(2).text().trim(),
-            link: `${this.targetUrl}${$('td').eq(2).find('a').attr('href')}`,
-            author: $('td').eq(3).text().trim(),
-            category: $('td').eq(1).text().trim(),
-            createdAt: $('td').eq(5).text().trim(),
-          };
-        }),
-        map((meta) => ({
-          id: Number.parseInt(meta.link.split('no=')[1].split('&')[0]),
-          ...meta,
-        })),
-        catchError((err) => {
-          this.logger.error(err);
-          return throwError(() => new Error(err));
-        }),
-      );
+    return from([this.targetUrl, `${this.targetUrl}?&GotoPage=2`]).pipe(
+      concatMap((url) =>
+        this.httpService
+          .get(url, {
+            headers: {
+              'User-Agent': '',
+            },
+          })
+          .pipe(
+            timeout(60e3),
+            map((res) => load(res.data)),
+            map(($) => $('table > tbody > tr')),
+            concatMap(($) => $.toArray().map((value: any) => load(value))),
+            map(($) => {
+              return {
+                title: $('td').eq(2).text().trim(),
+                link: `${this.targetUrl}${$('td').eq(2).find('a').attr('href')}`,
+                author: $('td').eq(3).text().trim(),
+                category: $('td').eq(1).text().trim(),
+                createdAt: $('td').eq(5).text().trim(),
+              };
+            }),
+            map((meta) => ({
+              id: Number.parseInt(meta.link.split('no=')[1].split('&')[0]),
+              ...meta,
+            })),
+          ),
+      ),
+      catchError((err) => {
+        this.logger.error(err);
+        return throwError(() => new Error(err));
+      }),
+    );
   }
 
   getNoticeDetail(link: string): Observable<{
