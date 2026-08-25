@@ -15,7 +15,6 @@ import {
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
-  ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -28,7 +27,6 @@ import { GetTagDto } from './dto/req/getTag.dto';
 
 @ApiTags('tag')
 @ApiBearerAuth('jwt')
-@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2') // deprecated
 @Controller('tag')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class TagController {
@@ -46,7 +44,7 @@ export class TagController {
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Get()
   async findAll(@Query() query: GetTagDto): Promise<TagResDto[] | TagResDto> {
-    // deprecated 49 ~ 52
+    // deprecated 48 ~ 51
     if (query.name) {
       return this.tagService.findTag(query.name);
     }
