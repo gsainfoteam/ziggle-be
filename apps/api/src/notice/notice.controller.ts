@@ -16,6 +16,7 @@ import {
 import {
   ApiBearerAuth,
   ApiInternalServerErrorResponse,
+  ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
   ApiSecurity,
@@ -47,6 +48,7 @@ import { BookmarkNoticeDto } from './dto/req/bookmarkNotice.dto';
 
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
+@ApiOAuth2(['email', 'profile', 'openid'], 'oauth2') // deprecated
 @ApiSecurity('groups-auth')
 @UseGuards(JwtGuard)
 @Controller('notice')
