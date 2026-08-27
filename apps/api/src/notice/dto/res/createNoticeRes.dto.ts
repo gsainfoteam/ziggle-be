@@ -5,8 +5,8 @@ import { NoticeCommonDto } from './generalNotice.dto';
 @Exclude()
 export class CreateNoticeResDto extends NoticeCommonDto {
   @Expose()
-  @ApiProperty({ type: [Number] })
-  tags: number[];
+  @ApiProperty({ type: [String] })
+  tags: string[];
 
   constructor(partial: CreateNoticeResDto) {
     super(partial);
