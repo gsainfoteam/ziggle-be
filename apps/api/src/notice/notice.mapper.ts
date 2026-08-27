@@ -161,6 +161,6 @@ export const toCreateNoticeResDto = (
   const expandedNotice = toExpandedNoticeDto(notice, fileService);
   return new CreateNoticeResDto({
     ...expandedNotice,
-    tags: notice.tags.map(({ id }) => id),
+    tags: notice.tags.map(({ name }) => name),
   });
 };
