@@ -115,7 +115,10 @@ export class UserController {
   @Get('info')
   @UseGuards(JwtGuard)
   async getUserInfo(@GetUser() user: User): Promise<UserInfoRes> {
-    return user;
+    return {
+      ...user,
+      consent: !!user.consent,
+    };
   }
 
   @ApiOperation({

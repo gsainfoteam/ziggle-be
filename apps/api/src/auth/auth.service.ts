@@ -39,7 +39,7 @@ export class AuthService {
         throw new UnauthorizedException();
       });
     const tokens = await this.issueTokens(user.uuid);
-    return tokens;
+    return { ...tokens, consent_required: !user.consent };
   }
 
   /**
@@ -52,10 +52,11 @@ export class AuthService {
     const uuid = await this.redisService.getOrThrow<string>(refreshToken, {
       prefix: this.refreshTokenPrefix,
     });
-    await this.authRepository.findUserByUuid(uuid);
+    const user = await this.authRepository.findUserByUuid(uuid);
     return {
       access_token: this.jwtService.sign({}, { subject: uuid }),
       refresh_token: refreshToken,
+      consent_required: !user.consent,
     };
   }
 

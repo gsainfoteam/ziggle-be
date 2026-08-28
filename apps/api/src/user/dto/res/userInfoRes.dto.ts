@@ -35,10 +35,10 @@ export class UserInfoRes implements UserInfo {
   })
   studentNumber?: string;
 
-  @ApiPropertyOptional({
-    type: Date,
-    description: 'Consent date',
-    example: '2023-01-01T00:00:00.000Z',
+  @ApiProperty({
+    type: Boolean,
+    description: 'Consent or not',
+    example: true,
   })
-  consent: Date | null;
+  consent: boolean;
 }
