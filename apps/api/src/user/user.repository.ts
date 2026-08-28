@@ -31,6 +31,7 @@ export class UserRepository {
           uuid,
           name,
           email,
+          consent: false,
         },
         update: {
           name,
@@ -52,7 +53,7 @@ export class UserRepository {
     return this.prismaService.user
       .update({
         where: { uuid: user.uuid },
-        data: { consent: new Date() },
+        data: { consent: true },
       })
       .catch((err) => {
         if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -91,6 +92,7 @@ export class UserRepository {
         data: {
           uuid: uuid(),
           name,
+          consent: false,
         },
       })
       .catch((err) => {

@@ -54,7 +54,8 @@ export class AuthController {
   ): Promise<JwtToken> {
     const auth = req.headers['authorization'];
     if (!auth) throw new UnauthorizedException();
-    const { access_token, refresh_token } = await this.authService.login(auth);
+    const { access_token, refresh_token, consent_required } =
+      await this.authService.login(auth);
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       secure: true,
@@ -62,7 +63,7 @@ export class AuthController {
       expires: new Date(Date.now() + this.refreshTokenExpire),
       path: '/auth',
     });
-    return { access_token };
+    return { access_token, consent_required };
   }
 
   @ApiOperation({
@@ -76,7 +77,9 @@ export class AuthController {
   async refreshToken(@Req() req: Request): Promise<JwtToken> {
     const refreshToken = req.cookies['refresh_token'];
     if (!refreshToken) throw new UnauthorizedException();
-    return await this.authService.refresh(refreshToken);
+    const { access_token, consent_required } =
+      await this.authService.refresh(refreshToken);
+    return { access_token, consent_required };
   }
 
   @ApiOperation({

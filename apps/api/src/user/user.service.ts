@@ -28,7 +28,10 @@ export class UserService {
       name: userData.name,
       email: userData.email,
     });
-    return tokens;
+    return {
+      ...tokens,
+      consent_required: !user?.consent,
+    };
   }
 
   // deprecated

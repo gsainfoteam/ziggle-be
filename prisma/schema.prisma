@@ -30,12 +30,12 @@ enum Category {
 }
 
 model User {
-  uuid      String    @id @db.Uuid
+  uuid      String   @id @db.Uuid
   name      String
   email     String?
   picture   String?
-  createdAt DateTime  @default(now()) @map("created_at")
-  consent   DateTime?
+  createdAt DateTime @default(now()) @map("created_at")
+  consent   Boolean
 
   remindedNotices Notice[]     @relation("Reminder")
   writedNotices   Notice[]

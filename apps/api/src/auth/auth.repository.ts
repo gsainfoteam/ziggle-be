@@ -30,6 +30,7 @@ export class AuthRepository {
           name,
           email,
           picture,
+          consent: false,
         },
         update: {
           name,

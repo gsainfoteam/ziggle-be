@@ -28,7 +28,7 @@ ETC ETC
     String email "❓"
     String picture "❓"
     DateTime created_at 
-    DateTime consent "❓"
+    Boolean consent 
     }
   
 
