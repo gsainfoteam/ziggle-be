@@ -20,6 +20,7 @@ export class UserRepository {
       data: {
         uuid: uuid(),
         name,
+        consent: false,
       },
     });
   }
