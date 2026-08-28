@@ -1,6 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { AuthRepository } from './auth.repository';
-import { JwtTokenType } from './types/jwtToken.type';
+import { IssueTokenType, JwtTokenType } from './types/jwtToken.type';
 import { InfoteamIdpService } from '@lib/infoteam-idp';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
@@ -83,7 +83,7 @@ export class AuthService {
       .replace(/[+//=]/g, '');
   }
 
-  private async issueTokens(uuid: string): Promise<JwtTokenType> {
+  private async issueTokens(uuid: string): Promise<IssueTokenType> {
     const refresh_token: string = this.generateOpaqueToken();
     await this.redisService.set<string>(refresh_token, uuid, {
       prefix: this.refreshTokenPrefix,
