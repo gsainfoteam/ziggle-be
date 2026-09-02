@@ -6,23 +6,23 @@ import { Exclude, Expose, Type } from 'class-transformer';
 export class AdditionalContentsDto {
   @Expose()
   @ApiProperty()
-  id: number;
+  id!: number;
 
   @Expose()
   @ApiProperty()
-  lang: string;
+  lang!: string;
 
   @Expose()
   @ApiPropertyOptional({ type: Date })
-  deadline: Date | null;
+  deadline!: Date | null;
 
   @Expose()
   @ApiProperty()
-  content: string;
+  content!: string;
 
   @Expose()
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 }
 
 @Exclude()

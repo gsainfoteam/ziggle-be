@@ -6,20 +6,20 @@ export class UserInfoRes implements UserInfo {
     description: 'User uuid',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  uuid: string;
+  uuid!: string;
 
   @ApiProperty({
     type: String,
     description: 'User email id',
     example: 'johnDoe@gm.gist.ac.kr',
   })
-  email: string | null;
+  email!: string | null;
 
   @ApiProperty({
     description: 'User name',
     example: 'John Doe',
   })
-  name: string;
+  name!: string;
 
   @ApiProperty({
     type: String,
@@ -27,7 +27,7 @@ export class UserInfoRes implements UserInfo {
     description: 'User profile image',
     example: 'https://bucket.s3.ap-northeast-2.amazonaws.com/1626740269.webp',
   })
-  picture: string | null;
+  picture!: string | null;
 
   @ApiPropertyOptional({
     description: 'Student number',
@@ -40,5 +40,5 @@ export class UserInfoRes implements UserInfo {
     description: 'Consent date',
     example: '2023-01-01T00:00:00.000Z',
   })
-  consent: Date | null;
+  consent!: Date | null;
 }

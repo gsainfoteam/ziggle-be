@@ -20,7 +20,7 @@ export class CreateNoticeDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
-  title: string;
+  title!: string;
 
   @ApiProperty({
     example: '<p>내용<\\p>',
@@ -30,7 +30,7 @@ export class CreateNoticeDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100000)
-  body: string;
+  body!: string;
 
   @ApiPropertyOptional({
     example: '2021-08-01T00:00:00.000Z',

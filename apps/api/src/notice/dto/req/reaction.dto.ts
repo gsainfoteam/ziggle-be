@@ -8,5 +8,5 @@ export class ReactionDto {
     required: true,
   })
   @IsString()
-  emoji: string;
+  emoji!: string;
 }
