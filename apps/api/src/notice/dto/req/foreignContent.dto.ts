@@ -9,7 +9,7 @@ export class ForeignContentDto {
     required: true,
   })
   @IsString()
-  lang: string;
+  lang!: string;
 
   @ApiProperty({
     example: '제목',
@@ -28,7 +28,7 @@ export class ForeignContentDto {
   })
   @IsString()
   @MaxLength(100000)
-  body: string;
+  body!: string;
 
   @ApiProperty({
     example: '2021-08-01T00:00:00.000Z',

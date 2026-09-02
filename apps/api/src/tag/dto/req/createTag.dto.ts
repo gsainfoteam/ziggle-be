@@ -8,5 +8,5 @@ export class CreateTagDto {
     required: true,
   })
   @IsString()
-  name: string;
+  name!: string;
 }

@@ -7,5 +7,5 @@ export class JwtToken {
     example:
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNTE2MjM5MDIyfQ',
   })
-  access_token: string;
+  access_token!: string;
 }

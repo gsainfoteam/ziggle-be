@@ -9,5 +9,5 @@ export class UploadImageDto {
     },
     description: 'The image files to upload',
   })
-  images: Express.Multer.File[];
+  images!: Express.Multer.File[];
 }

@@ -6,45 +6,45 @@ import { Exclude, Expose, Type } from 'class-transformer';
 export class AuthorDto {
   @Expose()
   @ApiProperty()
-  uuid: string;
+  uuid!: string;
 
   @Expose()
   @ApiProperty()
-  name: string;
+  name!: string;
 
   @Expose()
   @ApiProperty({ type: String, nullable: true })
-  picture: string | null;
+  picture!: string | null;
 }
 
 @Exclude()
 export class GroupDto {
   @Expose()
   @ApiProperty()
-  uuid: string;
+  uuid!: string;
 
   @Expose()
   @ApiProperty()
-  name: string;
+  name!: string;
 
   @Expose()
   @ApiPropertyOptional({ type: String })
-  profileImageUrl: string | null;
+  profileImageUrl!: string | null;
 }
 
 @Exclude()
 export class GeneralReactionDto {
   @Expose()
   @ApiProperty()
-  emoji: string;
+  emoji!: string;
 
   @Expose()
   @ApiProperty()
-  count: number;
+  count!: number;
 
   @Expose()
   @ApiProperty()
-  isReacted: boolean;
+  isReacted!: boolean;
 }
 
 @Exclude()

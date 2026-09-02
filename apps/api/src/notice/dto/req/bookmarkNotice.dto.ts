@@ -7,5 +7,5 @@ export class BookmarkNoticeDto {
     description: '공지를 북마크했는지 여부',
   })
   @IsBoolean()
-  bookmarked: boolean;
+  bookmarked!: boolean;
 }

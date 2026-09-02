@@ -6,11 +6,11 @@ export class TagResDto implements Tag {
     type: Number,
     example: 1,
   })
-  id: number;
+  id!: number;
 
   @ApiProperty({
     type: String,
     example: 'tag',
   })
-  name: string;
+  name!: string;
 }

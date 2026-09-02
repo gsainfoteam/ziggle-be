@@ -17,7 +17,7 @@ export class UpdateNoticeDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100000)
-  body: string;
+  body!: string;
 
   @ApiProperty({
     example: '2021-08-01T00:00:00.000Z',

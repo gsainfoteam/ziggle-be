@@ -11,107 +11,107 @@ import {
 export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
-  IDP_URL: string;
+  IDP_URL!: string;
 
   @IsString()
   @IsNotEmpty()
-  IDP_BASE_URL: string;
+  IDP_BASE_URL!: string;
 
   @IsString()
   @IsNotEmpty()
-  DATABASE_URL: string;
+  DATABASE_URL!: string;
 
   @IsString()
   @IsNotEmpty()
-  SWAGGER_USER: string;
+  SWAGGER_USER!: string;
 
   @IsString()
   @IsNotEmpty()
-  SWAGGER_PASSWORD: string;
+  SWAGGER_PASSWORD!: string;
 
   @IsString()
   @IsNotEmpty()
-  SWAGGER_AUTH_URL: string;
+  SWAGGER_AUTH_URL!: string;
 
   @IsString()
   @IsNotEmpty()
-  SWAGGER_TOKEN_URL: string;
+  SWAGGER_TOKEN_URL!: string;
 
   @IsString()
   @IsNotEmpty()
-  FCM_PROJECT_ID: string;
+  FCM_PROJECT_ID!: string;
 
   @IsString()
   @IsNotEmpty()
-  FCM_CLIENT_EMAIL: string;
+  FCM_CLIENT_EMAIL!: string;
 
   @IsString()
   @IsNotEmpty()
-  FCM_PRIVATE_KEY: string;
+  FCM_PRIVATE_KEY!: string;
 
   @IsString()
   @IsNotEmpty()
-  AWS_S3_BUCKET_NAME: string;
+  AWS_S3_BUCKET_NAME!: string;
 
   @IsString()
   @IsNotEmpty()
-  AWS_S3_REGION: string;
+  AWS_S3_REGION!: string;
 
   @IsString()
   @IsNotEmpty()
-  CLIENT_ID: string;
+  CLIENT_ID!: string;
 
   @IsString()
   @IsNotEmpty()
-  CLIENT_SECRET: string;
+  CLIENT_SECRET!: string;
 
   @IsString()
   @IsNotEmpty()
-  REDIS_HOST: string;
+  REDIS_HOST!: string;
 
   @IsNumber()
   @IsNotEmpty()
-  REDIS_PORT: number;
+  REDIS_PORT!: number;
 
   @IsNumber()
   @IsNotEmpty()
-  FCM_DELAY: number;
+  FCM_DELAY!: number;
 
   @IsString()
   @IsNotEmpty()
-  GROUPS_URL: string;
+  GROUPS_URL!: string;
 
   @IsString()
   @IsNotEmpty()
-  API_URL: string;
+  API_URL!: string;
 
   @IsString()
   @IsNotEmpty()
-  CORS_ALLOWED_ORIGINS: string;
+  CORS_ALLOWED_ORIGINS!: string;
 
   @IsString()
   @IsNotEmpty()
-  CRAWLING_UPTIME_URI: string;
+  CRAWLING_UPTIME_URI!: string;
 
   @IsString()
   @IsNotEmpty()
-  JWT_SECRET: string;
+  JWT_SECRET!: string;
 
   @IsString()
   @IsNotEmpty()
-  JWT_ISSUER: string;
+  JWT_ISSUER!: string;
 
   @IsString()
   @IsNotEmpty()
-  JWT_AUDIENCE: string;
+  JWT_AUDIENCE!: string;
 
   @IsString()
   @IsNotEmpty()
-  JWT_EXPIRE: string;
+  JWT_EXPIRE!: string;
 
   @IsString()
   @IsNotEmpty()
-  REFRESH_TOKEN_EXPIRE: string;
+  REFRESH_TOKEN_EXPIRE!: string;
 
   @IsOptional()
   @IsNumber()
