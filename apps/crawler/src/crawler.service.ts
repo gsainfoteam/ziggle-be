@@ -59,19 +59,19 @@ export class CrawlerService {
       files,
     );
 
-    await this.crawlerFcmService
-      .postMessageWithDelay(
-        created.noticeId.toString(),
-        this.convertNotificationBodyToString({
-          title: data.title,
-          body: data.body ?? undefined,
-        }),
-        FcmTargetUser.All,
-        { path: `/notice/${created.noticeId}` },
-      )
-      .catch((err) =>
-        this.logger.error('FCM enqueue failed', err?.stack ?? String(err)),
-      );
+    // await this.crawlerFcmService
+    //   .postMessageWithDelay(
+    //     created.noticeId.toString(),
+    //     this.convertNotificationBodyToString({
+    //       title: data.title,
+    //       body: data.body ?? undefined,
+    //     }),
+    //     FcmTargetUser.All,
+    //     { path: `/notice/${created.noticeId}` },
+    //   )
+    //   .catch((err) =>
+    //     this.logger.error('FCM enqueue failed', err?.stack ?? String(err)),
+    //   );
 
     return created;
   }
