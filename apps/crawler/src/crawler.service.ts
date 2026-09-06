@@ -10,6 +10,7 @@ import {
   Observable,
   throwError,
   timeout,
+  filter,
 } from 'rxjs';
 import { CrawlerRepository } from './crawler.repository';
 import { UserService } from './user/user.service';
@@ -109,15 +110,18 @@ export class CrawlerService {
             map(($) => $('table > tbody > tr')),
             concatMap(($) => $.toArray().map((value: any) => load(value))),
             map(($) => {
-              const href = $('td').eq(2).find('a').attr('href') || '';
+              const href = $('td').eq(2).find('a').attr('href');
+              const no = href?.match(/no=(\d+)/)?.[1];
+              if (!no) return null;
               return {
                 title: $('td').eq(2).text().trim(),
-                link: `${this.targetUrl}?mode=V&no=${href.split('no=')[1]?.split('&')[0] || ''}&GotoPage=1`,
+                link: `${this.targetUrl}?mode=V&no=${no}&GotoPage=1`,
                 author: $('td').eq(3).text().trim(),
                 category: $('td').eq(1).text().trim(),
                 createdAt: $('td').eq(5).text().trim(),
               };
             }),
+            filter((meta): meta is NonNullable<typeof meta> => meta !== null),
             map((meta) => ({
               id: Number.parseInt(meta.link.split('no=')[1].split('&')[0]),
               ...meta,
