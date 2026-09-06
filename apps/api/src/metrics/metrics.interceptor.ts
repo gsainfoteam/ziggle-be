@@ -44,8 +44,8 @@ export class MetricsInterceptor implements NestInterceptor {
 
           const errorName =
             err && typeof err === 'object' && 'constructor' in err
-              ? (err as { constructor?: { name?: string } }).constructor
-                  ?.name ?? 'UnknownError'
+              ? ((err as { constructor?: { name?: string } }).constructor
+                  ?.name ?? 'UnknownError')
               : 'UnknownError';
 
           httpRequestErrorsTotal.add(1, {
