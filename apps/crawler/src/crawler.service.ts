@@ -111,7 +111,7 @@ export class CrawlerService {
             concatMap(($) => $.toArray().map((value: any) => load(value))),
             map(($) => {
               const href = $('td').eq(2).find('a').attr('href');
-              const no = href?.match(/no=(\d+)/)?.[1];
+              const no = href?.match(/no=([^&]+)/)?.[1];
               if (!no) return null;
               return {
                 title: $('td').eq(2).text().trim(),
