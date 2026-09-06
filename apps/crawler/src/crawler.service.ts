@@ -109,9 +109,10 @@ export class CrawlerService {
             map(($) => $('table > tbody > tr')),
             concatMap(($) => $.toArray().map((value: any) => load(value))),
             map(($) => {
+              const href = $('td').eq(2).find('a').attr('href') || '';
               return {
                 title: $('td').eq(2).text().trim(),
-                link: `${this.targetUrl}${$('td').eq(2).find('a').attr('href')}`,
+                link: `${this.targetUrl}?mode=V&no=${href.split('no=')[1]?.split('&')[0] || ''}&GotoPage=1`,
                 author: $('td').eq(3).text().trim(),
                 category: $('td').eq(1).text().trim(),
                 createdAt: $('td').eq(5).text().trim(),

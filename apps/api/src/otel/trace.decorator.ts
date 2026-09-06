@@ -180,4 +180,3 @@ const isPromiseLike = (value: unknown): value is Promise<unknown> => {
   }
   return typeof (value as Promise<unknown>).then === 'function';
 };
-

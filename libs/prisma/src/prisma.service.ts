@@ -36,5 +36,4 @@ export class PrismaService
     };
     eventClient.$on('query', callback);
   }
-
 }
