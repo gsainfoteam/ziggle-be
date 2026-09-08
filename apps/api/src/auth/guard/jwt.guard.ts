@@ -1,5 +1,6 @@
 import {
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -24,7 +25,7 @@ export class JwtGuard extends AuthGuard('jwt') {
     }
 
     if (!user.consent) {
-      throw new UnauthorizedException('Consent required');
+      throw new ForbiddenException('Consent required');
     }
 
     return user;
