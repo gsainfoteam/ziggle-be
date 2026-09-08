@@ -13,6 +13,7 @@ import { TagService } from './tag.service';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -79,6 +80,7 @@ export class TagController {
     type: TagResDto,
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Consent required' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @UseGuards(JwtGuard)
   @Post()

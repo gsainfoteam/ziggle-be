@@ -21,6 +21,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiForbiddenResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { User } from '@generated/prisma/client';
@@ -56,6 +57,7 @@ export class UserController {
   })
   @ApiOkResponse({ type: UserInfoRes, description: 'Return user info' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Consent required' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @ApiBearerAuth('jwt')
   @Get('info')
@@ -84,6 +86,7 @@ export class UserController {
   })
   @ApiCreatedResponse({ description: 'user deleted' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Consent required' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @ApiBearerAuth('jwt')
   @UseGuards(JwtGuard)

@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
@@ -48,6 +49,7 @@ import { BookmarkNoticeDto } from './dto/req/bookmarkNotice.dto';
 @ApiTags('notice')
 @ApiBearerAuth('jwt')
 @ApiSecurity('groups-auth')
+@ApiForbiddenResponse({ description: 'Consent required' })
 @UseGuards(JwtGuard)
 @Controller('notice')
 @UsePipes(new ValidationPipe({ transform: true }))

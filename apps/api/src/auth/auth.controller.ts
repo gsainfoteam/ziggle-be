@@ -14,6 +14,7 @@ import { AuthService } from './auth.service';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiOAuth2,
   ApiOkResponse,
@@ -85,6 +86,7 @@ export class AuthController {
   })
   @ApiCreatedResponse({ description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Consent required' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @ApiBearerAuth('jwt')
   @Post('logout')
