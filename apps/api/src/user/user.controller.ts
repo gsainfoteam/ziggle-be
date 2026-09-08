@@ -86,6 +86,7 @@ export class UserController {
   })
   @ApiCreatedResponse({ description: 'user deleted' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Consent required' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @ApiBearerAuth('jwt')
   @UseGuards(JwtGuard)
