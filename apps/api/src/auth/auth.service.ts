@@ -49,9 +49,12 @@ export class AuthService {
    * @returns accessToken, refreshToken and the information that is  the user consent required
    */
   async refresh(refreshToken: string): Promise<JwtTokenType> {
-    const uuid = await this.redisService.getOrThrow<string>(refreshToken, {
+    const uuid = await this.redisService.get<string>(refreshToken, {
       prefix: this.refreshTokenPrefix,
     });
+    if (!uuid) {
+      throw new UnauthorizedException();
+    }
     await this.authRepository.findUserByUuid(uuid);
     return {
       access_token: this.jwtService.sign({}, { subject: uuid }),
