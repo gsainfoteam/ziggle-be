@@ -77,11 +77,11 @@ jobs:
 
       - name: Update Kubernetes Manifest
         run: |
-          sed -i "s|image:.*|image: $REGISTRY\/$REPOSITORY:$IMAGE_TAG|g" infoteam/service/ziggle/stg.yaml
+          sed -i "s|tag:.*|tag: $IMAGE_TAG|g" infoteam/service/ziggle/values.stg.yaml
 
       - name: Commit and Push\
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "GitHub Actions"
           git commit -am "Update image $REPOSITORY:$IMAGE_TAG"
-          git push -u origin master
+          git push -u origin main
