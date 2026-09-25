@@ -134,10 +134,6 @@ export class NoticeCommonDto {
   documents: DocumentDto[];
 
   @Expose()
-  @ApiPropertyOptional({ type: String })
-  crawledUrl: string | null;
-
-  @Expose()
   @ApiProperty({ type: Boolean })
   isViewed: boolean;
 
@@ -162,7 +158,6 @@ export class NoticeCommonDto {
     this.publishedAt = partial.publishedAt;
     this.imageUrls = partial.imageUrls;
     this.documents = partial.documents;
-    this.crawledUrl = partial.crawledUrl;
     this.isViewed = partial.isViewed;
     this.isBookmarked = partial.isBookmarked;
   }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CrawlerService } from './crawler.service';
 import { PrismaModule } from '@lib/prisma';
+import { NoticeSearchModule } from '@lib/notice-search';
 import { HttpModule } from '@nestjs/axios';
 import { CrawlerRepository } from './crawler.repository';
 import { UserModule } from './user/user.module';
@@ -13,6 +14,7 @@ import { CustomConfigModule } from '@lib/custom-config';
 @Module({
   imports: [
     PrismaModule,
+    NoticeSearchModule,
     HttpModule,
     UserModule,
     LoggerModule,

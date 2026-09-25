@@ -82,6 +82,7 @@ model File {
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
 
+  @@index([noticeId])
   @@map("file")
 }
 
@@ -98,6 +99,7 @@ model Content {
   notice   Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
 
   @@id([id, lang, noticeId])
+  @@index([noticeId])
   @@map("content")
 }
 
@@ -112,6 +114,7 @@ model Crawl {
   noticeId Int    @map("notice_id")
   notice   Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
 
+  @@index([noticeId])
   @@map("crawl")
 }
 
@@ -136,6 +139,14 @@ model Notice {
   lastEditedAt    DateTime  @default(now()) @map("last_edited_at")
   publishedAt     DateTime  @map("published_at")
   deletedAt       DateTime? @map("deleted_at")
+
+  titleKo   String    @default("") @map("title_ko")
+  titleEn   String?   @map("title_en")
+  previewKo String    @default("") @map("preview_ko")
+  previewEn String?   @map("preview_en")
+  plainBody String?   @map("plain_body")
+  langs     String[]  @default([])
+  deadline  DateTime?
 
   authorId   String       @map("author_id") @db.Uuid
   reminders  User[]       @relation("Reminder")
