@@ -32,8 +32,13 @@ export class ExpandedGeneralNoticeDto extends GeneralNoticeDto {
   @ApiProperty({ type: [AdditionalContentsDto] })
   additionalContents: AdditionalContentsDto[];
 
+  @Expose()
+  @ApiPropertyOptional({ type: String })
+  crawledUrl: string | null;
+
   constructor(partial: ExpandedGeneralNoticeDto) {
     super(partial);
     this.additionalContents = partial.additionalContents;
+    this.crawledUrl = partial.crawledUrl;
   }
 }

@@ -1,12 +1,16 @@
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { PrismaService } from '@lib/prisma';
+import { NoticeSearchService } from '@lib/notice-search';
 import { Injectable } from '@nestjs/common';
 import { Crawl, File, FileType, User } from '@generated/prisma/client';
 
 @Loggable()
 @Injectable()
 export class CrawlerRepository {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly noticeSearchService: NoticeSearchService,
+  ) {}
 
   async checkCrawlData(
     url: string,
@@ -45,35 +49,41 @@ export class CrawlerRepository {
       type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
     }[],
   ): Promise<Crawl> {
-    return this.prismaService.crawl.create({
-      data: {
-        title,
-        body,
-        type,
-        url,
-        crawledAt,
-        notice: {
-          create: {
-            category: 'ACADEMIC',
-            author: {
-              connect: user,
-            },
-            createdAt,
-            publishedAt: new Date(),
-            files: {
-              createMany: {
-                data:
-                  files?.map((file, index) => ({
-                    name: file.name,
-                    url: file.href,
-                    type: FileType.DOCUMENT,
-                    order: index,
-                  })) ?? [],
+    return this.prismaService.$transaction(async (tx) => {
+      const crawl = await tx.crawl.create({
+        data: {
+          title,
+          body,
+          type,
+          url,
+          crawledAt,
+          notice: {
+            create: {
+              category: 'ACADEMIC',
+              author: {
+                connect: user,
+              },
+              createdAt,
+              publishedAt: new Date(),
+              files: {
+                createMany: {
+                  data:
+                    files?.map((file, index) => ({
+                      name: file.name,
+                      url: file.href,
+                      type: FileType.DOCUMENT,
+                      order: index,
+                    })) ?? [],
+                },
               },
             },
           },
         },
-      },
+      });
+
+      await this.noticeSearchService.refresh(crawl.noticeId, tx);
+
+      return crawl;
     });
   }
 
@@ -86,31 +96,37 @@ export class CrawlerRepository {
       type: 'doc' | 'hwp' | 'pdf' | 'imgs' | 'xls' | 'etc';
     }[],
   ): Promise<Crawl> {
-    return this.prismaService.crawl.update({
-      where: {
-        id,
-      },
-      data: {
-        title,
-        body,
-        type,
-        notice: {
-          update: {
-            files: {
-              deleteMany: {},
-              createMany: {
-                data:
-                  files?.map((file, index) => ({
-                    name: file.name,
-                    url: file.href,
-                    type: FileType.DOCUMENT,
-                    order: index,
-                  })) ?? [],
+    return this.prismaService.$transaction(async (tx) => {
+      const crawl = await tx.crawl.update({
+        where: {
+          id,
+        },
+        data: {
+          title,
+          body,
+          type,
+          notice: {
+            update: {
+              files: {
+                deleteMany: {},
+                createMany: {
+                  data:
+                    files?.map((file, index) => ({
+                      name: file.name,
+                      url: file.href,
+                      type: FileType.DOCUMENT,
+                      order: index,
+                    })) ?? [],
+                },
               },
             },
           },
         },
-      },
+      });
+
+      await this.noticeSearchService.refresh(crawl.noticeId, tx);
+
+      return crawl;
     });
   }
 }

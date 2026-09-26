@@ -42,7 +42,7 @@ import { Trace } from '../otel/trace.decorator';
 import {
   toCreateNoticeResDto,
   toExpandedNoticeDto,
-  toGeneralNoticeDto,
+  toGeneralNoticeListDto,
 } from './notice.mapper';
 
 @Injectable()
@@ -71,25 +71,12 @@ export class NoticeService {
       this.noticeRepository.getTotalCount(getAllNoticeQueryDto, userUuid),
     ]);
 
-    const noticeList = this.buildGeneralNoticeDto(
+    return toGeneralNoticeListDto(
       notices,
+      total,
+      this.fileService,
       getAllNoticeQueryDto.lang,
       userUuid,
-    );
-
-    return new GeneralNoticeListDto({
-      total,
-      list: noticeList,
-    });
-  }
-
-  private buildGeneralNoticeDto(
-    notices: NoticeFullContent[],
-    lang?: string,
-    userUuid?: string,
-  ): GeneralNoticeDto[] {
-    return notices.map((notice) =>
-      toGeneralNoticeDto(notice, this.fileService, lang, userUuid),
     );
   }
 

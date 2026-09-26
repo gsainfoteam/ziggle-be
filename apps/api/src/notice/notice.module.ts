@@ -3,6 +3,7 @@ import { NoticeController } from './notice.controller';
 import { NoticeService } from './notice.service';
 import { NoticeRepository } from './notice.repository';
 import { PrismaModule } from '@lib/prisma';
+import { NoticeSearchModule } from '@lib/notice-search';
 import { LoggerModule } from '@lib/logger';
 import { CustomConfigModule } from '@lib/custom-config';
 import { UserModule } from '../user/user.module';
@@ -17,6 +18,7 @@ import { OtelClassSerializerInterceptor } from '../otel/otel-class-serializer.in
 @Module({
   imports: [
     PrismaModule,
+    NoticeSearchModule,
     UserModule,
     CustomConfigModule,
     ImageModule,

@@ -9,6 +9,7 @@ import { CustomConfigService } from '@lib/custom-config';
 import { initializeMetrics } from '@lib/metrics';
 import { ApiModule } from './api.module';
 import { MetricsInterceptor } from './metrics/metrics.interceptor';
+import { NoticeSearchBackfillService } from './notice/notice-search-backfill.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -180,6 +181,13 @@ async function bootstrap() {
 
   // start server
   await app.listen(3000);
+
+  void app
+    .get(NoticeSearchBackfillService)
+    .run()
+    .catch((error) =>
+      logger.error('Failed to backfill notice search fields', error),
+    );
 }
 
 const bootstrapWithOTEL = async () => {

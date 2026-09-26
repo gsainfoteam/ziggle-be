@@ -98,6 +98,13 @@ ETC ETC
     DateTime last_edited_at 
     DateTime published_at 
     DateTime deleted_at "❓"
+    String title_ko 
+    String title_en "❓"
+    String preview_ko 
+    String preview_en "❓"
+    String plain_body "❓"
+    String langs 
+    DateTime deadline "❓"
     String author_id 
     String group_id "❓"
     }

@@ -12,6 +12,7 @@ import {
 } from './dto/res/expandedGeneralNotice.dto';
 import { CreateNoticeResDto } from './dto/res/createNoticeRes.dto';
 import { NoticeFullContent } from './types/noticeFullContent';
+import { NoticeListContent } from './types/noticeListContent';
 
 const pickMainContent = (contents: Content[], lang?: string): Content =>
   contents.find((content) => content.lang === (lang ?? 'ko')) ?? contents[0];
@@ -74,17 +75,13 @@ const buildAdditionalContents = (
       createdAt,
     }));
 
-export const toGeneralNoticeDto = (
-  notice: NoticeFullContent,
+const buildFiles = (
+  files: NoticeListContent['files'],
   fileService: FileService,
-  lang?: string,
-  userUuid?: string,
-): GeneralNoticeDto => {
-  const mainContent = pickMainContent(notice.contents, lang);
-
+): { imageUrls: string[]; documents: DocumentDto[] } => {
   const imageUrls: string[] = [];
   const documents: DocumentDto[] = [];
-  for (const file of notice.files) {
+  for (const file of files) {
     if (file.type === FileType.IMAGE) {
       imageUrls.push(fileService.getFilesUrl(file.url));
     }
@@ -97,6 +94,52 @@ export const toGeneralNoticeDto = (
       );
     }
   }
+  return { imageUrls, documents };
+};
+
+export const toGeneralNoticeListItemDto = (
+  notice: NoticeListContent,
+  fileService: FileService,
+  lang?: string,
+  userUuid?: string,
+): GeneralNoticeDto => {
+  const isEnglish = lang === 'en';
+  const { imageUrls, documents } = buildFiles(notice.files, fileService);
+
+  return new GeneralNoticeDto({
+    id: notice.id,
+    title: isEnglish ? (notice.titleEn ?? notice.titleKo) : notice.titleKo,
+    group: notice.group,
+    author: notice.author,
+    createdAt: notice.createdAt,
+    tags: notice.tags.map(({ name }) => name),
+    views: notice.views,
+    langs: notice.langs,
+    content: isEnglish
+      ? (notice.previewEn ?? notice.previewKo)
+      : notice.previewKo,
+    reactions: summarizeReactions(notice.reactions, userUuid),
+    isReminded: notice.reminders.some(({ uuid }) => uuid === userUuid),
+    category: notice.category,
+    deadline: notice.deadline,
+    currentDeadline: notice.currentDeadline,
+    publishedAt: notice.publishedAt,
+    imageUrls,
+    documents,
+    isViewed: notice.UserRecord[0]?.isViewed ?? false,
+    isBookmarked: notice.UserRecord[0]?.isBookmarked ?? false,
+  });
+};
+
+export const toGeneralNoticeDto = (
+  notice: NoticeFullContent,
+  fileService: FileService,
+  lang?: string,
+  userUuid?: string,
+): GeneralNoticeDto => {
+  const mainContent = pickMainContent(notice.contents, lang);
+
+  const { imageUrls, documents } = buildFiles(notice.files, fileService);
 
   return new GeneralNoticeDto({
     id: notice.id,
@@ -119,14 +162,13 @@ export const toGeneralNoticeDto = (
     publishedAt: notice.publishedAt,
     imageUrls,
     documents,
-    crawledUrl: notice.crawls.length > 0 ? notice.crawls[0].url : null,
     isViewed: notice.UserRecord[0]?.isViewed ?? false,
     isBookmarked: notice.UserRecord[0]?.isBookmarked ?? false,
   });
 };
 
 export const toGeneralNoticeListDto = (
-  notices: NoticeFullContent[],
+  notices: NoticeListContent[],
   total: number,
   fileService: FileService,
   lang?: string,
@@ -135,7 +177,7 @@ export const toGeneralNoticeListDto = (
   new GeneralNoticeListDto({
     total,
     list: notices.map((notice) =>
-      toGeneralNoticeDto(notice, fileService, lang, userUuid),
+      toGeneralNoticeListItemDto(notice, fileService, lang, userUuid),
     ),
   });
 
@@ -151,6 +193,7 @@ export const toExpandedNoticeDto = (
     ...generalNotice,
     content: buildRawContent(notice.crawls, mainContent),
     additionalContents: buildAdditionalContents(notice.contents),
+    crawledUrl: notice.crawls.length > 0 ? notice.crawls[0].url : null,
   });
 };
 

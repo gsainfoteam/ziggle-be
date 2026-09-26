@@ -7,6 +7,7 @@ import {
 import { GetAllNoticeQueryDto } from './dto/req/getAllNotice.dto';
 import dayjs from 'dayjs';
 import { NoticeFullContent } from './types/noticeFullContent';
+import { NoticeListContent } from './types/noticeListContent';
 import { FileType, Notice, Prisma } from '@generated/prisma/client';
 import { CreateNoticeDto } from './dto/req/createNotice.dto';
 import { AdditionalNoticeDto } from './dto/req/additionalNotice.dto';
@@ -19,13 +20,17 @@ import { PrismaService } from '@lib/prisma';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { GroupsUserInfo } from '@lib/infoteam-groups/types/groups.type';
 import { Trace } from '../otel/trace.decorator';
+import { NoticeSearchService } from '@lib/notice-search';
 
 @Injectable()
 @Loggable()
 @Trace()
 export class NoticeRepository {
   private readonly logger = new Logger(NoticeRepository.name);
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly noticeSearchService: NoticeSearchService,
+  ) {}
 
   private getNoticeInclude(
     userUuid: string,
@@ -33,18 +38,7 @@ export class NoticeRepository {
   ): Prisma.NoticeInclude {
     return {
       tags: true,
-      contents: isList
-        ? {
-            where: {
-              id: 1,
-            },
-          }
-        : {
-            orderBy: {
-              id: 'asc',
-            },
-          },
-      crawls: true,
+      ...(isList ? {} : { contents: { orderBy: { id: 'asc' } }, crawls: true }),
       reminders: true,
       author: {
         select: {
@@ -113,35 +107,7 @@ export class NoticeRepository {
           ? { currentDeadline: { gte: dayjs().startOf('d').toDate() } }
           : {}),
         ...(search
-          ? {
-              OR: [
-                {
-                  crawls: {
-                    some: {
-                      OR: [
-                        { title: { contains: search, mode: 'insensitive' } },
-                        { body: { contains: search, mode: 'insensitive' } },
-                      ],
-                    },
-                  },
-                },
-                {
-                  contents: {
-                    some: {
-                      OR: [
-                        { title: { contains: search, mode: 'insensitive' } },
-                        { body: { contains: search, mode: 'insensitive' } },
-                      ],
-                    },
-                  },
-                },
-                {
-                  tags: {
-                    some: { name: { contains: search, mode: 'insensitive' } },
-                  },
-                },
-              ],
-            }
+          ? { plainBody: { contains: search, mode: 'insensitive' } }
           : {}),
       },
     });
@@ -165,7 +131,7 @@ export class NoticeRepository {
       groupId,
     }: GetAllNoticeQueryDto,
     userUuid: string,
-  ): Promise<NoticeFullContent[]> {
+  ): Promise<NoticeListContent[]> {
     return this.prismaService.notice
       .findMany({
         take: limit,
@@ -196,35 +162,7 @@ export class NoticeRepository {
               : undefined,
           tags: tags && { some: { name: { in: tags } } },
           ...(search
-            ? {
-                OR: [
-                  {
-                    crawls: {
-                      some: {
-                        OR: [
-                          { title: { contains: search, mode: 'insensitive' } },
-                          { body: { contains: search, mode: 'insensitive' } },
-                        ],
-                      },
-                    },
-                  },
-                  {
-                    contents: {
-                      some: {
-                        OR: [
-                          { title: { contains: search, mode: 'insensitive' } },
-                          { body: { contains: search, mode: 'insensitive' } },
-                        ],
-                      },
-                    },
-                  },
-                  {
-                    tags: {
-                      some: { name: { contains: search, mode: 'insensitive' } },
-                    },
-                  },
-                ],
-              }
+            ? { plainBody: { contains: search, mode: 'insensitive' } }
             : {}),
           category,
           groupId,
@@ -359,54 +297,60 @@ export class NoticeRepository {
       });
     }
 
-    return this.prismaService.notice
-      .create({
-        data: {
-          author: {
-            connect: {
-              uuid: userUuid,
+    const notice = await this.prismaService
+      .$transaction(async (tx) => {
+        const created = await tx.notice.create({
+          data: {
+            author: {
+              connect: {
+                uuid: userUuid,
+              },
             },
-          },
-          contents: {
-            create: {
-              id: 1,
-              lang: 'ko',
-              title,
-              body,
-              deadline: deadline || null,
+            contents: {
+              create: {
+                id: 1,
+                lang: 'ko',
+                title,
+                body,
+                deadline: deadline || null,
+              },
             },
+            createdAt: createdAt || new Date(),
+            currentDeadline: deadline || null,
+            tags: {
+              connect: findTags,
+            },
+            files: {
+              create: [
+                ...images.map((image, idx) => ({
+                  order: idx,
+                  name: title,
+                  type: FileType.IMAGE,
+                  url: image,
+                })),
+                ...documents.map((document, idx) => ({
+                  order: idx,
+                  name: title,
+                  type: FileType.DOCUMENT,
+                  url: document,
+                })),
+              ],
+            },
+            category,
+            group:
+              groupId === undefined || group === undefined
+                ? undefined
+                : {
+                    connect: { uuid: groupId },
+                  },
+            publishedAt,
           },
-          createdAt: createdAt || new Date(),
-          currentDeadline: deadline || null,
-          tags: {
-            connect: findTags,
-          },
-          files: {
-            create: [
-              ...images.map((image, idx) => ({
-                order: idx,
-                name: title,
-                type: FileType.IMAGE,
-                url: image,
-              })),
-              ...documents.map((document, idx) => ({
-                order: idx,
-                name: title,
-                type: FileType.DOCUMENT,
-                url: document,
-              })),
-            ],
-          },
-          category,
-          group:
-            groupId === undefined || group === undefined
-              ? undefined
-              : {
-                  connect: { uuid: groupId },
-                },
-          publishedAt,
-        },
-        include: this.getNoticeInclude(userUuid),
+          include: this.getNoticeInclude(userUuid),
+        });
+
+        await this.noticeSearchService.refresh(created.id, tx);
+
+        return created;
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -422,6 +366,8 @@ export class NoticeRepository {
         this.logger.debug(error);
         throw new InternalServerErrorException('Unknown Error');
       });
+
+    return notice;
   }
 
   async updatePublishedAt(id: number, publishedAt: Date): Promise<Notice> {
@@ -468,23 +414,28 @@ export class NoticeRepository {
         this.logger.debug(error);
         throw new InternalServerErrorException('Unknown Error');
       });
-    await this.prismaService.notice
-      .update({
-        where: { id, deletedAt: null, authorId: userUuid },
-        data: {
-          contents: {
-            create: {
-              id: Math.max(...notice.contents.map((content) => content.id)) + 1,
-              lang: 'ko',
-              title: title ?? notice.contents[0].title,
-              body,
-              deadline,
+    await this.prismaService
+      .$transaction(async (tx) => {
+        await tx.notice.update({
+          where: { id, deletedAt: null, authorId: userUuid },
+          data: {
+            contents: {
+              create: {
+                id:
+                  Math.max(...notice.contents.map((content) => content.id)) + 1,
+                lang: 'ko',
+                title: title ?? notice.contents[0].title,
+                body,
+                deadline,
+              },
             },
+            currentDeadline: deadline ?? notice.currentDeadline,
+            lastEditedAt: new Date(),
+            updatedAt: new Date(),
           },
-          currentDeadline: deadline ?? notice.currentDeadline,
-          lastEditedAt: new Date(),
-          updatedAt: new Date(),
-        },
+        });
+
+        await this.noticeSearchService.refresh(id, tx);
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -504,21 +455,25 @@ export class NoticeRepository {
     contentIdx: number,
     userUuid: string,
   ): Promise<void> {
-    await this.prismaService.notice
-      .update({
-        where: { id, authorId: userUuid, deletedAt: null },
-        data: {
-          contents: {
-            create: {
-              id: contentIdx,
-              lang,
-              title,
-              body,
-              deadline,
+    await this.prismaService
+      .$transaction(async (tx) => {
+        await tx.notice.update({
+          where: { id, authorId: userUuid, deletedAt: null },
+          data: {
+            contents: {
+              create: {
+                id: contentIdx,
+                lang,
+                title,
+                body,
+                deadline,
+              },
             },
+            lastEditedAt: new Date(),
           },
-          lastEditedAt: new Date(),
-        },
+        });
+
+        await this.noticeSearchService.refresh(id, tx);
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -646,28 +601,32 @@ export class NoticeRepository {
     id: number,
     userUuid: string,
   ): Promise<void> {
-    await this.prismaService.notice
-      .update({
-        where: { id, authorId: userUuid, deletedAt: null },
-        data: {
-          contents: {
-            update: {
-              where: {
-                id_lang_noticeId: {
-                  lang,
-                  id: idx,
-                  noticeId: id,
+    await this.prismaService
+      .$transaction(async (tx) => {
+        await tx.notice.update({
+          where: { id, authorId: userUuid, deletedAt: null },
+          data: {
+            contents: {
+              update: {
+                where: {
+                  id_lang_noticeId: {
+                    lang,
+                    id: idx,
+                    noticeId: id,
+                  },
+                },
+                data: {
+                  body,
+                  deadline,
                 },
               },
-              data: {
-                body,
-                deadline,
-              },
             },
+            currentDeadline: deadline,
+            lastEditedAt: new Date(),
           },
-          currentDeadline: deadline,
-          lastEditedAt: new Date(),
-        },
+        });
+
+        await this.noticeSearchService.refresh(id, tx);
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
