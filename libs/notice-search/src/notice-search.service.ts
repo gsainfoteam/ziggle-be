@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@generated/prisma/client';
-import { Loggable } from '@lib/logger/decorator/loggable';
 import { NoticeSearchRepository } from './notice-search.repository';
 import { extractPlainText } from './plain-text';
 
@@ -13,7 +12,6 @@ interface LocalizedNotice {
 }
 
 @Injectable()
-@Loggable()
 export class NoticeSearchService {
   constructor(
     private readonly noticeSearchRepository: NoticeSearchRepository,

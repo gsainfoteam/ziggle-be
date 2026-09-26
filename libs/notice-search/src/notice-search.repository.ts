@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@generated/prisma/client';
-import { Loggable } from '@lib/logger/decorator/loggable';
 
 @Injectable()
-@Loggable()
 export class NoticeSearchRepository {
   async getSource(noticeId: number, tx: Prisma.TransactionClient) {
     return tx.notice.findUniqueOrThrow({

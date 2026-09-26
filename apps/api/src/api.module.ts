@@ -14,6 +14,7 @@ import { ApiController } from './api.controller';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from '@lib/prisma';
 import { PrismaMetricsService } from './metrics/prisma-metrics.service';
+import { NoticeSearchBackfillModule } from './notice/notice-search-backfill.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PrismaMetricsService } from './metrics/prisma-metrics.service';
     UserModule,
     TagModule,
     NoticeModule,
+    NoticeSearchBackfillModule,
     DocumentModule,
     ImageModule,
     FcmModule,
