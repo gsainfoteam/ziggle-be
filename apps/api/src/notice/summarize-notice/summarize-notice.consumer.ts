@@ -30,6 +30,7 @@ export class SummarizeNoticeConsumer {
           id: true,
           lastEditedAt: true,
           summary: true,
+          keywords: true,
           contents: {
             select: { lang: true, title: true, body: true },
             orderBy: { id: 'asc' },
@@ -50,16 +51,16 @@ export class SummarizeNoticeConsumer {
         return;
       }
 
-      // Check if summary already exists
-      if (notice.summary) {
+      // Skip only when both the summary and searchable keywords exist.
+      if (notice.summary && notice.keywords.length > 0) {
         this.logger.debug(
-          `Summary already exists for notice ${noticeId}. Skipping.`,
+          `Summary and keywords already exist for notice ${noticeId}. Skipping.`,
         );
         return;
       }
 
       // Generate summary using LLM
-      const summary = await this.llmService.summarize(content);
+      const { summary, keywords } = await this.llmService.summarize(content);
 
       // Save summary and refresh search fields in a transaction
       const saved = await this.prismaService.$transaction(async (tx) => {
@@ -67,10 +68,10 @@ export class SummarizeNoticeConsumer {
           where: {
             id: noticeId,
             lastEditedAt: new Date(contentVersion),
-            summary: null,
+            OR: [{ summary: null }, { keywords: { isEmpty: true } }],
             deletedAt: null,
           },
-          data: { summary },
+          data: { summary, keywords },
         });
 
         if (result.count === 0) {

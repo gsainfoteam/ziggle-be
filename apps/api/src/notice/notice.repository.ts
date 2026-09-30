@@ -434,6 +434,7 @@ export class NoticeRepository {
             lastEditedAt: new Date(),
             updatedAt: new Date(),
             summary: null,
+            keywords: [],
           },
           include: {
             contents: {
@@ -484,6 +485,7 @@ export class NoticeRepository {
             },
             lastEditedAt: new Date(),
             summary: null,
+            keywords: [],
           },
           include: {
             contents: {
@@ -649,6 +651,7 @@ export class NoticeRepository {
             currentDeadline: deadline,
             lastEditedAt: new Date(),
             summary: null,
+            keywords: [],
           },
           include: {
             contents: {

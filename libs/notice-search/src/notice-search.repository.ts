@@ -10,6 +10,7 @@ export class NoticeSearchRepository {
       where: { id: noticeId },
       select: {
         summary: true,
+        keywords: true,
         contents: {
           select: { lang: true, title: true, body: true, deadline: true },
           orderBy: { id: 'asc' },

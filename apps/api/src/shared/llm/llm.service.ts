@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { CustomConfigService } from '@lib/custom-config';
 
+export interface NoticeSummary {
+  summary: string;
+  keywords: string[];
+}
+
 @Injectable()
 export class LlmService {
   private client: OpenAI;
@@ -13,7 +18,7 @@ export class LlmService {
     });
   }
 
-  async summarize(text: string): Promise<string> {
+  async summarize(text: string): Promise<NoticeSummary> {
     if (!text || text.trim().length === 0) {
       throw new Error('Text to summarize cannot be empty');
     }
@@ -23,25 +28,62 @@ export class LlmService {
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that summarizes text concisely in Korean. Keep summaries to 500 characters or less.',
+          content:
+            'You summarize Korean notice content for future semantic and keyword search. Return only a valid JSON object with exactly two fields: "summary" (a concise Korean summary of at most 500 characters) and "keywords" (an array of 3 to 12 short strings). Preserve exact searchable terms from the source in keywords, including organization and program names, people, locations, target audiences, topics, dates, deadlines, and application or event names. Do not put keywords or a keyword label in the summary. Do not add information that is not present in the source. Avoid duplicate or overly broad keywords.',
         },
         {
           role: 'user',
-          content: `Please summarize the following text concisely in Korean, keeping it to 500 characters or less:\n\n${text}`,
+          content: `다음 공지 내용을 요약하고, 검색에 유용한 키워드를 별도의 배열로 추출해 주세요. 요약과 키워드를 한 필드에 섞지 말고 지정한 JSON 형식으로만 답변해 주세요.\n\n${text}`,
         },
       ],
       max_completion_tokens: 1000,
     });
 
-    const summary = response.choices[0]?.message?.content?.trim();
+    const content = response.choices[0]?.message?.content?.trim();
+    if (!content) {
+      throw new Error('Failed to generate summary and keywords');
+    }
+
+    let result: unknown;
+    try {
+      result = JSON.parse(content);
+    } catch {
+      throw new Error('Failed to parse generated summary and keywords');
+    }
+
+    if (
+      !result ||
+      typeof result !== 'object' ||
+      !('summary' in result) ||
+      typeof result.summary !== 'string' ||
+      !('keywords' in result) ||
+      !Array.isArray(result.keywords)
+    ) {
+      throw new Error('Generated summary and keywords have an invalid format');
+    }
+
+    const parsed = result as { summary: string; keywords: unknown[] };
+    const summary = parsed.summary.trim();
     if (!summary) {
       throw new Error('Failed to generate summary');
     }
 
-    if (summary.length > 500) {
-      return summary.substring(0, 497) + '...';
+    const keywords = [
+      ...new Set(
+        parsed.keywords
+          .filter((keyword): keyword is string => typeof keyword === 'string')
+          .map((keyword) => keyword.trim())
+          .filter(Boolean),
+      ),
+    ].slice(0, 12);
+    if (keywords.length === 0) {
+      throw new Error('Failed to generate search keywords');
     }
 
-    return summary;
+    return {
+      summary:
+        summary.length > 500 ? `${summary.substring(0, 497)}...` : summary,
+      keywords,
+    };
   }
 }

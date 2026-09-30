@@ -27,7 +27,10 @@ async function backfillSummaries() {
 
   try {
     const total = await prisma.notice.count({
-      where: { summary: null, deletedAt: null },
+      where: {
+        OR: [{ summary: null }, { keywords: { isEmpty: true } }],
+        deletedAt: null,
+      },
     });
     console.log(`Found ${total} notices to summarize`);
 
@@ -35,7 +38,7 @@ async function backfillSummaries() {
       const notices = await prisma.notice.findMany({
         where: {
           id: { gt: lastNoticeId },
-          summary: null,
+          OR: [{ summary: null }, { keywords: { isEmpty: true } }],
           deletedAt: null,
         },
         select: {
@@ -50,7 +53,7 @@ async function backfillSummaries() {
             orderBy: { id: 'asc' },
           },
         },
-        orderBy: { id: 'desc' },
+        orderBy: { id: 'asc' },
         take: BATCH_SIZE,
       });
 
@@ -72,16 +75,16 @@ async function backfillSummaries() {
             }
 
             try {
-              const summary = await llmService.summarize(content);
+              const { summary, keywords } = await llmService.summarize(content);
               const saved = await prisma.$transaction(async (tx) => {
                 const result = await tx.notice.updateMany({
                   where: {
                     id: notice.id,
                     lastEditedAt: notice.lastEditedAt,
-                    summary: null,
+                    OR: [{ summary: null }, { keywords: { isEmpty: true } }],
                     deletedAt: null,
                   },
-                  data: { summary },
+                  data: { summary, keywords },
                 });
 
                 if (result.count === 0) return false;
@@ -92,7 +95,7 @@ async function backfillSummaries() {
 
               if (saved) {
                 console.log(
-                  `Notice ${notice.id}: Summary added (${summary.length} chars)`,
+                  `Notice ${notice.id}: Summary and ${keywords.length} keywords added (${summary.length} chars)`,
                 );
               } else {
                 console.log(
@@ -114,7 +117,6 @@ async function backfillSummaries() {
       );
 
       console.log(`Progress: ${processed}/${total}`);
-      break;
     }
 
     console.log(

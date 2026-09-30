@@ -127,6 +127,7 @@ export const toGeneralNoticeListItemDto = (
     imageUrls,
     documents,
     summary: notice.summary ?? null,
+    keywords: notice.keywords,
     isViewed: notice.UserRecord[0]?.isViewed ?? false,
     isBookmarked: notice.UserRecord[0]?.isBookmarked ?? false,
   });
@@ -164,6 +165,7 @@ export const toGeneralNoticeDto = (
     imageUrls,
     documents,
     summary: notice.summary ?? null,
+    keywords: notice.keywords,
     isViewed: notice.UserRecord[0]?.isViewed ?? false,
     isBookmarked: notice.UserRecord[0]?.isBookmarked ?? false,
   });

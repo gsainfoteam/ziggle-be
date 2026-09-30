@@ -138,6 +138,10 @@ export class NoticeCommonDto {
   summary: string | null;
 
   @Expose()
+  @ApiProperty({ type: [String] })
+  keywords: string[];
+
+  @Expose()
   @ApiProperty({ type: Boolean })
   isViewed: boolean;
 
@@ -163,6 +167,7 @@ export class NoticeCommonDto {
     this.imageUrls = partial.imageUrls;
     this.documents = partial.documents;
     this.summary = partial.summary;
+    this.keywords = partial.keywords;
     this.isViewed = partial.isViewed;
     this.isBookmarked = partial.isBookmarked;
   }
