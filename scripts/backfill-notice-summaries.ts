@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { NoticeSearchService } from '@lib/notice-search';
 import { PrismaService } from '@lib/prisma';
+import { Prisma } from '@generated/prisma/client';
 import { LlmService } from '../apps/api/src/shared/llm/llm.service';
 import { BackfillNoticeSummariesModule } from './backfill-notice-summaries.module';
 import pLimit from 'p-limit';
@@ -20,7 +21,7 @@ async function backfillSummaries() {
   const noticeSearchService = app.get(NoticeSearchService);
   const limit = pLimit(CONCURRENCY);
 
-  let lastNoticeId = 0;
+  let lastNoticeId: number | null = null;
   let processed = 0;
   let skipped = 0;
   let failed = 0;
@@ -35,12 +36,13 @@ async function backfillSummaries() {
     console.log(`Found ${total} notices to summarize`);
 
     while (true) {
+      const where: Prisma.NoticeWhereInput = {
+        ...(lastNoticeId === null ? {} : { id: { lt: lastNoticeId } }),
+        OR: [{ summary: null }, { keywords: { isEmpty: true } }],
+        deletedAt: null,
+      };
       const notices = await prisma.notice.findMany({
-        where: {
-          id: { gt: lastNoticeId },
-          OR: [{ summary: null }, { keywords: { isEmpty: true } }],
-          deletedAt: null,
-        },
+        where,
         select: {
           id: true,
           lastEditedAt: true,
