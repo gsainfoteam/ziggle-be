@@ -31,7 +31,7 @@ export class LlmService {
         },
       ],
       temperature: 0.5,
-      max_tokens: 200,
+      max_completion_tokens: 1000,
     });
 
     const summary = response.choices[0]?.message?.content?.trim();
