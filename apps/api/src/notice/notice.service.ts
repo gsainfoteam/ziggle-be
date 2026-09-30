@@ -261,7 +261,7 @@ export class NoticeService {
     idx: number,
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    await this.noticeRepository
+    const updatedNotice = await this.noticeRepository
       .addForeignContent(foreignContentDto, id, idx, userUuid)
       .catch((error) => {
         if (error instanceof NotFoundException) {
@@ -269,6 +269,16 @@ export class NoticeService {
         }
         throw error;
       });
+
+    const primaryContent = updatedNotice.contents[0]?.body;
+    if (primaryContent) {
+      await this.summarizeNoticeService.enqueueSummarization(
+        id,
+        primaryContent,
+        updatedNotice.lastEditedAt,
+      );
+    }
+
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
