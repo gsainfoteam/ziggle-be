@@ -4,7 +4,7 @@ import { Logger, Inject } from '@nestjs/common';
 import { SummarizeNoticeQueueData } from './types/queue.type';
 import { PrismaService } from '@lib/prisma';
 import { NoticeSearchService } from '@lib/notice-search';
-import { LlmService } from '@apps/api/src/shared/llm/llm.service';
+import { LlmService } from '../../shared/llm/llm.service';
 
 @Processor('summarize-notice')
 export class SummarizeNoticeConsumer {

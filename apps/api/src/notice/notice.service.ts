@@ -318,7 +318,7 @@ export class NoticeService {
     const updatedNotice = await this.noticeRepository.updateNotice(body, query, id, userUuid);
 
     // Queue summarization job for updated notice
-    const contentBody = body.body || notice.contents[0]?.content || '';
+    const contentBody = body.body || notice.contents[0]?.body || '';
     await this.summarizeNoticeService.enqueueSummarization(
       id,
       contentBody,
