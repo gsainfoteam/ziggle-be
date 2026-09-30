@@ -81,7 +81,8 @@ async function backfillSummaries() {
             messages: [
               {
                 role: 'system',
-                content: 'You are a helpful assistant that summarizes text concisely in Korean. Keep summaries to 500 characters or less.',
+                content:
+                  'You are a helpful assistant that summarizes text concisely in Korean. Keep summaries to 500 characters or less.',
               },
               {
                 role: 'user',
@@ -105,18 +106,34 @@ async function backfillSummaries() {
           }
 
           // Update notice with summary
-          await prisma.notice.update({
-            where: { id: notice.id },
+          const result = await prisma.notice.updateMany({
+            where: {
+              id: notice.id,
+              lastEditedAt: notice.lastEditedAt,
+              summary: null,
+              deletedAt: null,
+            },
             data: { summary },
           });
 
-          console.log(`✓ Notice ${notice.id}: Summary added (${summary.length} chars)`);
+          if (result.count > 0) {
+            console.log(
+              `✓ Notice ${notice.id}: Summary added (${summary.length} chars)`,
+            );
+          } else {
+            console.log(
+              `Notice ${notice.id}: Changed or deleted; skipping update`,
+            );
+          }
           processed++;
 
           // Rate limiting: wait 100ms between requests
           await sleep(100);
         } catch (error) {
-          console.error(`✗ Notice ${notice.id}: Error -`, error instanceof Error ? error.message : String(error));
+          console.error(
+            `✗ Notice ${notice.id}: Error -`,
+            error instanceof Error ? error.message : String(error),
+          );
           processed++;
         }
       }

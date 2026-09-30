@@ -433,6 +433,7 @@ export class NoticeRepository {
             currentDeadline: deadline ?? notice.currentDeadline,
             lastEditedAt: new Date(),
             updatedAt: new Date(),
+            summary: null,
           },
         });
 
@@ -625,6 +626,7 @@ export class NoticeRepository {
             },
             currentDeadline: deadline,
             lastEditedAt: new Date(),
+            summary: null,
           },
         });
 

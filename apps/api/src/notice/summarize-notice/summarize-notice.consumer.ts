@@ -52,7 +52,9 @@ export class SummarizeNoticeConsumer {
 
       // Check if summary already exists
       if (notice.summary) {
-        this.logger.debug(`Summary already exists for notice ${noticeId}. Skipping.`);
+        this.logger.debug(
+          `Summary already exists for notice ${noticeId}. Skipping.`,
+        );
         return;
       }
 
@@ -60,18 +62,33 @@ export class SummarizeNoticeConsumer {
       const summary = await this.llmService.summarize(content);
 
       // Save summary and refresh search fields in a transaction
-      await this.prismaService.$transaction(async (tx) => {
-        // Update notice with summary
-        await tx.notice.update({
-          where: { id: noticeId },
+      const saved = await this.prismaService.$transaction(async (tx) => {
+        const result = await tx.notice.updateMany({
+          where: {
+            id: noticeId,
+            lastEditedAt: new Date(contentVersion),
+            summary: null,
+            deletedAt: null,
+          },
           data: { summary },
         });
 
+        if (result.count === 0) {
+          return false;
+        }
+
         // Refresh search fields (will include summary in plainBody)
         await this.noticeSearchService.refresh(noticeId, tx);
+        return true;
       });
 
-      this.logger.debug(`Summary generated for notice ${noticeId}`);
+      if (saved) {
+        this.logger.debug(`Summary generated for notice ${noticeId}`);
+      } else {
+        this.logger.debug(
+          `Notice ${noticeId} changed or was deleted before summary could be saved. Skipping.`,
+        );
+      }
     } catch (error) {
       this.logger.error(
         `Failed to generate summary for notice ${noticeId}: ${error.message}`,
