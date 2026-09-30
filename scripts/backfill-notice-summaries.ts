@@ -44,6 +44,7 @@ async function backfillSummaries() {
         select: {
           id: true,
           lastEditedAt: true,
+          currentDeadline: true,
           contents: {
             select: { body: true },
             orderBy: { id: 'asc' },
@@ -75,7 +76,10 @@ async function backfillSummaries() {
             }
 
             try {
-              const { summary, keywords } = await llmService.summarize(content);
+              const { summary, keywords } = await llmService.summarize(
+                content,
+                notice.currentDeadline,
+              );
               const saved = await prisma.$transaction(async (tx) => {
                 const result = await tx.notice.updateMany({
                   where: {

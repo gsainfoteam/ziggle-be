@@ -29,6 +29,7 @@ export class SummarizeNoticeConsumer {
         select: {
           id: true,
           lastEditedAt: true,
+          currentDeadline: true,
           summary: true,
           keywords: true,
           contents: {
@@ -60,7 +61,10 @@ export class SummarizeNoticeConsumer {
       }
 
       // Generate summary using LLM
-      const { summary, keywords } = await this.llmService.summarize(content);
+      const { summary, keywords } = await this.llmService.summarize(
+        content,
+        notice.currentDeadline,
+      );
 
       // Save summary and refresh search fields in a transaction
       const saved = await this.prismaService.$transaction(async (tx) => {
