@@ -1,49 +1,45 @@
-import { PrismaClient } from '@generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
-import OpenAI from 'openai';
-import dotenv from 'dotenv';
+import { NestFactory } from '@nestjs/core';
+import { NoticeSearchService } from '@lib/notice-search';
+import { PrismaService } from '@lib/prisma';
+import { LlmService } from '../apps/api/src/shared/llm/llm.service';
+import { BackfillNoticeSummariesModule } from './backfill-notice-summaries.module';
 
-dotenv.config();
+const BATCH_SIZE = 50;
+const RATE_LIMIT_DELAY_MS = 100;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function backfillSummaries() {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-  });
+  const app = await NestFactory.createApplicationContext(
+    BackfillNoticeSummariesModule,
+  );
+  const prisma = app.get(PrismaService);
+  const llmService = app.get(LlmService);
+  const noticeSearchService = app.get(NoticeSearchService);
 
-  const adapter = new PrismaPg(pool);
-  const prisma = new PrismaClient({ adapter });
-
-  const llmClient = new OpenAI({
-    apiKey: process.env.LETSUR_API_KEY,
-    baseURL: process.env.LETSUR_GATEWAY_URL,
-  });
+  let lastNoticeId = 0;
+  let processed = 0;
+  let skipped = 0;
+  let failed = 0;
 
   try {
-    // Fetch all notices without summary
-    const totalNoticesToProcess = await prisma.notice.count({
-      where: {
-        summary: null,
-        deletedAt: null,
-      },
+    const total = await prisma.notice.count({
+      where: { summary: null, deletedAt: null },
     });
+    console.log(`Found ${total} notices to summarize`);
 
-    console.log(`Found ${totalNoticesToProcess} notices to summarize`);
-
-    let processed = 0;
-    let batchSize = 50;
-
-    while (processed < totalNoticesToProcess) {
+    while (true) {
       const notices = await prisma.notice.findMany({
         where: {
+          id: { gt: lastNoticeId },
           summary: null,
           deletedAt: null,
         },
-        include: {
+        select: {
+          id: true,
+          lastEditedAt: true,
           contents: {
-            select: { lang: true, body: true },
+            select: { body: true },
             orderBy: { id: 'asc' },
           },
           crawls: {
@@ -51,104 +47,75 @@ async function backfillSummaries() {
             orderBy: { id: 'asc' },
           },
         },
-        take: batchSize,
-        skip: 0,
+        orderBy: { id: 'asc' },
+        take: BATCH_SIZE,
       });
 
-      if (notices.length === 0) {
-        break;
-      }
+      if (notices.length === 0) break;
 
       for (const notice of notices) {
+        lastNoticeId = notice.id;
+        processed++;
+
+        const content = notice.crawls[0]?.body || notice.contents[0]?.body;
+        if (!content?.trim()) {
+          console.log(`Notice ${notice.id}: No content to summarize; skipping`);
+          skipped++;
+          continue;
+        }
+
         try {
-          // Get content to summarize
-          let contentToSummarize = '';
-          if (notice.crawls.length > 0) {
-            contentToSummarize = notice.crawls[0].body;
-          } else if (notice.contents.length > 0) {
-            contentToSummarize = notice.contents[0].body;
-          }
-
-          if (!contentToSummarize) {
-            console.log(`Notice ${notice.id}: No content to summarize`);
-            processed++;
-            continue;
-          }
-
-          // Generate summary
-          const response = await llmClient.chat.completions.create({
-            model: process.env.LLM_MODEL!,
-            messages: [
-              {
-                role: 'system',
-                content:
-                  'You are a helpful assistant that summarizes text concisely in Korean. Keep summaries to 500 characters or less.',
+          const summary = await llmService.summarize(content);
+          const saved = await prisma.$transaction(async (tx) => {
+            const result = await tx.notice.updateMany({
+              where: {
+                id: notice.id,
+                lastEditedAt: notice.lastEditedAt,
+                summary: null,
+                deletedAt: null,
               },
-              {
-                role: 'user',
-                content: `Please summarize the following text concisely in Korean, keeping it to 500 characters or less:\n\n${contentToSummarize}`,
-              },
-            ],
-            temperature: 0.5,
-            max_tokens: 200,
+              data: { summary },
+            });
+
+            if (result.count === 0) return false;
+
+            await noticeSearchService.refresh(notice.id, tx);
+            return true;
           });
 
-          let summary = response.choices[0]?.message?.content?.trim() || '';
-
-          if (!summary) {
-            console.log(`Notice ${notice.id}: Failed to generate summary`);
-            processed++;
-            continue;
-          }
-
-          if (summary.length > 500) {
-            summary = summary.substring(0, 497) + '...';
-          }
-
-          // Update notice with summary
-          const result = await prisma.notice.updateMany({
-            where: {
-              id: notice.id,
-              lastEditedAt: notice.lastEditedAt,
-              summary: null,
-              deletedAt: null,
-            },
-            data: { summary },
-          });
-
-          if (result.count > 0) {
+          if (saved) {
             console.log(
-              `✓ Notice ${notice.id}: Summary added (${summary.length} chars)`,
+              `Notice ${notice.id}: Summary added (${summary.length} chars)`,
             );
           } else {
             console.log(
               `Notice ${notice.id}: Changed or deleted; skipping update`,
             );
+            skipped++;
           }
-          processed++;
 
-          // Rate limiting: wait 100ms between requests
-          await sleep(100);
+          await sleep(RATE_LIMIT_DELAY_MS);
         } catch (error) {
+          failed++;
           console.error(
-            `✗ Notice ${notice.id}: Error -`,
+            `Notice ${notice.id}: Failed to summarize -`,
             error instanceof Error ? error.message : String(error),
           );
-          processed++;
         }
       }
 
-      console.log(`Progress: ${processed}/${totalNoticesToProcess}`);
+      console.log(`Progress: ${processed}/${total}`);
     }
 
-    console.log(`\n✓ Backfill completed! Processed ${processed} notices.`);
-  } catch (error) {
-    console.error('Fatal error:', error);
-    process.exit(1);
+    console.log(
+      `Backfill completed: ${processed} processed, ${skipped} skipped, ${failed} failed.`,
+    );
   } finally {
-    await prisma.$disconnect();
-    await pool.end();
+    await app.close();
   }
 }
 
-backfillSummaries();
+backfillSummaries().catch((error) => {
+  console.error('Fatal error:', error);
+  process.exitCode = 1;
+});
