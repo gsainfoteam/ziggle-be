@@ -22,7 +22,7 @@ export class SummarizeNoticeService {
         contentVersion: contentVersion.getTime(),
       },
       {
-        jobId: `notice-summarize-${noticeId}`,
+        jobId: `notice-summarize-${noticeId}-${contentVersion.getTime()}`,
       },
     );
   }
