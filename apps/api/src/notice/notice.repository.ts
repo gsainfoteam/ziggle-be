@@ -385,7 +385,7 @@ export class NoticeRepository {
     { title, body, deadline }: AdditionalNoticeDto,
     id: number,
     userUuid: string,
-  ): Promise<Notice> {
+  ): Promise<{ lastEditedAt: Date; contents: { body: string }[] }> {
     const notice = await this.prismaService.notice
       .findUniqueOrThrow({
         where: { id, deletedAt: null, authorId: userUuid },
@@ -435,10 +435,20 @@ export class NoticeRepository {
             updatedAt: new Date(),
             summary: null,
           },
+          include: {
+            contents: {
+              where: { lang: 'ko' },
+              select: { body: true },
+              orderBy: { id: 'asc' },
+            },
+          },
         });
 
         await this.noticeSearchService.refresh(id, tx);
-        return updated;
+        return {
+          lastEditedAt: updated.lastEditedAt,
+          contents: updated.contents,
+        };
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -477,6 +487,7 @@ export class NoticeRepository {
           },
           include: {
             contents: {
+              where: { lang: 'ko' },
               select: { body: true },
               orderBy: { id: 'asc' },
             },
@@ -614,7 +625,7 @@ export class NoticeRepository {
     { idx = 1, lang = 'ko' }: UpdateNoticeQueryDto,
     id: number,
     userUuid: string,
-  ): Promise<Notice> {
+  ): Promise<{ lastEditedAt: Date; contents: { body: string }[] }> {
     return await this.prismaService
       .$transaction(async (tx) => {
         const updatedNotice = await tx.notice.update({
@@ -639,10 +650,20 @@ export class NoticeRepository {
             lastEditedAt: new Date(),
             summary: null,
           },
+          include: {
+            contents: {
+              where: { lang: 'ko' },
+              select: { body: true },
+              orderBy: { id: 'asc' },
+            },
+          },
         });
 
         await this.noticeSearchService.refresh(id, tx);
-        return updatedNotice;
+        return {
+          lastEditedAt: updatedNotice.lastEditedAt,
+          contents: updatedNotice.contents,
+        };
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

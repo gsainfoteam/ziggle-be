@@ -238,12 +238,8 @@ export class NoticeService {
       });
 
     // Summarize the original notice together with all existing and new additions.
-    const contentBody = [
-      ...notice.contents
-        .filter((content) => content.lang === 'ko')
-        .map((content) => content.body),
-      additionalNoticeDto.body,
-    ]
+    const contentBody = updatedNotice.contents
+      .map((content) => content.body)
       .filter(Boolean)
       .join('\n\n');
     await this.summarizeNoticeService.enqueueSummarization(
@@ -270,11 +266,14 @@ export class NoticeService {
         throw error;
       });
 
-    const primaryContent = updatedNotice.contents[0]?.body;
-    if (primaryContent) {
+    const contentBody = updatedNotice.contents
+      .map((content) => content.body)
+      .filter(Boolean)
+      .join('\n\n');
+    if (contentBody) {
       await this.summarizeNoticeService.enqueueSummarization(
         id,
-        primaryContent,
+        contentBody,
         updatedNotice.lastEditedAt,
       );
     }
@@ -328,7 +327,10 @@ export class NoticeService {
     const updatedNotice = await this.noticeRepository.updateNotice(body, query, id, userUuid);
 
     // Queue summarization job for updated notice
-    const contentBody = body.body || notice.contents[0]?.body || '';
+    const contentBody = updatedNotice.contents
+      .map((content) => content.body)
+      .filter(Boolean)
+      .join('\n\n');
     await this.summarizeNoticeService.enqueueSummarization(
       id,
       contentBody,
