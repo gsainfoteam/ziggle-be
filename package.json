@@ -58,6 +58,7 @@
     "firebase-admin": "^13.7.0",
     "html-to-text": "^9.0.5",
     "jsonwebtoken": "^9.0.2",
+    "openai": "^7.25.0",
     "passport-anonymous": "^1.0.1",
     "passport-custom": "^1.1.1",
     "passport-http-bearer": "^1.0.1",
