@@ -43,7 +43,7 @@ export class SummarizeNoticeConsumer {
       });
 
       // Check version: if notice content was edited since job was queued, discard this job
-      if (notice.lastEditedAt.getTime() !== contentVersion.getTime()) {
+      if (notice.lastEditedAt.getTime() !== contentVersion) {
         this.logger.debug(
           `Notice ${noticeId} was updated after job was queued. Discarding job.`,
         );

@@ -19,7 +19,7 @@ export class SummarizeNoticeService {
       {
         noticeId,
         content,
-        contentVersion,
+        contentVersion: contentVersion.getTime(),
       },
       {
         jobId: `notice-summarize-${noticeId}`,

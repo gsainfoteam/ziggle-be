@@ -1,5 +1,5 @@
 export type SummarizeNoticeQueueData = {
   noticeId: number;
   content: string;
-  contentVersion: Date; // lastEditedAt timestamp for deduplication
+  contentVersion: number; // lastEditedAt timestamp in milliseconds
 };
