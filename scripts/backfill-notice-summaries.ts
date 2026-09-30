@@ -47,7 +47,7 @@ async function backfillSummaries() {
             orderBy: { id: 'asc' },
           },
         },
-        orderBy: { id: 'asc' },
+        orderBy: { id: 'desc' },
         take: BATCH_SIZE,
       });
 
