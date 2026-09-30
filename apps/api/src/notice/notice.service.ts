@@ -164,7 +164,7 @@ export class NoticeService {
     await this.summarizeNoticeService.enqueueSummarization(
       createdNotice.id,
       createdNotice.contents[0]?.body || '',
-      createdNotice.updatedAt,
+      createdNotice.lastEditedAt,
     );
 
     return notice;
@@ -242,7 +242,7 @@ export class NoticeService {
     await this.summarizeNoticeService.enqueueSummarization(
       id,
       contentBody,
-      updatedNotice.updatedAt,
+      updatedNotice.lastEditedAt,
     );
 
     return this.getNotice(id, { isViewed: false }, userUuid);
@@ -315,7 +315,7 @@ export class NoticeService {
     await this.summarizeNoticeService.enqueueSummarization(
       id,
       contentBody,
-      updatedNotice.updatedAt,
+      updatedNotice.lastEditedAt,
     );
 
     return this.getNotice(id, { isViewed: false }, userUuid);

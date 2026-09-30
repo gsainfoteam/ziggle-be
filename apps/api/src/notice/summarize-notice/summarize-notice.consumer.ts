@@ -28,7 +28,7 @@ export class SummarizeNoticeConsumer {
         where: { id: noticeId },
         select: {
           id: true,
-          updatedAt: true,
+          lastEditedAt: true,
           summary: true,
           contents: {
             select: { lang: true, title: true, body: true },
@@ -42,8 +42,8 @@ export class SummarizeNoticeConsumer {
         },
       });
 
-      // Check version: if notice was updated since job was queued, discard this job
-      if (notice.updatedAt.getTime() !== contentVersion.getTime()) {
+      // Check version: if notice content was edited since job was queued, discard this job
+      if (notice.lastEditedAt.getTime() !== contentVersion.getTime()) {
         this.logger.debug(
           `Notice ${noticeId} was updated after job was queued. Discarding job.`,
         );

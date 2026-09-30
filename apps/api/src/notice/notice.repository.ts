@@ -602,10 +602,10 @@ export class NoticeRepository {
     { idx = 1, lang = 'ko' }: UpdateNoticeQueryDto,
     id: number,
     userUuid: string,
-  ): Promise<void> {
-    await this.prismaService
+  ): Promise<Notice> {
+    return await this.prismaService
       .$transaction(async (tx) => {
-        await tx.notice.update({
+        const updatedNotice = await tx.notice.update({
           where: { id, authorId: userUuid, deletedAt: null },
           data: {
             contents: {
@@ -629,6 +629,7 @@ export class NoticeRepository {
         });
 
         await this.noticeSearchService.refresh(id, tx);
+        return updatedNotice;
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
