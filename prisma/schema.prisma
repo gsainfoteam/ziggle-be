@@ -147,6 +147,7 @@ model Notice {
   previewKo String    @default("") @map("preview_ko")
   previewEn String?   @map("preview_en")
   plainBody String?   @map("plain_body")
+  summary   String?   @map("summary")
   langs     String[]  @default([])
   deadline  DateTime?
 
