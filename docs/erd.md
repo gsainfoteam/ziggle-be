@@ -103,6 +103,7 @@ ETC ETC
     String preview_ko 
     String preview_en "❓"
     String plain_body "❓"
+    String summary "❓"
     String langs 
     DateTime deadline "❓"
     String author_id 
