@@ -237,8 +237,15 @@ export class NoticeService {
         throw error;
       });
 
-    // Queue summarization job for updated notice (includes all content now)
-    const contentBody = additionalNoticeDto.body || '';
+    // Summarize the original notice together with all existing and new additions.
+    const contentBody = [
+      ...notice.contents
+        .filter((content) => content.lang === 'ko')
+        .map((content) => content.body),
+      additionalNoticeDto.body,
+    ]
+      .filter(Boolean)
+      .join('\n\n');
     await this.summarizeNoticeService.enqueueSummarization(
       id,
       contentBody,
