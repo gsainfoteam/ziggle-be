@@ -9,7 +9,13 @@ import { CustomConfigModule } from '@lib/custom-config';
 
 @Module({
   imports: [
-    BullModule.registerQueue({ name: 'summarize-notice' }),
+    BullModule.registerQueue({
+      name: 'summarize-notice',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 1000 },
+      },
+    }),
     PrismaModule,
     NoticeSearchModule,
     CustomConfigModule,
