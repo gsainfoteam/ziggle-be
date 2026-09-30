@@ -44,6 +44,7 @@ import {
   toExpandedNoticeDto,
   toGeneralNoticeListDto,
 } from './notice.mapper';
+import { SummarizeNoticeService } from './summarize-notice/summarize-notice.service';
 
 @Injectable()
 @Loggable()
@@ -58,6 +59,7 @@ export class NoticeService {
     private readonly noticeRepository: NoticeRepository,
     private readonly fcmService: FcmService,
     private readonly customConfigService: CustomConfigService,
+    private readonly summarizeNoticeService: SummarizeNoticeService,
   ) {
     this.fcmDelay = Number(this.customConfigService.FCM_DELAY);
   }
@@ -158,6 +160,13 @@ export class NoticeService {
       },
     );
 
+    // Queue summarization job
+    await this.summarizeNoticeService.enqueueSummarization(
+      createdNotice.id,
+      createdNotice.contents[0]?.body || '',
+      createdNotice.lastEditedAt,
+    );
+
     return notice;
   }
 
@@ -219,7 +228,7 @@ export class NoticeService {
       throw new BadRequestException("Can't add or remove deadline");
     }
 
-    await this.noticeRepository
+    const updatedNotice = await this.noticeRepository
       .addAdditionalNotice(additionalNoticeDto, id, userUuid)
       .catch((error) => {
         if (error instanceof NotFoundException) {
@@ -227,6 +236,17 @@ export class NoticeService {
         }
         throw error;
       });
+
+    // Summarize the original notice together with all existing and new additions.
+    const contentBody = updatedNotice.contents
+      .map((content) => content.body)
+      .filter(Boolean)
+      .join('\n\n');
+    await this.summarizeNoticeService.enqueueSummarization(
+      id,
+      contentBody,
+      updatedNotice.lastEditedAt,
+    );
 
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
@@ -237,7 +257,7 @@ export class NoticeService {
     idx: number,
     userUuid: string,
   ): Promise<ExpandedGeneralNoticeDto> {
-    await this.noticeRepository
+    const updatedNotice = await this.noticeRepository
       .addForeignContent(foreignContentDto, id, idx, userUuid)
       .catch((error) => {
         if (error instanceof NotFoundException) {
@@ -245,6 +265,19 @@ export class NoticeService {
         }
         throw error;
       });
+
+    const contentBody = updatedNotice.contents
+      .map((content) => content.body)
+      .filter(Boolean)
+      .join('\n\n');
+    if (contentBody) {
+      await this.summarizeNoticeService.enqueueSummarization(
+        id,
+        contentBody,
+        updatedNotice.lastEditedAt,
+      );
+    }
+
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
 
@@ -291,7 +324,18 @@ export class NoticeService {
     if (notice.createdAt.getTime() + 1000 * 60 * 30 < new Date().getTime()) {
       throw new ForbiddenException();
     }
-    await this.noticeRepository.updateNotice(body, query, id, userUuid);
+    const updatedNotice = await this.noticeRepository.updateNotice(body, query, id, userUuid);
+
+    // Queue summarization job for updated notice
+    const contentBody = updatedNotice.contents
+      .map((content) => content.body)
+      .filter(Boolean)
+      .join('\n\n');
+    await this.summarizeNoticeService.enqueueSummarization(
+      id,
+      contentBody,
+      updatedNotice.lastEditedAt,
+    );
 
     return this.getNotice(id, { isViewed: false }, userUuid);
   }

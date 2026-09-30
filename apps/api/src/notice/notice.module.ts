@@ -14,6 +14,7 @@ import { FcmModule } from '../fcm/fcm.module';
 import { InfoteamGroupsModule } from '@lib/infoteam-groups/infoteam-groups.module';
 import { AuthModule } from '../auth/auth.module';
 import { OtelClassSerializerInterceptor } from '../otel/otel-class-serializer.interceptor';
+import { SummarizeNoticeModule } from './summarize-notice/summarize-notice.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { OtelClassSerializerInterceptor } from '../otel/otel-class-serializer.in
     LoggerModule,
     InfoteamGroupsModule,
     AuthModule,
+    SummarizeNoticeModule,
   ],
   controllers: [NoticeController],
   providers: [NoticeService, NoticeRepository, OtelClassSerializerInterceptor],

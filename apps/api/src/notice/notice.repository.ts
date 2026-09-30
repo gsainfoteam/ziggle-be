@@ -385,7 +385,7 @@ export class NoticeRepository {
     { title, body, deadline }: AdditionalNoticeDto,
     id: number,
     userUuid: string,
-  ): Promise<void> {
+  ): Promise<{ lastEditedAt: Date; contents: { body: string }[] }> {
     const notice = await this.prismaService.notice
       .findUniqueOrThrow({
         where: { id, deletedAt: null, authorId: userUuid },
@@ -414,9 +414,10 @@ export class NoticeRepository {
         this.logger.debug(error);
         throw new InternalServerErrorException('Unknown Error');
       });
-    await this.prismaService
+
+    return await this.prismaService
       .$transaction(async (tx) => {
-        await tx.notice.update({
+        const updated = await tx.notice.update({
           where: { id, deletedAt: null, authorId: userUuid },
           data: {
             contents: {
@@ -432,10 +433,23 @@ export class NoticeRepository {
             currentDeadline: deadline ?? notice.currentDeadline,
             lastEditedAt: new Date(),
             updatedAt: new Date(),
+            summary: null,
+            keywords: [],
+          },
+          include: {
+            contents: {
+              where: { lang: 'ko' },
+              select: { body: true },
+              orderBy: { id: 'asc' },
+            },
           },
         });
 
         await this.noticeSearchService.refresh(id, tx);
+        return {
+          lastEditedAt: updated.lastEditedAt,
+          contents: updated.contents,
+        };
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -454,10 +468,10 @@ export class NoticeRepository {
     id: number,
     contentIdx: number,
     userUuid: string,
-  ): Promise<void> {
-    await this.prismaService
+  ): Promise<{ lastEditedAt: Date; contents: { body: string }[] }> {
+    return await this.prismaService
       .$transaction(async (tx) => {
-        await tx.notice.update({
+        const updatedNotice = await tx.notice.update({
           where: { id, authorId: userUuid, deletedAt: null },
           data: {
             contents: {
@@ -470,10 +484,23 @@ export class NoticeRepository {
               },
             },
             lastEditedAt: new Date(),
+            summary: null,
+            keywords: [],
+          },
+          include: {
+            contents: {
+              where: { lang: 'ko' },
+              select: { body: true },
+              orderBy: { id: 'asc' },
+            },
           },
         });
 
         await this.noticeSearchService.refresh(id, tx);
+        return {
+          lastEditedAt: updatedNotice.lastEditedAt,
+          contents: updatedNotice.contents,
+        };
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -600,10 +627,10 @@ export class NoticeRepository {
     { idx = 1, lang = 'ko' }: UpdateNoticeQueryDto,
     id: number,
     userUuid: string,
-  ): Promise<void> {
-    await this.prismaService
+  ): Promise<{ lastEditedAt: Date; contents: { body: string }[] }> {
+    return await this.prismaService
       .$transaction(async (tx) => {
-        await tx.notice.update({
+        const updatedNotice = await tx.notice.update({
           where: { id, authorId: userUuid, deletedAt: null },
           data: {
             contents: {
@@ -623,10 +650,23 @@ export class NoticeRepository {
             },
             currentDeadline: deadline,
             lastEditedAt: new Date(),
+            summary: null,
+            keywords: [],
+          },
+          include: {
+            contents: {
+              where: { lang: 'ko' },
+              select: { body: true },
+              orderBy: { id: 'asc' },
+            },
           },
         });
 
         await this.noticeSearchService.refresh(id, tx);
+        return {
+          lastEditedAt: updatedNotice.lastEditedAt,
+          contents: updatedNotice.contents,
+        };
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
