@@ -102,6 +102,18 @@ export class CustomConfigService {
     return this.getEnvVariable('JWT_ISSUER');
   }
 
+  get LETSUR_GATEWAY_URL(): string {
+    return this.getEnvVariable('LETSUR_GATEWAY_URL');
+  }
+
+  get LETSUR_API_KEY(): string {
+    return this.getEnvVariable('LETSUR_API_KEY');
+  }
+
+  get LLM_MODEL(): string {
+    return this.getEnvVariable('LLM_MODEL');
+  }
+
   get JWT_AUDIENCE(): string {
     return this.getEnvVariable('JWT_AUDIENCE');
   }

@@ -113,6 +113,18 @@ export class EnvironmentVariables {
   @IsNotEmpty()
   REFRESH_TOKEN_EXPIRE!: string;
 
+  @IsString()
+  @IsNotEmpty()
+  LETSUR_GATEWAY_URL!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  LETSUR_API_KEY!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  LLM_MODEL!: string;
+
   @IsOptional()
   @IsNumber()
   @Min(200)
