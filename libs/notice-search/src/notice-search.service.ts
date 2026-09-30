@@ -20,7 +20,7 @@ export class NoticeSearchService {
   ) {}
 
   async refresh(noticeId: number, tx: Prisma.TransactionClient): Promise<void> {
-    const { contents, crawls, tags } =
+    const { summary, contents, crawls, tags } =
       await this.noticeSearchRepository.getSource(noticeId, tx);
 
     const sources =
@@ -52,6 +52,18 @@ export class NoticeSearchService {
     const ko = byLang.get('ko');
     const en = byLang.get('en');
 
+    // Build plainBody from bodies, titles, tags, and summary
+    const plainBodyParts = [
+      ...plainBodies,
+      ...sources.map(({ title }) => title ?? ''),
+      ...tags.map(({ name }) => name),
+    ];
+
+    // Include summary if it exists
+    if (summary) {
+      plainBodyParts.push(summary);
+    }
+
     await this.noticeSearchRepository.updateSearchFields(
       noticeId,
       {
@@ -59,13 +71,7 @@ export class NoticeSearchService {
         titleEn: en?.title ?? null,
         previewKo: ko?.preview ?? '',
         previewEn: en?.preview ?? null,
-        plainBody: [
-          ...plainBodies,
-          ...sources.map(({ title }) => title ?? ''),
-          ...tags.map(({ name }) => name),
-        ]
-          .join(' ')
-          .trim(),
+        plainBody: plainBodyParts.join(' ').trim(),
         langs: [...byLang.keys()],
         deadline: ko?.deadline ?? null,
       },

@@ -126,6 +126,7 @@ export const toGeneralNoticeListItemDto = (
     publishedAt: notice.publishedAt,
     imageUrls,
     documents,
+    summary: notice.summary ?? null,
     isViewed: notice.UserRecord[0]?.isViewed ?? false,
     isBookmarked: notice.UserRecord[0]?.isBookmarked ?? false,
   });
@@ -162,6 +163,7 @@ export const toGeneralNoticeDto = (
     publishedAt: notice.publishedAt,
     imageUrls,
     documents,
+    summary: notice.summary ?? null,
     isViewed: notice.UserRecord[0]?.isViewed ?? false,
     isBookmarked: notice.UserRecord[0]?.isBookmarked ?? false,
   });

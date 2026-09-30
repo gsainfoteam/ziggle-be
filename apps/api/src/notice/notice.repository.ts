@@ -385,7 +385,7 @@ export class NoticeRepository {
     { title, body, deadline }: AdditionalNoticeDto,
     id: number,
     userUuid: string,
-  ): Promise<void> {
+  ): Promise<Notice> {
     const notice = await this.prismaService.notice
       .findUniqueOrThrow({
         where: { id, deletedAt: null, authorId: userUuid },
@@ -414,9 +414,10 @@ export class NoticeRepository {
         this.logger.debug(error);
         throw new InternalServerErrorException('Unknown Error');
       });
-    await this.prismaService
+
+    return await this.prismaService
       .$transaction(async (tx) => {
-        await tx.notice.update({
+        const updated = await tx.notice.update({
           where: { id, deletedAt: null, authorId: userUuid },
           data: {
             contents: {
@@ -436,6 +437,7 @@ export class NoticeRepository {
         });
 
         await this.noticeSearchService.refresh(id, tx);
+        return updated;
       })
       .catch((error) => {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

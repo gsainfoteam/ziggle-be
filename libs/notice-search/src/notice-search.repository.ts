@@ -9,6 +9,7 @@ export class NoticeSearchRepository {
     return tx.notice.findUniqueOrThrow({
       where: { id: noticeId },
       select: {
+        summary: true,
         contents: {
           select: { lang: true, title: true, body: true, deadline: true },
           orderBy: { id: 'asc' },

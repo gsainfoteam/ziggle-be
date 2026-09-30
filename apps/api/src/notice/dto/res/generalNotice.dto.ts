@@ -134,6 +134,10 @@ export class NoticeCommonDto {
   documents: DocumentDto[];
 
   @Expose()
+  @ApiPropertyOptional({ type: String })
+  summary: string | null;
+
+  @Expose()
   @ApiProperty({ type: Boolean })
   isViewed: boolean;
 
@@ -158,6 +162,7 @@ export class NoticeCommonDto {
     this.publishedAt = partial.publishedAt;
     this.imageUrls = partial.imageUrls;
     this.documents = partial.documents;
+    this.summary = partial.summary;
     this.isViewed = partial.isViewed;
     this.isBookmarked = partial.isBookmarked;
   }

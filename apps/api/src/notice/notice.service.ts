@@ -44,6 +44,7 @@ import {
   toExpandedNoticeDto,
   toGeneralNoticeListDto,
 } from './notice.mapper';
+import { SummarizeNoticeService } from './summarize-notice/summarize-notice.service';
 
 @Injectable()
 @Loggable()
@@ -58,6 +59,7 @@ export class NoticeService {
     private readonly noticeRepository: NoticeRepository,
     private readonly fcmService: FcmService,
     private readonly customConfigService: CustomConfigService,
+    private readonly summarizeNoticeService: SummarizeNoticeService,
   ) {
     this.fcmDelay = Number(this.customConfigService.FCM_DELAY);
   }
@@ -158,6 +160,13 @@ export class NoticeService {
       },
     );
 
+    // Queue summarization job
+    await this.summarizeNoticeService.enqueueSummarization(
+      createdNotice.id,
+      createdNotice.contents[0]?.body || '',
+      createdNotice.updatedAt,
+    );
+
     return notice;
   }
 
@@ -219,7 +228,7 @@ export class NoticeService {
       throw new BadRequestException("Can't add or remove deadline");
     }
 
-    await this.noticeRepository
+    const updatedNotice = await this.noticeRepository
       .addAdditionalNotice(additionalNoticeDto, id, userUuid)
       .catch((error) => {
         if (error instanceof NotFoundException) {
@@ -227,6 +236,14 @@ export class NoticeService {
         }
         throw error;
       });
+
+    // Queue summarization job for updated notice (includes all content now)
+    const contentBody = additionalNoticeDto.body || '';
+    await this.summarizeNoticeService.enqueueSummarization(
+      id,
+      contentBody,
+      updatedNotice.updatedAt,
+    );
 
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
@@ -291,7 +308,15 @@ export class NoticeService {
     if (notice.createdAt.getTime() + 1000 * 60 * 30 < new Date().getTime()) {
       throw new ForbiddenException();
     }
-    await this.noticeRepository.updateNotice(body, query, id, userUuid);
+    const updatedNotice = await this.noticeRepository.updateNotice(body, query, id, userUuid);
+
+    // Queue summarization job for updated notice
+    const contentBody = body.body || notice.contents[0]?.content || '';
+    await this.summarizeNoticeService.enqueueSummarization(
+      id,
+      contentBody,
+      updatedNotice.updatedAt,
+    );
 
     return this.getNotice(id, { isViewed: false }, userUuid);
   }
