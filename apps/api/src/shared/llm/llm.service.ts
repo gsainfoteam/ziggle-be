@@ -36,6 +36,25 @@ export class LlmService {
           content: `다음 공지 내용을 요약하고, 검색에 유용한 키워드를 별도의 배열로 추출해 주세요. 요약과 키워드를 한 필드에 섞지 말고 지정한 JSON 형식으로만 답변해 주세요.\n\n${text}`,
         },
       ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'notice_summary',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              summary: { type: 'string' },
+              keywords: {
+                type: 'array',
+                items: { type: 'string' },
+              },
+            },
+            required: ['summary', 'keywords'],
+            additionalProperties: false,
+          },
+        },
+      },
       max_completion_tokens: 1000,
     });
 
