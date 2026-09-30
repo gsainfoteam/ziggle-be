@@ -30,7 +30,6 @@ export class LlmService {
           content: `Please summarize the following text concisely in Korean, keeping it to 500 characters or less:\n\n${text}`,
         },
       ],
-      temperature: 0.5,
       max_completion_tokens: 1000,
     });
 
