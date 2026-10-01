@@ -114,6 +114,10 @@ export class CustomConfigService {
     return this.getEnvVariable('LLM_MODEL');
   }
 
+  get MCP_API_KEY(): string {
+    return this.getEnvVariable('MCP_API_KEY');
+  }
+
   get JWT_AUDIENCE(): string {
     return this.getEnvVariable('JWT_AUDIENCE');
   }

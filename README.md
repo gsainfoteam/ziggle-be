@@ -30,6 +30,20 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Chatbot MCP server
+
+Set `MCP_API_KEY` to a secret of at least 32 characters. MCP requests must send
+it in the `X-Api-Key` header. If the key is unset, MCP requests return `401`.
+Connect an MCP client to `POST /mcp` using the Streamable HTTP transport.
+
+The server exposes two tools:
+
+- `search_notices` accepts a `query` and optional `limit` (1–50, defaults to
+  10). It searches existing notice content and returns matching `id`, `title`,
+  and `summary` values.
+- `get_notice` accepts an `id` and returns the notice's `id` and original
+  `body`.
+
 ## Test
 
 ```bash

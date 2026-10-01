@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  MinLength,
   validateSync,
 } from 'class-validator';
 
@@ -124,6 +125,11 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   LLM_MODEL!: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(32)
+  MCP_API_KEY?: string;
 
   @IsOptional()
   @IsNumber()
