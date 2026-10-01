@@ -54,6 +54,7 @@ export class NoticeSearchService {
 
     // Build plainBody from bodies, titles, tags, summary, and keywords
     const plainBodyParts = [
+      ko?.title ?? en?.title ?? '',
       ...plainBodies,
       ...sources.map(({ title }) => title ?? ''),
       ...tags.map(({ name }) => name),
@@ -72,7 +73,7 @@ export class NoticeSearchService {
         titleEn: en?.title ?? null,
         previewKo: ko?.preview ?? '',
         previewEn: en?.preview ?? null,
-        plainBody: plainBodyParts.join(' ').trim(),
+        plainBody: plainBodyParts.join('\n').trim(),
         langs: [...byLang.keys()],
         deadline: ko?.deadline ?? null,
       },
