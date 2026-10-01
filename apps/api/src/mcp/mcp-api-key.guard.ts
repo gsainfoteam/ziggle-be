@@ -18,7 +18,6 @@ export class McpApiKeyGuard implements CanActivate {
     const providedKey = request.headers['x-api-key'];
 
     if (
-      !expectedKey ||
       typeof providedKey !== 'string' ||
       Buffer.byteLength(expectedKey) !== Buffer.byteLength(providedKey)
     ) {
