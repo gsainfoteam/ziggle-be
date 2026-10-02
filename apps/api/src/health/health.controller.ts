@@ -34,7 +34,10 @@ export class HealthController {
     this.logger.log('Health check');
     return this.health.check([
       () =>
-        this.http.pingCheck('infoteam-idp', this.configService.IDP_BASE_URL),
+        this.http.pingCheck(
+          'infoteam-idp',
+          `${this.configService.IDP_BASE_URL}/health`,
+        ),
       () =>
         this.prisma.pingCheck('database', this.prismaService, {
           timeout: this.prismaHealthTimeoutMs,
