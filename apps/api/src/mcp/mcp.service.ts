@@ -50,9 +50,7 @@ export class McpService {
 
     const koreanContent = notice.contents.find(({ lang }) => lang === 'ko');
     const body =
-      notice.crawls[0]?.body ??
-      koreanContent?.body ??
-      notice.contents[0]?.body;
+      notice.crawls[0]?.body ?? koreanContent?.body ?? notice.contents[0]?.body;
 
     if (body === undefined) {
       throw new NotFoundException(`Notice with id ${id} has no body`);

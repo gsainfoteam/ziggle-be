@@ -324,7 +324,12 @@ export class NoticeService {
     if (notice.createdAt.getTime() + 1000 * 60 * 30 < new Date().getTime()) {
       throw new ForbiddenException();
     }
-    const updatedNotice = await this.noticeRepository.updateNotice(body, query, id, userUuid);
+    const updatedNotice = await this.noticeRepository.updateNotice(
+      body,
+      query,
+      id,
+      userUuid,
+    );
 
     // Queue summarization job for updated notice
     const contentBody = updatedNotice.contents

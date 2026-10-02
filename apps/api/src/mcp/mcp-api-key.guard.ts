@@ -24,9 +24,7 @@ export class McpApiKeyGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
-    if (
-      !timingSafeEqual(Buffer.from(expectedKey), Buffer.from(providedKey))
-    ) {
+    if (!timingSafeEqual(Buffer.from(expectedKey), Buffer.from(providedKey))) {
       throw new UnauthorizedException();
     }
 
