@@ -20,8 +20,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./apps/api/test/jest-e2e.json",
-    "test:crawler": "jest --config ./apps/crawler/test/jest.json"
+    "test:crawler": "jest apps/crawler"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.521.0",
@@ -115,13 +114,9 @@
       "ts"
     ],
     "moduleNameMapper": {
-      "^src/(.*)$": "<rootDir>/src/$1",
       "^@generated/prisma/client$": "<rootDir>/generated/prisma/client/client.ts",
-      "^@lib/prisma(|/.*)$": "<rootDir>/libs/prisma/src/$1",
-      "^@lib/infoteam-idp(|/.*)$": "<rootDir>/libs/infoteam-idp/src/$1",
-      "^@lib/logger(|/.*)$": "<rootDir>/libs/logger/src/$1",
-      "^@lib/config(|/.*)$": "<rootDir>/libs/config/src/$1",
-      "^@lib/custom-config(|/.*)$": "<rootDir>/libs/custom-config/src/$1"
+      "^@lib/([^/]+)(|/.*)$": "<rootDir>/libs/$1/src$2",
+      "^libs/(.*)$": "<rootDir>/libs/$1"
     },
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
@@ -136,6 +131,9 @@
     "roots": [
       "<rootDir>/libs/",
       "<rootDir>/apps/"
+    ],
+    "setupFiles": [
+      "<rootDir>/test/setup-env.ts"
     ]
   }
 }
