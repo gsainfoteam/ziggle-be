@@ -70,7 +70,7 @@ jobs:
 
       - name: Update Kubernetes Manifest
         run: |
-          sed -i "s|image:.*|image: $REGISTRY\/$REPOSITORY:$IMAGE_TAG|g" infoteam/service/ziggle/crawler.stg.yaml
+          sed -i "s|image:.*|image: $REGISTRY\/$REPOSITORY:$IMAGE_TAG|g" infoteam/service-v2/ziggle/staging/crawler.yaml
 
       - name: Commit and Push\
         run: |
