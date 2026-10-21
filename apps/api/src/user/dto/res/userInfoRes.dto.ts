@@ -22,6 +22,12 @@ export class UserInfoRes implements UserInfo {
   name!: string;
 
   @ApiProperty({
+    description: 'Whether the user has admin permission',
+    example: false,
+  })
+  isAdmin!: boolean;
+
+  @ApiProperty({
     type: String,
     nullable: true,
     description: 'User profile image',

@@ -13,6 +13,7 @@ import { RedisModule } from 'libs/redis/src';
 import ms, { StringValue } from 'ms';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { AdminGuard } from './guard/admin.guard';
 
 @Module({
   imports: [
@@ -39,12 +40,13 @@ import { AuthController } from './auth.controller';
     AuthService,
     AuthRepository,
     JwtGuard,
+    AdminGuard,
     JwtOptionalGuard,
     JwtStrategy,
     JwtOptionalStrategy,
     AnonymousStrategy,
   ],
   controllers: [AuthController],
-  exports: [JwtOptionalGuard, JwtGuard],
+  exports: [JwtOptionalGuard, JwtGuard, AdminGuard],
 })
 export class AuthModule {}

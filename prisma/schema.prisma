@@ -38,6 +38,7 @@ model User {
   picture   String?
   createdAt DateTime  @default(now()) @map("created_at")
   consent   DateTime?
+  isAdmin   Boolean   @default(false) @map("is_admin")
 
   remindedNotices Notice[]     @relation("Reminder")
   writedNotices   Notice[]

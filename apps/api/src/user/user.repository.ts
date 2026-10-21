@@ -18,6 +18,24 @@ export class UserRepository {
   private readonly logger = new Logger(UserRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
+  async setAdmin(uuid: string, isAdmin: boolean): Promise<User> {
+    return this.prismaService.user
+      .update({
+        where: { uuid },
+        data: { isAdmin },
+      })
+      .catch((err) => {
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === 'P2025'
+        ) {
+          throw new NotFoundException('User not found');
+        }
+        this.logger.error(err);
+        throw new InternalServerErrorException();
+      });
+  }
+
   async setConsent(user: User): Promise<User> {
     return this.prismaService.user
       .update({

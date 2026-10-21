@@ -44,6 +44,10 @@ The server exposes two tools:
 - `get_notice` accepts an `id` and returns the notice's `id` and original
   `body`.
 
+## Admin
+
+Admin 구분 및 권한 변경 API는 [Admin 권한 문서](./docs/admin.md)를 참고하세요.
+
 ## Test
 
 ```bash

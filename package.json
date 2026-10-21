@@ -115,6 +115,7 @@
       "ts"
     ],
     "moduleNameMapper": {
+      "^libs/(.*)$": "<rootDir>/libs/$1",
       "^src/(.*)$": "<rootDir>/src/$1",
       "^@generated/prisma/client$": "<rootDir>/generated/prisma/client/client.ts",
       "^@lib/prisma(|/.*)$": "<rootDir>/libs/prisma/src/$1",
