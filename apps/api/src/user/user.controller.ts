@@ -5,10 +5,10 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
   Post,
-  Req,
-  Res,
-  UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -23,6 +23,8 @@ import {
   ApiTags,
   ApiForbiddenResponse,
   ApiUnauthorizedResponse,
+  ApiBadRequestResponse,
+  ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import { User } from '@generated/prisma/client';
 import { GetUser } from './decorator/get-user.decorator';
@@ -30,6 +32,8 @@ import { UserInfoRes } from './dto/res/userInfoRes.dto';
 import { setFcmTokenRes } from './dto/res/setFcmTokenRes.dto';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { JwtGuard, JwtOptionalGuard } from '../auth/guard/jwt.guard';
+import { AdminGuard } from '../auth/guard/admin.guard';
+import { SetAdminReq } from './dto/req/setAdminReq.dto';
 
 @ApiTags('user')
 @Controller('user')
@@ -64,6 +68,27 @@ export class UserController {
   @UseGuards(JwtGuard)
   async getUserInfo(@GetUser() user: User): Promise<UserInfoRes> {
     return user;
+  }
+
+  @ApiOperation({
+    summary: 'set user admin permission',
+    description:
+      'Grant or revoke admin permission. Only admins can call this API.',
+  })
+  @ApiOkResponse({ type: UserInfoRes, description: 'Return updated user info' })
+  @ApiBadRequestResponse({ description: 'Invalid UUID or admin permission' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Consent or admin permission required' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
+  @ApiBearerAuth('jwt')
+  @Patch(':uuid/admin')
+  @UseGuards(JwtGuard, AdminGuard)
+  async setAdmin(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @Body() { isAdmin }: SetAdminReq,
+  ): Promise<UserInfoRes> {
+    return this.userService.setAdmin(uuid, isAdmin);
   }
 
   @ApiOperation({

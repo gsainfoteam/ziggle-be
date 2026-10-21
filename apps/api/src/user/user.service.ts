@@ -3,7 +3,6 @@ import { UserRepository } from './user.repository';
 import { User } from '@generated/prisma/client';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { Loggable } from '@lib/logger/decorator/loggable';
-import { JwtTokenType } from '../auth/types/jwtToken.type';
 import { InfoteamIdpService } from '@lib/infoteam-idp';
 import { Trace } from '../otel/trace.decorator';
 
@@ -24,6 +23,10 @@ export class UserService {
    */
   async setConsent(user: User): Promise<void> {
     await this.userRepository.setConsent(user);
+  }
+
+  async setAdmin(uuid: string, isAdmin: boolean): Promise<User> {
+    return this.userRepository.setAdmin(uuid, isAdmin);
   }
 
   async findOrCreateTempUser(user: Pick<User, 'name'>): Promise<User> {

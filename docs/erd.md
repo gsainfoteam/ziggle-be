@@ -29,6 +29,7 @@ ETC ETC
     String picture "❓"
     DateTime created_at 
     DateTime consent "❓"
+    Boolean is_admin
     }
   
 
