@@ -1,11 +1,11 @@
 #Step 1: Build the app in image 'builder'
-FROM node:24-alpine3.22 AS builder
+FROM node:24.22.1-alpine3.23 AS builder
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-RUN apk add --no-cache build-base libheif vips-dev vips openssl
+RUN apk add --no-cache build-base libheif vips openssl
 RUN npm ci
 
 # Build stage only: Prisma generate requires DATABASE_URL to be defined.
@@ -24,7 +24,7 @@ RUN npm run build
 RUN npm prune --omit=dev
 
 #Step 2: Copy the build from 'builder' to 'runner'
-FROM node:24-alpine3.22
+FROM node:24.22.1-alpine3.23
 
 WORKDIR /app
 
