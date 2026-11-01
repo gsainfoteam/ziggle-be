@@ -61,6 +61,12 @@ Admin 구분 및 권한 변경 API는 [Admin 권한 문서](./docs/admin.md)를 
 
 ## Test
 
+`generated/`는 커밋하지 않으므로 테스트 전에 Prisma client를 한 번 생성합니다.
+
+```bash
+$ DATABASE_URL=dummy npx prisma generate --generator client
+```
+
 ```bash
 # unit tests
 $ npm run test
