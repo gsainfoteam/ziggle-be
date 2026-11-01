@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 RUN apk add --no-cache build-base libheif vips openssl
-RUN npm ci
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci
 
 # Build stage only: Prisma generate requires DATABASE_URL to be defined.
 # Value is dummy to avoid error during build.
