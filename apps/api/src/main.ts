@@ -94,28 +94,6 @@ async function bootstrap() {
     )
     .setVersion('1.0')
     .addTag('Ziggle')
-    .addOAuth2(
-      {
-        type: 'oauth2',
-        scheme: 'bearer',
-        name: 'idp-token',
-        in: 'header',
-        bearerFormat: 'token',
-        flows: {
-          authorizationCode: {
-            authorizationUrl: customConfigService.SWAGGER_AUTH_URL,
-            tokenUrl: customConfigService.SWAGGER_TOKEN_URL,
-            scopes: {
-              openid: 'openid',
-              email: 'email',
-              name: ' name',
-              picture: 'picture',
-            },
-          },
-        },
-      },
-      'oauth2',
-    )
     .addBearerAuth(
       {
         type: 'http',
@@ -136,13 +114,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
-      oauth2RedirectUrl: `${customConfigService.API_URL}/api/oauth2-redirect.html`,
       displayRequestDuration: true,
-      initOAuth: {
-        usePkceWithAuthorizationCodeGrant: true,
-        additionalQueryStringParams: { nonce: 'help' },
-        clientId: customConfigService.CLIENT_ID,
-      },
     },
   });
 

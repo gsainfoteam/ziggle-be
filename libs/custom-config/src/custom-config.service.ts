@@ -10,10 +10,6 @@ export class CustomConfigService {
     return this.configService.getOrThrow(key);
   }
 
-  get IDP_URL(): string {
-    return this.getEnvVariable('IDP_URL');
-  }
-
   get IDP_BASE_URL(): string {
     return this.getEnvVariable('IDP_BASE_URL');
   }
@@ -28,14 +24,6 @@ export class CustomConfigService {
 
   get SWAGGER_PASSWORD(): string {
     return this.getEnvVariable('SWAGGER_PASSWORD');
-  }
-
-  get SWAGGER_AUTH_URL(): string {
-    return this.getEnvVariable('SWAGGER_AUTH_URL');
-  }
-
-  get SWAGGER_TOKEN_URL(): string {
-    return this.getEnvVariable('SWAGGER_TOKEN_URL');
   }
 
   get API_URL(): string {
@@ -74,6 +62,10 @@ export class CustomConfigService {
     return this.getEnvVariable('CLIENT_SECRET');
   }
 
+  get SESSION_SECRET(): string {
+    return this.getEnvVariable('SESSION_SECRET');
+  }
+
   get REDIS_HOST(): string {
     return this.getEnvVariable('REDIS_HOST');
   }
@@ -94,14 +86,6 @@ export class CustomConfigService {
     return this.getEnvVariable('CRAWLING_UPTIME_URI');
   }
 
-  get JWT_SECRET(): string {
-    return this.getEnvVariable('JWT_SECRET');
-  }
-
-  get JWT_ISSUER(): string {
-    return this.getEnvVariable('JWT_ISSUER');
-  }
-
   get LETSUR_GATEWAY_URL(): string {
     return this.getEnvVariable('LETSUR_GATEWAY_URL');
   }
@@ -116,10 +100,6 @@ export class CustomConfigService {
 
   get MCP_API_KEY(): string {
     return this.getEnvVariable('MCP_API_KEY');
-  }
-
-  get JWT_AUDIENCE(): string {
-    return this.getEnvVariable('JWT_AUDIENCE');
   }
 
   get JWT_EXPIRE(): string {

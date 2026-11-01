@@ -1,19 +1,17 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
+  "rootDir": "../../..",
   "testEnvironment": "node",
-  "testRegex": ".e2e-spec.ts$",
+  "testRegex": "apps/api/test/.*\\.e2e-spec\\.ts$",
+  "setupFiles": ["<rootDir>/apps/api/test/test-env.ts"],
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": { "allowJs": true } }]
   },
+  "transformIgnorePatterns": [
+    "/node_modules/(?!@gsainfoteam|jose|oauth4webapi|@faker-js)"
+  ],
   "moduleNameMapper": {
-    "@lib/prisma/(.*)": "<rootDir>/../libs/prisma/src/$1",
-    "@lib/prisma": "<rootDir>/../libs/prisma/src",
-    "@lib/infoteam-idp/(.*)": "<rootDir>/../libs/infoteam-idp/src/$1",
-    "@lib/infoteam-idp": "<rootDir>/../libs/infoteam-idp/src",
-    "@lib/logger/(.*)": "<rootDir>/../libs/logger/src/$1",
-    "@lib/logger": "<rootDir>/../libs/logger/src",
-    "@lib/custom-config/(.*)": "<rootDir>/../libs/custom-config/src/$1",
-    "@lib/custom-config": "<rootDir>/../libs/custom-config/src"
+    "^@generated/prisma/client$": "<rootDir>/generated/prisma/client/client.ts",
+    "^@lib/([^/]+)(|/.*)$": "<rootDir>/libs/$1/src$2"
   }
 }

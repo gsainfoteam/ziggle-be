@@ -3,7 +3,6 @@ import { UserRepository } from './user.repository';
 import { User } from '@generated/prisma/client';
 import { setFcmTokenReq } from './dto/req/setFcmTokenReq.dto';
 import { Loggable } from '@lib/logger/decorator/loggable';
-import { InfoteamIdpService } from '@lib/infoteam-idp';
 import { Trace } from '../otel/trace.decorator';
 
 @Injectable()
@@ -11,10 +10,7 @@ import { Trace } from '../otel/trace.decorator';
 @Trace()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
-  constructor(
-    private readonly userRepository: UserRepository,
-    private readonly infoteamIdpService: InfoteamIdpService,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   /**
    * this method is used to set the user consent about ziggle service

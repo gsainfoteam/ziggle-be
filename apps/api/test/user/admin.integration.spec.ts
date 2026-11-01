@@ -1,11 +1,11 @@
+import { memorySessionStore } from '@gsainfoteam/account-nest';
+import { createFakeIdp, fakeUser } from '@gsainfoteam/account-testing';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { Prisma, User } from '@generated/prisma/client';
 import { PrismaService } from '@lib/prisma';
-import { InfoteamIdpService } from '@lib/infoteam-idp';
-import { CustomConfigService } from '@lib/custom-config';
-import { sign } from 'jsonwebtoken';
 import request from 'supertest';
+import { AccountModule } from '../../src/auth/account';
 import { AuthRepository } from '../../src/auth/auth.repository';
 import { AuthService } from '../../src/auth/auth.service';
 import { AdminGuard } from '../../src/auth/guard/admin.guard';
@@ -21,23 +21,32 @@ describe('Admin permission API', () => {
   const adminUuid = '123e4567-e89b-42d3-a456-426614174000';
   const targetUuid = '123e4567-e89b-42d3-a456-426614174001';
   const missingUuid = '123e4567-e89b-42d3-a456-426614174002';
-  const secret = 'admin-integration-test-secret';
+  const clientId = 'ziggle-test';
   const update = jest.fn();
   const findUniqueOrThrow = jest.fn();
-  const token = (uuid: string, signingSecret = secret) =>
-    sign({}, signingSecret, {
-      subject: uuid,
-      issuer: 'ziggle-test',
-      audience: 'ziggle-test',
-      expiresIn: '1h',
-    });
+  const tokens = new Map<string, string>();
+  const token = (uuid: string) => tokens.get(uuid)!;
 
   beforeAll(async () => {
+    const idp = await createFakeIdp();
+    jest.spyOn(globalThis, 'fetch').mockImplementation(idp.fetch);
     const prisma = { user: { update, findUniqueOrThrow } };
     const authRepository = new AuthRepository(
       prisma as unknown as PrismaService,
     );
     const module = await Test.createTestingModule({
+      imports: [
+        AccountModule.forRoot({
+          issuer: 'staging',
+          clientId,
+          clientSecret: 'ziggle-test-secret',
+          session: {
+            secret: 'admin-integration-test-secret-32-chars',
+            store: memorySessionStore(),
+            resolve: (user) => ({ subject: user.sub }),
+          },
+        }),
+      ],
       controllers: [UserController],
       providers: [
         UserService,
@@ -46,7 +55,6 @@ describe('Admin permission API', () => {
         JwtGuard,
         AdminGuard,
         { provide: PrismaService, useValue: prisma },
-        { provide: InfoteamIdpService, useValue: {} },
         {
           provide: AuthService,
           useValue: {
@@ -54,19 +62,23 @@ describe('Admin permission API', () => {
               authRepository.findUserByUuid(uuid),
           },
         },
-        {
-          provide: CustomConfigService,
-          useValue: {
-            JWT_SECRET: secret,
-            JWT_ISSUER: 'ziggle-test',
-            JWT_AUDIENCE: 'ziggle-test',
-          },
-        },
       ],
     }).compile();
     app = module.createNestApplication();
     app.useLogger(false);
     await app.init();
+
+    for (const uuid of [adminUuid, targetUuid, missingUuid]) {
+      const { body } = await idp.authorize({
+        clientId,
+        user: fakeUser({ sub: uuid }),
+      });
+      const res = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ ...body, transport: 'body' })
+        .expect(200);
+      tokens.set(uuid, res.body.access_token);
+    }
   });
 
   beforeEach(() => {
@@ -162,10 +174,11 @@ describe('Admin permission API', () => {
     expect(update).not.toHaveBeenCalled();
   });
 
-  it('rejects JWTs signed with another secret', async () => {
+  it('rejects JWTs with a forged signature', async () => {
+    const [header, payload] = token(adminUuid).split('.');
     await request(app.getHttpServer())
       .patch(`/user/${targetUuid}/admin`)
-      .auth(token(adminUuid, 'wrong-secret'), { type: 'bearer' })
+      .auth(`${header}.${payload}.${'A'.repeat(43)}`, { type: 'bearer' })
       .send({ isAdmin: true })
       .expect(401);
     expect(update).not.toHaveBeenCalled();

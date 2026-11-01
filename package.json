@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.521.0",
+    "@gsainfoteam/account-nest": "^0.4.0",
     "@modelcontextprotocol/sdk": "^1.31.0",
     "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs/axios": "^4.0.1",
@@ -32,7 +33,6 @@
     "@nestjs/common": "^11.1.19",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.19",
-    "@nestjs/jwt": "^11.0.1",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.19",
     "@nestjs/swagger": "^11.3.0",
@@ -59,7 +59,6 @@
     "express-basic-auth": "^1.2.1",
     "firebase-admin": "^13.7.0",
     "html-to-text": "^9.0.5",
-    "jsonwebtoken": "^9.0.2",
     "openai": "^7.25.0",
     "p-limit": "^3.1.0",
     "passport-anonymous": "^1.0.1",
@@ -75,6 +74,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@gsainfoteam/account-testing": "^0.4.0",
     "@mermaid-js/mermaid-cli": "^11.9.0",
     "@nestjs/cli": "^11.0.21",
     "@nestjs/schematics": "^11.1.0",
@@ -119,16 +119,28 @@
       "^src/(.*)$": "<rootDir>/src/$1",
       "^@generated/prisma/client$": "<rootDir>/generated/prisma/client/client.ts",
       "^@lib/prisma(|/.*)$": "<rootDir>/libs/prisma/src/$1",
-      "^@lib/infoteam-idp(|/.*)$": "<rootDir>/libs/infoteam-idp/src/$1",
       "^@lib/logger(|/.*)$": "<rootDir>/libs/logger/src/$1",
       "^@lib/config(|/.*)$": "<rootDir>/libs/config/src/$1",
       "^@lib/custom-config(|/.*)$": "<rootDir>/libs/custom-config/src/$1"
     },
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
+    "setupFiles": [
+      "<rootDir>/apps/api/test/test-env.ts"
+    ],
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "allowJs": true
+          }
+        }
+      ]
     },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!@gsainfoteam|jose|oauth4webapi|@faker-js)"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],

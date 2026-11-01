@@ -1,0 +1,28 @@
+// CustomConfigModule validates every variable when it is imported, so they must exist before any test file loads
+const env: Record<string, string> = {
+  IDP_BASE_URL: 'https://api.stg.account.gistory.me',
+  DATABASE_URL: 'postgresql://unused',
+  SWAGGER_USER: 'e2e',
+  SWAGGER_PASSWORD: 'e2e',
+  FCM_PROJECT_ID: 'e2e',
+  FCM_CLIENT_EMAIL: 'e2e',
+  FCM_PRIVATE_KEY: 'e2e',
+  AWS_S3_BUCKET_NAME: 'e2e',
+  AWS_S3_REGION: 'ap-northeast-2',
+  CLIENT_ID: 'ziggle-e2e',
+  CLIENT_SECRET: 'ziggle-e2e-secret',
+  SESSION_SECRET: 'e2e-session-secret-at-least-32-characters',
+  REDIS_HOST: 'localhost',
+  REDIS_PORT: '6379',
+  FCM_DELAY: '0',
+  GROUPS_URL: 'https://groups.invalid',
+  API_URL: 'http://localhost:3000',
+  CORS_ALLOWED_ORIGINS: 'http://localhost:5173',
+  CRAWLING_UPTIME_URI: 'https://uptime.invalid',
+  JWT_EXPIRE: '15m',
+  REFRESH_TOKEN_EXPIRE: '30d',
+  LETSUR_GATEWAY_URL: 'https://letsur.invalid',
+  LETSUR_API_KEY: 'e2e',
+  LLM_MODEL: 'e2e',
+};
+for (const [key, value] of Object.entries(env)) process.env[key] ??= value;

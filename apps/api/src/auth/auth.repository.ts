@@ -21,7 +21,8 @@ export class AuthRepository {
     name,
     email,
     picture,
-  }: Pick<User, 'uuid' | 'name' | 'email' | 'picture'>): Promise<User> {
+  }: Pick<User, 'uuid' | 'name' | 'picture'> &
+    Partial<Pick<User, 'email'>>): Promise<User> {
     return await this.prismaService.user
       .upsert({
         where: { uuid },

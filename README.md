@@ -13,9 +13,20 @@ Ziggle의 Backend
 
 ## Installation
 
+`@gsainfoteam` 패키지는 GitHub Packages에서 받으므로 `read:packages` 권한이 있는 토큰이 필요합니다.
+
 ```bash
+$ export NODE_AUTH_TOKEN=$(gh auth token)
 $ npm install
 ```
+
+## Login
+
+인포팀 계정 로그인은 [`@gsainfoteam/account-nest`](https://github.com/gsainfoteam/account-sdk/tree/main/packages/nest)가 맡습니다.
+`POST /auth/login`, `/auth/refresh`, `/auth/logout`은 SDK가 만들고, 세션은 Redis에 저장합니다.
+IdP 사용자는 `apps/api/src/auth/auth.module.ts`의 `resolve`에서 uuid로 `user`에 upsert 합니다.
+
+`npm run test:e2e`는 가짜 IdP로 로그인부터 guard까지 확인하며, `localhost:6379`의 Redis가 필요합니다.
 
 ## Running the app
 

@@ -5,10 +5,9 @@ import { UserService } from './user.service';
 import { PrismaModule } from '@lib/prisma';
 import { LoggerModule } from '@lib/logger';
 import { AuthModule } from '../auth/auth.module';
-import { InfoteamIdpModule } from '@lib/infoteam-idp';
 
 @Module({
-  imports: [PrismaModule, LoggerModule, AuthModule, InfoteamIdpModule],
+  imports: [PrismaModule, LoggerModule, AuthModule],
   providers: [UserService, UserRepository],
   controllers: [UserController],
   exports: [UserService],

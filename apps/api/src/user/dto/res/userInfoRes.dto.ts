@@ -1,7 +1,6 @@
-import { UserInfo } from '@lib/infoteam-idp/types/userInfo.type';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class UserInfoRes implements UserInfo {
+export class UserInfoRes {
   @ApiProperty({
     description: 'User uuid',
     example: '123e4567-e89b-12d3-a456-426614174000',

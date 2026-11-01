@@ -12,10 +12,6 @@ import {
 export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
-  IDP_URL!: string;
-
-  @IsString()
-  @IsNotEmpty()
   IDP_BASE_URL!: string;
 
   @IsString()
@@ -29,14 +25,6 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   SWAGGER_PASSWORD!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  SWAGGER_AUTH_URL!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  SWAGGER_TOKEN_URL!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -67,6 +55,10 @@ export class EnvironmentVariables {
   CLIENT_SECRET!: string;
 
   @IsString()
+  @MinLength(32)
+  SESSION_SECRET!: string;
+
+  @IsString()
   @IsNotEmpty()
   REDIS_HOST!: string;
 
@@ -93,18 +85,6 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   CRAWLING_UPTIME_URI!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  JWT_SECRET!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  JWT_ISSUER!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  JWT_AUDIENCE!: string;
 
   @IsString()
   @IsNotEmpty()

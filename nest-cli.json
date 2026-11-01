@@ -17,15 +17,6 @@
         "tsConfigPath": "libs/prisma/tsconfig.lib.json"
       }
     },
-    "infoteam-idp": {
-      "type": "library",
-      "root": "libs/infoteam-idp",
-      "entryFile": "index",
-      "sourceRoot": "libs/infoteam-idp/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/infoteam-idp/tsconfig.lib.json"
-      }
-    },
     "logger": {
       "type": "library",
       "root": "libs/logger",
