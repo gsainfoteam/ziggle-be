@@ -10,7 +10,7 @@ const env: Record<string, string> = {
   AWS_S3_BUCKET_NAME: 'e2e',
   AWS_S3_REGION: 'ap-northeast-2',
   CLIENT_ID: 'ziggle-e2e',
-  CLIENT_SECRET: 'ziggle-e2e-secret',
+  CLIENT_SECRET: 'e2e',
   SESSION_SECRET: 'e2e-session-secret-at-least-32-characters',
   REDIS_HOST: 'localhost',
   REDIS_PORT: '6379',
