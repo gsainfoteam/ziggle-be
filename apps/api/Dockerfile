@@ -1,12 +1,13 @@
+# syntax=docker/dockerfile:1
 #Step 1: Build the app in image 'builder'
 FROM node:24.22.1-alpine3.23 AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 
 RUN apk add --no-cache build-base libheif vips openssl
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci
+RUN --mount=type=secret,id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN npm ci
 
 # Build stage only: Prisma generate requires DATABASE_URL to be defined.
 # Value is dummy to avoid error during build.
