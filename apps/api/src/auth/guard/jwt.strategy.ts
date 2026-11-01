@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Strategy } from 'passport-custom';
@@ -22,8 +26,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       ? await this.accountService.verifySession(token)
       : null;
     if (!session) throw new UnauthorizedException('invalid token');
-    return await this.authService.findUserByUuid(session.sub).catch(() => {
-      throw new UnauthorizedException();
+    return await this.authService.findUserByUuid(session.sub).catch((err) => {
+      throw err instanceof NotFoundException
+        ? new UnauthorizedException()
+        : err;
     });
   }
 }

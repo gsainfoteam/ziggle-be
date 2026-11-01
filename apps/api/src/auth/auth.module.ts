@@ -1,4 +1,4 @@
-import { Module, UnauthorizedException } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { redisSessionStore } from '@gsainfoteam/account-nest';
 import { getRedisConnectionToken } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
@@ -43,9 +43,7 @@ class AuthUserModule {}
           accessTtl: ms(config.JWT_EXPIRE as StringValue) / 1000,
           refreshTtl: ms(config.REFRESH_TOKEN_EXPIRE as StringValue) / 1000,
           resolve: async (user) => {
-            const { uuid } = await authService.linkIdpUser(user).catch(() => {
-              throw new UnauthorizedException();
-            });
+            const { uuid } = await authService.linkIdpUser(user);
             return { subject: uuid };
           },
         },

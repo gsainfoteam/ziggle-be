@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Strategy } from 'passport-custom';
@@ -25,8 +25,9 @@ export class JwtOptionalStrategy extends PassportStrategy(
       ? await this.accountService.verifySession(token)
       : null;
     if (!session) return undefined;
-    return this.authService.findUserByUuid(session.sub).catch(() => {
-      return undefined;
+    return this.authService.findUserByUuid(session.sub).catch((err) => {
+      if (err instanceof NotFoundException) return undefined;
+      throw err;
     });
   }
 }

@@ -189,6 +189,12 @@ describe('Admin permission API', () => {
     expect(update).not.toHaveBeenCalled();
   });
 
+  it('returns 500 instead of 401 when the user lookup fails', async () => {
+    findUniqueOrThrow.mockRejectedValueOnce(new Error('Database unavailable'));
+    await setAdmin({ isAdmin: true }).expect(500);
+    expect(update).not.toHaveBeenCalled();
+  });
+
   it.each([{}, { isAdmin: 'true' }, { isAdmin: 1 }, { isAdmin: null }])(
     'rejects invalid request body %p',
     async (body) => {
