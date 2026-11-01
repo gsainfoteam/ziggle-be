@@ -1,4 +1,3 @@
-// CustomConfigModule validates every variable when it is imported, so they must exist before any test file loads
 const env: Record<string, string> = {
   IDP_BASE_URL: 'https://api.stg.account.gistory.me',
   DATABASE_URL: 'postgresql://unused',

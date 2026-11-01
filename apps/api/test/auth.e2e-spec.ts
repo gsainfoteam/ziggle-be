@@ -13,7 +13,6 @@ import { User } from '@generated/prisma/client';
 import { PrismaService } from '@lib/prisma';
 import { UserModule } from '../src/user/user.module';
 
-// sessions live in Redis, so this needs one at REDIS_HOST:REDIS_PORT (docker run -p 6379:6379 redis)
 describe('auth (e2e)', () => {
   const prisma = mockDeep<PrismaService>();
   let idp: FakeIdp;
