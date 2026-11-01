@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.521.0",
-    "@gsainfoteam/account-nest": "^0.5.0",
+    "@gsainfoteam/account-nest": "^0.5.1",
     "@modelcontextprotocol/sdk": "^1.31.0",
     "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs/axios": "^4.0.1",
@@ -76,7 +76,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@gsainfoteam/account-testing": "^0.5.0",
+    "@gsainfoteam/account-testing": "^0.5.1",
     "@mermaid-js/mermaid-cli": "^11.9.0",
     "@nestjs/cli": "^11.0.21",
     "@nestjs/schematics": "^11.1.0",
