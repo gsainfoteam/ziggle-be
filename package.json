@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.521.0",
+    "@infoteam/account-nest": "^0.6.0",
     "@modelcontextprotocol/sdk": "^1.31.0",
     "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs/axios": "^4.0.1",
@@ -75,6 +76,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@infoteam/account-testing": "^0.6.0",
     "@mermaid-js/mermaid-cli": "^11.9.0",
     "@nestjs/cli": "^11.0.21",
     "@nestjs/schematics": "^11.1.0",
@@ -127,8 +129,18 @@
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "allowJs": true
+          }
+        }
+      ]
     },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!@infoteam|@faker-js|jose|oauth4webapi|es-toolkit)"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],

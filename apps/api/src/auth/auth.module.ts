@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AnonymousStrategy } from './guard/anonymous.strategy';
 import { AuthRepository } from './auth.repository';
 import { PrismaModule } from '@lib/prisma';
-import { InfoteamIdpModule } from '@lib/infoteam-idp';
 import { LoggerModule } from '@lib/logger';
 import { CustomConfigModule, CustomConfigService } from '@lib/custom-config';
 import { JwtGuard, JwtOptionalGuard } from './guard/jwt.guard';
@@ -14,12 +13,21 @@ import ms, { StringValue } from 'ms';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { AdminGuard } from './guard/admin.guard';
+import { AccountModule } from './account';
 
 @Module({
   imports: [
     CustomConfigModule,
     PrismaModule,
-    InfoteamIdpModule,
+    AccountModule.forRootAsync({
+      imports: [CustomConfigModule],
+      inject: [CustomConfigService],
+      useFactory: (customConfigService: CustomConfigService) => ({
+        issuer: customConfigService.IDP_BASE_URL,
+        clientId: customConfigService.CLIENT_ID,
+        clientSecret: customConfigService.CLIENT_SECRET,
+      }),
+    }),
     LoggerModule,
     JwtModule.registerAsync({
       imports: [CustomConfigModule],

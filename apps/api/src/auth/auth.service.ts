@@ -1,7 +1,16 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { AccountError } from '@infoteam/account-nest';
 import { AuthRepository } from './auth.repository';
 import { JwtTokenType } from './types/jwtToken.type';
-import { InfoteamIdpService } from '@lib/infoteam-idp';
+import { AccountService } from './account';
+import { LoginReq } from './dto/req/sessionReq.dto';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
 import { JwtService } from '@nestjs/jwt';
@@ -20,7 +29,7 @@ export class AuthService {
   private readonly refreshTokenExpire: number;
   constructor(
     private readonly customConfigService: CustomConfigService,
-    private readonly infoteamIdpService: InfoteamIdpService,
+    private readonly accountService: AccountService,
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
@@ -30,14 +39,22 @@ export class AuthService {
     );
   }
 
-  async login(auth: string): Promise<JwtTokenType> {
-    const idpToken = auth.split(' ')[1];
-    const userinfo = await this.infoteamIdpService.getUserInfo(idpToken);
-    const user = await this.authRepository
-      .findUserOrCreate(userinfo)
-      .catch(() => {
-        throw new UnauthorizedException();
-      });
+  async login(body: LoginReq): Promise<JwtTokenType> {
+    const { user: idpUser } = await this.accountService
+      .loginWithCode({
+        code: body.code,
+        codeVerifier: body.code_verifier,
+        redirectUri: body.redirect_uri,
+        nonce: body.nonce,
+        iss: body.iss,
+      })
+      .catch(toHttpError);
+    const user = await this.authRepository.findUserOrCreate({
+      uuid: idpUser.sub,
+      name: idpUser.name,
+      email: idpUser.email,
+      picture: idpUser.picture ?? null,
+    });
     const tokens = await this.issueTokens(user.uuid);
     return tokens;
   }
@@ -95,5 +112,27 @@ export class AuthService {
       access_token: this.jwtService.sign({}, { subject: uuid }),
       refresh_token,
     };
+  }
+}
+
+function toHttpError(error: unknown): never {
+  if (!AccountError.is(error)) throw error;
+
+  const body = { error: error.code, error_description: error.description };
+  switch (error.code) {
+    case 'invalid_request':
+      throw new BadRequestException(body);
+    case 'network_error':
+    case 'server_error':
+    case 'discovery_failed':
+    case 'temporarily_unavailable':
+      throw new BadGatewayException(body);
+    case 'invalid_client':
+    case 'unauthorized_client':
+    case 'invalid_scope':
+    case 'missing_claims':
+      throw new InternalServerErrorException(body);
+    default:
+      throw new UnauthorizedException(body);
   }
 }
