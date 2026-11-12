@@ -3,41 +3,61 @@ import { PrismaService } from '@lib/prisma';
 import { NoticeSearchService } from '@lib/notice-search';
 import { Injectable } from '@nestjs/common';
 import { Crawl, File, FileType, User } from '@generated/prisma/client';
+import { firstValueFrom, from, timeout } from 'rxjs';
 
 @Loggable()
 @Injectable()
 export class CrawlerRepository {
+  private readonly databaseReadTimeoutMs = 30_000;
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly noticeSearchService: NoticeSearchService,
   ) {}
 
-  async hasCrawls(): Promise<boolean> {
+  private readWithTimeout<T>(query: PromiseLike<T>): Promise<T> {
+    return firstValueFrom(
+      from(query).pipe(timeout(this.databaseReadTimeoutMs)),
+    );
+  }
+
+  async hasOrdinaryCrawls(
+    sourceUrl: string,
+    pinnedUrls: string[],
+  ): Promise<boolean> {
     return (
-      (await this.prismaService.crawl.findFirst({ select: { id: true } })) !==
-      null
+      (await this.readWithTimeout(
+        this.prismaService.crawl.findFirst({
+          where: {
+            url: { startsWith: `${sourceUrl}?mode=V&no=`, notIn: pinnedUrls },
+          },
+          select: { id: true },
+        }),
+      )) !== null
     );
   }
 
   async checkCrawlData(
     url: string,
   ): Promise<(Crawl & { notice: { files: File[] } }) | null> {
-    return this.prismaService.crawl.findFirst({
-      where: {
-        url,
-      },
-      include: {
-        notice: {
-          include: {
-            files: {
-              orderBy: {
-                order: 'asc',
+    return this.readWithTimeout(
+      this.prismaService.crawl.findFirst({
+        where: {
+          url,
+        },
+        include: {
+          notice: {
+            include: {
+              files: {
+                orderBy: {
+                  order: 'asc',
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+    );
   }
 
   async createCrawl(

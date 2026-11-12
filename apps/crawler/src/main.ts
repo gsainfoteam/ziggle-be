@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { CrawlerModule } from './crawler.module';
-import { concatMap, firstValueFrom, identity, map, toArray } from 'rxjs';
+import { concatMap, firstValueFrom, map, toArray } from 'rxjs';
 import { CrawlerService } from './crawler.service';
 import { Logger } from '@nestjs/common';
 import { CustomConfigService } from '@lib/custom-config';
@@ -26,13 +26,12 @@ async function bootstrap() {
               .getNoticeDetail(meta.link)
               .pipe(map((notice) => ({ notice, meta }))),
           ),
-          map(async (notice) => ({
+          concatMap(async (notice) => ({
             prev: await app
               .get(CrawlerService)
               .checkCrawlData(notice.meta.link),
             notice: notice,
           })),
-          concatMap(identity),
           toArray(),
         ),
     );

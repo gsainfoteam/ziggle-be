@@ -103,7 +103,9 @@ export class CrawlerService {
   }
 
   private async *iterateNoticeList(): AsyncGenerator<NoticeMeta> {
-    const hasHistory = await this.crawlerRepository.hasCrawls();
+    // History is determined only after the complete pinned section is known.
+    let hasOrdinaryHistory: boolean | undefined;
+    const pinnedUrls = new Set<string>();
     const seen = new Set<number>();
     const pageSignatures = new Set<string>();
     let ordinaryCount = 0;
@@ -159,12 +161,25 @@ export class CrawlerService {
       // The first ordinary row marks the end of the pinned section.
       pinnedSectionComplete ||= notices.some(({ pinned }) => !pinned);
 
+      for (const notice of notices) {
+        if (notice.pinned) pinnedUrls.add(notice.link);
+      }
+      if (pinnedSectionComplete && hasOrdinaryHistory === undefined) {
+        hasOrdinaryHistory = await this.crawlerRepository.hasOrdinaryCrawls(
+          this.targetUrl,
+          [...pinnedUrls],
+        );
+      }
+
       for (const { pinned, ...notice } of notices) {
         if (seen.has(notice.id)) continue;
         seen.add(notice.id);
-        if (!pinned) {
+        if (!pinned && !pinnedUrls.has(notice.link)) {
           ordinaryCount++;
-          const known = hasHistory && (await this.checkCrawlData(notice.link));
+          // The row is ordinary and its URL is outside the pinned URL set,
+          // matching the scope used by hasOrdinaryCrawls.
+          const known =
+            hasOrdinaryHistory && (await this.checkCrawlData(notice.link));
           knownOrdinaryStreak = known ? knownOrdinaryStreak + 1 : 0;
         }
         yield notice;
@@ -175,7 +190,8 @@ export class CrawlerService {
       if (
         pinnedSectionComplete &&
         ordinaryCount >= this.minimumOrdinaryNotices &&
-        (!hasHistory || knownOrdinaryStreak >= this.knownOrdinaryStreakLimit)
+        (!hasOrdinaryHistory ||
+          knownOrdinaryStreak >= this.knownOrdinaryStreakLimit)
       ) {
         return;
       }
