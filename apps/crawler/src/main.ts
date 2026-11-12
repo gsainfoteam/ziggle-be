@@ -1,14 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { CrawlerModule } from './crawler.module';
-import {
-  concatMap,
-  firstValueFrom,
-  identity,
-  map,
-  take,
-  timeout,
-  toArray,
-} from 'rxjs';
+import { concatMap, firstValueFrom, identity, map, toArray } from 'rxjs';
 import { CrawlerService } from './crawler.service';
 import { Logger } from '@nestjs/common';
 import { CustomConfigService } from '@lib/custom-config';
@@ -28,8 +20,6 @@ async function bootstrap() {
         .get(CrawlerService)
         .getNoticeList()
         .pipe(
-          take(100),
-          timeout(60e3),
           concatMap((meta) =>
             app
               .get(CrawlerService)

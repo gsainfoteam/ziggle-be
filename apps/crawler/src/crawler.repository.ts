@@ -12,6 +12,13 @@ export class CrawlerRepository {
     private readonly noticeSearchService: NoticeSearchService,
   ) {}
 
+  async hasCrawls(): Promise<boolean> {
+    return (
+      (await this.prismaService.crawl.findFirst({ select: { id: true } })) !==
+      null
+    );
+  }
+
   async checkCrawlData(
     url: string,
   ): Promise<(Crawl & { notice: { files: File[] } }) | null> {
