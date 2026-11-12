@@ -1,5 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString, ValidateIf } from 'class-validator';
+
+/** Old app versions log in with only an IdP access token in the Authorization header. */
+const sent = (o: LoginReq) => Object.values(o).some((v) => v !== undefined);
 
 export class SessionReq {
   @ApiPropertyOptional({
@@ -18,18 +21,22 @@ export class SessionReq {
 
 export class LoginReq {
   @ApiProperty({ type: String })
+  @ValidateIf(sent)
   @IsString()
   code!: string;
 
   @ApiProperty({ type: String })
+  @ValidateIf(sent)
   @IsString()
   code_verifier!: string;
 
   @ApiProperty({ type: String })
+  @ValidateIf(sent)
   @IsString()
   redirect_uri!: string;
 
   @ApiProperty({ type: String })
+  @ValidateIf(sent)
   @IsString()
   nonce!: string;
 

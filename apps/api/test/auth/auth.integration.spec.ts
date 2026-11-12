@@ -1,9 +1,14 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import {
+  INestApplication,
+  UnauthorizedException,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { JwtModule } from '@nestjs/jwt';
 import { createFakeIdp, fakeUser, FakeIdp } from '@infoteam/account-testing';
 import { User } from '@generated/prisma/client';
 import { CustomConfigService } from '@lib/custom-config';
+import { InfoteamIdpService } from '@lib/infoteam-idp';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { RedisService } from 'libs/redis/src';
@@ -55,6 +60,20 @@ describe('Auth API with the account SDK', () => {
             set: async (key: string, value: unknown) => cache.set(key, value),
             get: async (key: string) => cache.get(key) ?? null,
             del: async (key: string) => cache.delete(key),
+          },
+        },
+        {
+          provide: InfoteamIdpService,
+          useValue: {
+            getUserInfo: async (token: string) => {
+              if (token !== 'idp-token') throw new UnauthorizedException();
+              return {
+                uuid: 'legacy-user',
+                name: 'Legacy',
+                email: 'legacy@gist.ac.kr',
+                picture: null,
+              };
+            },
           },
         },
         {
@@ -163,5 +182,25 @@ describe('Auth API with the account SDK', () => {
       .post('/auth/login')
       .send({ transport: 'cookie' })
       .expect(400);
+  });
+  it('still logs in old app versions that send an IdP access token', async () => {
+    const login = await request(app.getHttpServer())
+      .post('/auth/login')
+      .set('authorization', 'Bearer idp-token')
+      .expect(200);
+    expect(login.body).toEqual({ access_token: expect.any(String) });
+    expect(users.get('legacy-user')).toMatchObject({ name: 'Legacy' });
+
+    await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .set('cookie', login.headers['set-cookie'])
+      .expect(200);
+  });
+
+  it('rejects an IdP access token the IdP does not accept', async () => {
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .set('authorization', 'Bearer forged')
+      .expect(401);
   });
 });

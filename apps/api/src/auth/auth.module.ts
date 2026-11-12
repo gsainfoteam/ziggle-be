@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AnonymousStrategy } from './guard/anonymous.strategy';
 import { AuthRepository } from './auth.repository';
 import { PrismaModule } from '@lib/prisma';
+import { InfoteamIdpModule } from '@lib/infoteam-idp';
 import { LoggerModule } from '@lib/logger';
 import { CustomConfigModule, CustomConfigService } from '@lib/custom-config';
 import { JwtGuard, JwtOptionalGuard } from './guard/jwt.guard';
@@ -19,6 +20,7 @@ import { AccountModule } from './account';
   imports: [
     CustomConfigModule,
     PrismaModule,
+    InfoteamIdpModule,
     AccountModule.forRootAsync({
       imports: [CustomConfigModule],
       inject: [CustomConfigService],

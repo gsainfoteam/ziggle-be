@@ -1,6 +1,8 @@
 import {
+  BadRequestException,
   Body,
   Controller,
+  Headers,
   HttpCode,
   Post,
   Req,
@@ -57,10 +59,16 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   async login(
-    @Body() body: LoginReq,
+    @Body() body: LoginReq = {} as LoginReq,
+    @Headers('authorization') authorization: string | undefined,
     @Res({ passthrough: true }) res: Response,
   ): Promise<JwtToken> {
-    const { access_token, refresh_token } = await this.authService.login(body);
+    if (body.code === undefined && !authorization)
+      throw new BadRequestException();
+    const { access_token, refresh_token } =
+      body.code === undefined
+        ? await this.authService.loginWithIdpToken(authorization!)
+        : await this.authService.login(body);
     if (body.transport === 'body') return { access_token, refresh_token };
     res.cookie('refresh_token', refresh_token, {
       ...this.cookieOptions,

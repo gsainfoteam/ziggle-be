@@ -10,6 +10,7 @@ import { AccountError } from '@infoteam/account-nest';
 import { AuthRepository } from './auth.repository';
 import { JwtTokenType } from './types/jwtToken.type';
 import { AccountService } from './account';
+import { InfoteamIdpService } from '@lib/infoteam-idp';
 import { LoginReq } from './dto/req/sessionReq.dto';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
@@ -30,6 +31,7 @@ export class AuthService {
   constructor(
     private readonly customConfigService: CustomConfigService,
     private readonly accountService: AccountService,
+    private readonly infoteamIdpService: InfoteamIdpService,
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
@@ -57,6 +59,18 @@ export class AuthService {
     });
     const tokens = await this.issueTokens(user.uuid);
     return tokens;
+  }
+
+  /** shortcut: app versions released before the account SDK still send an IdP access token; remove once they are gone. */
+  async loginWithIdpToken(authorization: string): Promise<JwtTokenType> {
+    const idpToken = authorization.split(' ')[1];
+    const userinfo = await this.infoteamIdpService.getUserInfo(idpToken);
+    const user = await this.authRepository
+      .findUserOrCreate(userinfo)
+      .catch(() => {
+        throw new UnauthorizedException();
+      });
+    return this.issueTokens(user.uuid);
   }
 
   /**
