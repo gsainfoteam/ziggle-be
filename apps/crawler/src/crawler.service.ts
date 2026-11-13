@@ -4,12 +4,17 @@ import { Crawl, File } from '@generated/prisma/client';
 import { load } from 'cheerio';
 import {
   catchError,
-  firstValueFrom,
-  from,
+  concatMap,
+  defer,
+  distinct,
+  EMPTY,
+  expand,
+  takeWhile,
   map,
   Observable,
   throwError,
   timeout,
+  filter,
 } from 'rxjs';
 import { CrawlerRepository } from './crawler.repository';
 import { UserService } from './user/user.service';
@@ -21,23 +26,12 @@ import {
 } from './crawler-fcm/crawler-fcm.service';
 import { Notification } from 'firebase-admin/messaging';
 
-interface NoticeMeta {
-  title: string;
-  link: string;
-  author: string;
-  category: string;
-  createdAt: string;
-  id: number;
-}
-
 @Loggable()
 @Injectable()
 export class CrawlerService {
   private readonly logger = new Logger(CrawlerService.name);
   private readonly targetUrl =
     'https://www.gist.ac.kr/kr/html/sub05/050209.html';
-  private readonly minimumOrdinaryNotices = 50;
-  private readonly knownOrdinaryStreakLimit = 10;
   constructor(
     private readonly userService: UserService,
     private readonly httpService: HttpService,
@@ -98,124 +92,77 @@ export class CrawlerService {
     return this.crawlerRepository.updateCrawl(data, id, files);
   }
 
-  getNoticeList(): Observable<NoticeMeta> {
-    return from(this.iterateNoticeList());
-  }
-
-  private async *iterateNoticeList(): AsyncGenerator<NoticeMeta> {
-    // History is determined only after the complete pinned section is known.
-    let hasOrdinaryHistory: boolean | undefined;
-    const pinnedUrls = new Set<string>();
-    const seen = new Set<number>();
-    const pageSignatures = new Set<string>();
-    let ordinaryCount = 0;
-    let knownOrdinaryStreak = 0;
-    let pinnedSectionComplete = false;
-
-    // A safety limit is an error, never a successful partial crawl.
-    for (let page = 1; page <= 1000; page++) {
-      const response = await firstValueFrom(
+  getNoticeList(): Observable<{
+    title: string;
+    link: string;
+    author: string;
+    category: string;
+    createdAt: string;
+    id: number;
+  }> {
+    return defer(() => {
+      let ordinaryCount = 0;
+      const getPage = (page: number) =>
         this.httpService
           .get(`${this.targetUrl}?GotoPage=${page}`, {
             headers: { 'User-Agent': '' },
           })
-          .pipe(timeout(60e3)),
-      );
-      const $ = load(response.data);
-      const rows = $('table > tbody > tr').toArray();
-      const notices = rows.flatMap((row) => {
-        const cells = $(row).find('td');
-        const href = cells.eq(2).find('a').attr('href');
-        const no = href?.match(/[?&]no=(\d+)(?:&|$)/)?.[1];
-        if (!no) {
-          if (href || cells.length >= 6) {
-            throw new Error(`Invalid notice link on page ${page}`);
-          }
-          return [];
-        }
-        const label = cells.eq(0).text().trim();
-        if (label !== '공지' && !/^\d+$/.test(label)) {
-          throw new Error(`Unknown notice row type on page ${page}`);
-        }
-        return [
-          {
-            id: Number(no),
-            title: cells.eq(2).text().trim(),
-            link: `${this.targetUrl}?mode=V&no=${no}&GotoPage=1`,
-            author: cells.eq(3).text().trim(),
-            category: cells.eq(1).text().trim(),
-            createdAt: cells.eq(5).text().trim(),
-            pinned: label === '공지',
-          },
-        ];
-      });
-      if (!notices.length) {
-        throw new Error(`No notices parsed on page ${page}`);
-      }
-      const signature = notices.map(({ id }) => id).join(',');
-      if (pageSignatures.has(signature)) {
-        throw new Error(`Repeated notice page ${page}`);
-      }
-      pageSignatures.add(signature);
-      // Pinned notices precede ordinary notices in the source board.
-      // The first ordinary row marks the end of the pinned section.
-      pinnedSectionComplete ||= notices.some(({ pinned }) => !pinned);
+          .pipe(
+            timeout(60e3),
+            map((res) => ({ page, $: load(res.data) })),
+          );
 
-      for (const notice of notices) {
-        if (notice.pinned) pinnedUrls.add(notice.link);
-      }
-      if (pinnedSectionComplete && hasOrdinaryHistory === undefined) {
-        hasOrdinaryHistory = await this.crawlerRepository.hasOrdinaryCrawls(
-          this.targetUrl,
-          [...pinnedUrls],
+      return getPage(1)
+        .pipe(
+          expand(({ page, $ }) => {
+            const hasNext = $('.pg_num a[href]')
+              .toArray()
+              .some((anchor) => {
+                const next = $(anchor)
+                  .attr('href')
+                  ?.match(/[?&]GotoPage=(\d+)/)?.[1];
+                return next !== undefined && Number(next) > page;
+              });
+            if (!hasNext) return EMPTY;
+            if (page >= 1000) {
+              return throwError(
+                () => new Error('Notice pagination exceeded 1000 pages'),
+              );
+            }
+            return getPage(page + 1);
+          }, 1),
+          map(({ $ }) => $('table > tbody > tr')),
+          concatMap(($) => $.toArray().map((value: any) => load(value))),
+          map(($) => {
+            const href = $('td').eq(2).find('a').attr('href');
+            const no = href?.match(/no=([^&]+)/)?.[1];
+            if (!no) return null;
+            return {
+              title: $('td').eq(2).text().trim(),
+              link: `${this.targetUrl}?mode=V&no=${no}&GotoPage=1`,
+              author: $('td').eq(3).text().trim(),
+              category: $('td').eq(1).text().trim(),
+              createdAt: $('td').eq(5).text().trim(),
+              pinned: $('td').eq(0).text().trim() === '공지',
+            };
+          }),
+          filter((meta): meta is NonNullable<typeof meta> => meta !== null),
+        )
+        .pipe(
+          map((meta) => ({
+            id: Number.parseInt(meta.link.split('no=')[1].split('&')[0]),
+            ...meta,
+          })),
+          distinct(({ id }) => id),
+          // Pinned notices precede ordinary notices; include the 50th ordinary notice.
+          takeWhile((meta) => meta.pinned || ++ordinaryCount < 50, true),
+          map(({ pinned, ...meta }) => meta),
+          catchError((err) => {
+            this.logger.error(err);
+            return throwError(() => new Error(err));
+          }),
         );
-      }
-
-      for (const { pinned, ...notice } of notices) {
-        if (seen.has(notice.id)) continue;
-        seen.add(notice.id);
-        if (!pinned && !pinnedUrls.has(notice.link)) {
-          ordinaryCount++;
-          // The row is ordinary and its URL is outside the pinned URL set,
-          // matching the scope used by hasOrdinaryCrawls.
-          const known =
-            hasOrdinaryHistory && (await this.checkCrawlData(notice.link));
-          knownOrdinaryStreak = known ? knownOrdinaryStreak + 1 : 0;
-        }
-        yield notice;
-      }
-
-      // Finish the current page before stopping. New ordinary notices reset the
-      // streak, so a burst larger than the minimum window is still collected.
-      if (
-        pinnedSectionComplete &&
-        ordinaryCount >= this.minimumOrdinaryNotices &&
-        (!hasOrdinaryHistory ||
-          knownOrdinaryStreak >= this.knownOrdinaryStreakLimit)
-      ) {
-        return;
-      }
-
-      const pagination = $('.pg_num');
-      if (!pagination.length) {
-        throw new Error(`Missing pagination on page ${page}`);
-      }
-      const hasNext = pagination
-        .find('a[href]')
-        .toArray()
-        .some((anchor) => {
-          const href = $(anchor).attr('href') ?? '';
-          const next = href.match(/[?&]GotoPage=(\d+)/)?.[1];
-          return next !== undefined && Number(next) > page;
-        });
-      if (!hasNext) {
-        if (ordinaryCount === 0) {
-          throw new Error('Reached the last page without any ordinary notices');
-        }
-        return;
-      }
-    }
-    throw new Error('Notice pagination exceeded 1000 pages');
+    });
   }
 
   getNoticeDetail(link: string): Observable<{
