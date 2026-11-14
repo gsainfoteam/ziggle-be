@@ -1,10 +1,13 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
+  Headers,
+  HttpCode,
   Post,
   Req,
   Res,
   UnauthorizedException,
-  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -12,17 +15,15 @@ import { Request, Response } from 'express';
 import { JwtToken } from './dto/res/jwtToken.dto';
 import { AuthService } from './auth.service';
 import {
-  ApiBearerAuth,
+  ApiBadGatewayResponse,
   ApiCreatedResponse,
-  ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
-  ApiOAuth2,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { JwtGuard } from './guard/jwt.guard';
+import { LoginReq, SessionReq } from './dto/req/sessionReq.dto';
 import ms, { StringValue } from 'ms';
 import { CustomConfigService } from '@lib/custom-config';
 
@@ -31,6 +32,12 @@ import { CustomConfigService } from '@lib/custom-config';
 @UsePipes(ValidationPipe)
 export class AuthController {
   private readonly refreshTokenExpire: number;
+  private readonly cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    path: '/auth',
+  } as const;
   constructor(
     private readonly authService: AuthService,
     private readonly customConfigService: CustomConfigService,
@@ -42,26 +49,30 @@ export class AuthController {
 
   @ApiOperation({
     summary: 'Login',
-    description: 'Issue ziggle JWT token',
+    description:
+      'Exchange the IdP authorization code and issue ziggle JWT token',
   })
   @ApiOkResponse({ type: JwtToken, description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBadGatewayResponse({ description: 'IdP unavailable' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @ApiOAuth2(['email', 'profile', 'openid'], 'oauth2')
   @Post('login')
+  @HttpCode(200)
   async login(
-    @Req() req: Request,
+    @Body() body: LoginReq = {} as LoginReq,
+    @Headers('authorization') authorization: string | undefined,
     @Res({ passthrough: true }) res: Response,
   ): Promise<JwtToken> {
-    const auth = req.headers['authorization'];
-    if (!auth) throw new UnauthorizedException();
-    const { access_token, refresh_token } = await this.authService.login(auth);
+    if (body.code === undefined && !authorization)
+      throw new BadRequestException();
+    const { access_token, refresh_token } =
+      body.code === undefined
+        ? await this.authService.loginWithIdpToken(authorization!)
+        : await this.authService.login(body);
+    if (body.transport === 'body') return { access_token, refresh_token };
     res.cookie('refresh_token', refresh_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+      ...this.cookieOptions,
       expires: new Date(Date.now() + this.refreshTokenExpire),
-      path: '/auth',
     });
     return { access_token };
   }
@@ -74,29 +85,40 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post('refresh')
-  async refreshToken(@Req() req: Request): Promise<JwtToken> {
-    const refreshToken = req.cookies['refresh_token'];
+  @HttpCode(200)
+  async refreshToken(
+    @Req() req: Request,
+    @Body() body: SessionReq = {},
+  ): Promise<JwtToken> {
+    const refreshToken = this.refreshTokenOf(req, body);
     if (!refreshToken) throw new UnauthorizedException();
-    return await this.authService.refresh(refreshToken);
+    const { access_token, refresh_token } =
+      await this.authService.refresh(refreshToken);
+    return body.transport === 'body'
+      ? { access_token, refresh_token }
+      : { access_token };
   }
 
   @ApiOperation({
     summary: 'Logout',
     description: 'Logout the user from the cookie and idp',
   })
-  @ApiCreatedResponse({ description: 'Return jwt token' })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiForbiddenResponse({ description: 'Consent required' })
+  @ApiCreatedResponse({ description: 'Logged out' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
-  @ApiBearerAuth('jwt')
   @Post('logout')
-  @UseGuards(JwtGuard)
   async logout(
     @Req() req: Request,
+    @Body() body: SessionReq = {},
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const refreshToken = req.cookies['refresh_token'];
-    res.clearCookie('refresh_token');
-    return this.authService.logout(refreshToken);
+    const refreshToken = this.refreshTokenOf(req, body);
+    res.clearCookie('refresh_token', this.cookieOptions);
+    if (refreshToken) await this.authService.logout(refreshToken);
+  }
+
+  private refreshTokenOf(req: Request, body: SessionReq): string | undefined {
+    return body.transport === 'body'
+      ? body.refresh_token
+      : req.cookies['refresh_token'];
   }
 }
