@@ -96,7 +96,11 @@ export class CrawlerService {
     createdAt: string;
     id: number;
   }> {
-    return from([this.targetUrl, `${this.targetUrl}?&GotoPage=2`]).pipe(
+    return from([
+      this.targetUrl,
+      `${this.targetUrl}?&GotoPage=2`,
+      `${this.targetUrl}?&GotoPage=3`,
+    ]).pipe(
       concatMap((url) =>
         this.httpService
           .get(url, {
