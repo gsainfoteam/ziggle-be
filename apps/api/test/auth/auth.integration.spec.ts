@@ -104,7 +104,7 @@ describe('Auth API with the account SDK', () => {
     const res = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ ...(await authorize(user)), transport: 'cookie' })
-      .expect(200);
+      .expect(201);
 
     expect(res.body.access_token).toEqual(expect.any(String));
     expect(res.body.refresh_token).toBeUndefined();
@@ -126,7 +126,7 @@ describe('Auth API with the account SDK', () => {
     const refreshed = await request(app.getHttpServer())
       .post('/auth/refresh')
       .set('cookie', cookie)
-      .expect(200);
+      .expect(201);
     expect(refreshed.body).toEqual({ access_token: expect.any(String) });
 
     await request(app.getHttpServer())
@@ -143,7 +143,7 @@ describe('Auth API with the account SDK', () => {
     const login = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ ...(await authorize()), transport: 'body' })
-      .expect(200);
+      .expect(201);
     const { refresh_token } = login.body;
     expect(refresh_token).toEqual(expect.any(String));
     expect(login.headers['set-cookie']).toBeUndefined();
@@ -151,7 +151,7 @@ describe('Auth API with the account SDK', () => {
     const refreshed = await request(app.getHttpServer())
       .post('/auth/refresh')
       .send({ refresh_token, transport: 'body' })
-      .expect(200);
+      .expect(201);
     expect(refreshed.body.refresh_token).toEqual(expect.any(String));
 
     await request(app.getHttpServer())
@@ -169,7 +169,7 @@ describe('Auth API with the account SDK', () => {
     await request(app.getHttpServer())
       .post('/auth/login')
       .send(body)
-      .expect(200);
+      .expect(201);
     const res = await request(app.getHttpServer())
       .post('/auth/login')
       .send(body)
@@ -187,14 +187,14 @@ describe('Auth API with the account SDK', () => {
     const login = await request(app.getHttpServer())
       .post('/auth/login')
       .set('authorization', 'Bearer idp-token')
-      .expect(200);
+      .expect(201);
     expect(login.body).toEqual({ access_token: expect.any(String) });
     expect(users.get('legacy-user')).toMatchObject({ name: 'Legacy' });
 
     await request(app.getHttpServer())
       .post('/auth/refresh')
       .set('cookie', login.headers['set-cookie'])
-      .expect(200);
+      .expect(201);
   });
 
   it('rejects an IdP access token the IdP does not accept', async () => {

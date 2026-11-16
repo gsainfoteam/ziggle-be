@@ -3,7 +3,6 @@ import {
   Body,
   Controller,
   Headers,
-  HttpCode,
   Post,
   Req,
   Res,
@@ -18,7 +17,6 @@ import {
   ApiBadGatewayResponse,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
-  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -52,12 +50,11 @@ export class AuthController {
     description:
       'Exchange the IdP authorization code and issue ziggle JWT token',
   })
-  @ApiOkResponse({ type: JwtToken, description: 'Return jwt token' })
+  @ApiCreatedResponse({ type: JwtToken, description: 'Return jwt token' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiBadGatewayResponse({ description: 'IdP unavailable' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post('login')
-  @HttpCode(200)
   async login(
     @Body() body: LoginReq = {} as LoginReq,
     @Headers('authorization') authorization: string | undefined,
@@ -85,7 +82,6 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiInternalServerErrorResponse({ description: 'Internal Server Error' })
   @Post('refresh')
-  @HttpCode(200)
   async refreshToken(
     @Req() req: Request,
     @Body() body: SessionReq = {},
