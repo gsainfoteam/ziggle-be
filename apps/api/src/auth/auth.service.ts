@@ -1,12 +1,5 @@
-import {
-  BadGatewayException,
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { AccountError } from '@infoteam/account-nest';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { toHttpException } from '@infoteam/account-nest';
 import { AuthRepository } from './auth.repository';
 import { JwtTokenType } from './types/jwtToken.type';
 import { AccountService } from './account';
@@ -50,7 +43,7 @@ export class AuthService {
         nonce: body.nonce,
         iss: body.iss,
       })
-      .catch(toHttpError);
+      .catch(toHttpException);
     const user = await this.authRepository.findUserOrCreate({
       uuid: idpUser.sub,
       name: idpUser.name,
@@ -126,27 +119,5 @@ export class AuthService {
       access_token: this.jwtService.sign({}, { subject: uuid }),
       refresh_token,
     };
-  }
-}
-
-function toHttpError(error: unknown): never {
-  if (!AccountError.is(error)) throw error;
-
-  const body = { error: error.code, error_description: error.description };
-  switch (error.code) {
-    case 'invalid_request':
-      throw new BadRequestException(body);
-    case 'network_error':
-    case 'server_error':
-    case 'discovery_failed':
-    case 'temporarily_unavailable':
-      throw new BadGatewayException(body);
-    case 'invalid_client':
-    case 'unauthorized_client':
-    case 'invalid_scope':
-    case 'missing_claims':
-      throw new InternalServerErrorException(body);
-    default:
-      throw new UnauthorizedException(body);
   }
 }

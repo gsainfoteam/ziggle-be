@@ -1,5 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsOptional, IsString, ValidateIf } from 'class-validator';
+import { LoginCodeBody } from '@infoteam/account-nest/dto';
 
 /** Old app versions log in with only an IdP access token in the Authorization header. */
 const sent = (o: LoginReq) => Object.values(o).some((v) => v !== undefined);
@@ -19,34 +20,16 @@ export class SessionReq {
   refresh_token?: string;
 }
 
-export class LoginReq {
-  @ApiProperty({ type: String })
+export class LoginReq extends LoginCodeBody {
   @ValidateIf(sent)
-  @IsString()
   code!: string;
 
-  @ApiProperty({ type: String })
   @ValidateIf(sent)
-  @IsString()
   code_verifier!: string;
 
-  @ApiProperty({ type: String })
   @ValidateIf(sent)
-  @IsString()
   redirect_uri!: string;
 
-  @ApiProperty({ type: String })
   @ValidateIf(sent)
-  @IsString()
   nonce!: string;
-
-  @ApiPropertyOptional({ type: String })
-  @IsOptional()
-  @IsString()
-  iss?: string;
-
-  @ApiPropertyOptional({ enum: ['cookie', 'body'] })
-  @IsOptional()
-  @IsIn(['cookie', 'body'])
-  transport?: 'cookie' | 'body';
 }
