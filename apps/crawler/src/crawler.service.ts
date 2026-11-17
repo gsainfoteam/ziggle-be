@@ -112,56 +112,47 @@ export class CrawlerService {
             map((res) => ({ page, $: load(res.data) })),
           );
 
-      return getPage(1)
-        .pipe(
-          expand(({ page, $ }) => {
-            const hasNext = $('.pg_num a[href]')
-              .toArray()
-              .some((anchor) => {
-                const next = $(anchor)
-                  .attr('href')
-                  ?.match(/[?&]GotoPage=(\d+)/)?.[1];
-                return next !== undefined && Number(next) > page;
-              });
-            if (!hasNext) return EMPTY;
-            if (page >= 1000) {
-              return throwError(
-                () => new Error('Notice pagination exceeded 1000 pages'),
-              );
-            }
-            return getPage(page + 1);
-          }, 1),
-          map(({ $ }) => $('table > tbody > tr')),
-          concatMap(($) => $.toArray().map((value: any) => load(value))),
-          map(($) => {
-            const href = $('td').eq(2).find('a').attr('href');
-            const no = href?.match(/no=([^&]+)/)?.[1];
-            if (!no) return null;
-            return {
-              title: $('td').eq(2).text().trim(),
-              link: `${this.targetUrl}?mode=V&no=${no}&GotoPage=1`,
-              author: $('td').eq(3).text().trim(),
-              category: $('td').eq(1).text().trim(),
-              createdAt: $('td').eq(5).text().trim(),
-              pinned: $('td').eq(0).text().trim() === '공지',
-            };
-          }),
-          filter((meta): meta is NonNullable<typeof meta> => meta !== null),
-        )
-        .pipe(
-          map((meta) => ({
-            id: Number.parseInt(meta.link.split('no=')[1].split('&')[0]),
-            ...meta,
-          })),
-          distinct(({ id }) => id),
-          // Pinned notices precede ordinary notices; include the 50th ordinary notice.
-          takeWhile((meta) => meta.pinned || ++ordinaryCount < 50, true),
-          map(({ pinned, ...meta }) => meta),
-          catchError((err) => {
-            this.logger.error(err);
-            return throwError(() => new Error(err));
-          }),
-        );
+      return getPage(1).pipe(
+        expand(({ page, $ }) => {
+          const hasNext = $('.pg_num a[href]')
+            .toArray()
+            .some((anchor) => {
+              const next = $(anchor)
+                .attr('href')
+                ?.match(/[?&]GotoPage=(\d+)/)?.[1];
+              return next !== undefined && Number(next) > page;
+            });
+          return hasNext ? getPage(page + 1) : EMPTY;
+        }, 1),
+        concatMap(({ $ }) =>
+          $('table > tbody > tr')
+            .toArray()
+            .map((value: any) => load(value)),
+        ),
+        map(($) => {
+          const href = $('td').eq(2).find('a').attr('href');
+          const no = href?.match(/no=([^&]+)/)?.[1];
+          if (!no) return null;
+          return {
+            id: Number.parseInt(no, 10),
+            title: $('td').eq(2).text().trim(),
+            link: `${this.targetUrl}?mode=V&no=${no}&GotoPage=1`,
+            author: $('td').eq(3).text().trim(),
+            category: $('td').eq(1).text().trim(),
+            createdAt: $('td').eq(5).text().trim(),
+            pinned: $('td').eq(0).text().trim() === '공지',
+          };
+        }),
+        filter((meta): meta is NonNullable<typeof meta> => meta !== null),
+        distinct(({ id }) => id),
+        // Pinned notices precede ordinary notices; include the 50th ordinary notice.
+        takeWhile((meta) => meta.pinned || ++ordinaryCount < 50, true),
+        map(({ pinned, ...meta }) => meta),
+        catchError((err) => {
+          this.logger.error(err);
+          return throwError(() => new Error(err));
+        }),
+      );
     });
   }
 
