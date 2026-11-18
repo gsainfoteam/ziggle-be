@@ -1,7 +1,10 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { toHttpException } from '@infoteam/account-nest';
 import { AuthRepository } from './auth.repository';
 import { JwtTokenType } from './types/jwtToken.type';
+import { AccountService } from './account';
 import { InfoteamIdpService } from '@lib/infoteam-idp';
+import { LoginReq } from './dto/req/sessionReq.dto';
 import { Loggable } from '@lib/logger/decorator/loggable';
 import { CustomConfigService } from '@lib/custom-config';
 import { JwtService } from '@nestjs/jwt';
@@ -20,6 +23,7 @@ export class AuthService {
   private readonly refreshTokenExpire: number;
   constructor(
     private readonly customConfigService: CustomConfigService,
+    private readonly accountService: AccountService,
     private readonly infoteamIdpService: InfoteamIdpService,
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
@@ -30,16 +34,36 @@ export class AuthService {
     );
   }
 
-  async login(auth: string): Promise<JwtTokenType> {
-    const idpToken = auth.split(' ')[1];
+  async login(body: LoginReq): Promise<JwtTokenType> {
+    const { user: idpUser } = await this.accountService
+      .loginWithCode({
+        code: body.code,
+        codeVerifier: body.code_verifier,
+        redirectUri: body.redirect_uri,
+        nonce: body.nonce,
+        iss: body.iss,
+      })
+      .catch(toHttpException);
+    const user = await this.authRepository.findUserOrCreate({
+      uuid: idpUser.sub,
+      name: idpUser.name,
+      email: idpUser.email,
+      picture: idpUser.picture ?? null,
+    });
+    const tokens = await this.issueTokens(user.uuid);
+    return tokens;
+  }
+
+  /** shortcut: app versions released before the account SDK still send an IdP access token; remove once they are gone. */
+  async loginWithIdpToken(authorization: string): Promise<JwtTokenType> {
+    const idpToken = authorization.split(' ')[1];
     const userinfo = await this.infoteamIdpService.getUserInfo(idpToken);
     const user = await this.authRepository
       .findUserOrCreate(userinfo)
       .catch(() => {
         throw new UnauthorizedException();
       });
-    const tokens = await this.issueTokens(user.uuid);
-    return tokens;
+    return this.issueTokens(user.uuid);
   }
 
   /**

@@ -14,12 +14,22 @@ import ms, { StringValue } from 'ms';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { AdminGuard } from './guard/admin.guard';
+import { AccountModule } from './account';
 
 @Module({
   imports: [
     CustomConfigModule,
     PrismaModule,
     InfoteamIdpModule,
+    AccountModule.forRootAsync({
+      imports: [CustomConfigModule],
+      inject: [CustomConfigService],
+      useFactory: (customConfigService: CustomConfigService) => ({
+        issuer: customConfigService.IDP_BASE_URL,
+        clientId: customConfigService.CLIENT_ID,
+        clientSecret: customConfigService.CLIENT_SECRET,
+      }),
+    }),
     LoggerModule,
     JwtModule.registerAsync({
       imports: [CustomConfigModule],
