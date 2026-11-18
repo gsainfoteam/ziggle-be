@@ -5,7 +5,6 @@ import {
   firstValueFrom,
   identity,
   map,
-  take,
   timeout,
   toArray,
 } from 'rxjs';
@@ -28,7 +27,6 @@ async function bootstrap() {
         .get(CrawlerService)
         .getNoticeList()
         .pipe(
-          take(100),
           timeout(60e3),
           concatMap((meta) =>
             app
